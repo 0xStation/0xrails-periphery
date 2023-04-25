@@ -1,14 +1,29 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "openzeppelin-contracts/contracts/access/Ownable.sol";
+import "openzeppelin-contracts/contracts/utils/Strings.sol";
 
-contract Renderer is UUPSUpgradeable {
-    string baseURI;
+contract Renderer {
+    using Strings for uint256;
 
-    constructor() {
-        baseURI = "token.station.express/api/v1/metadata/";
+    string public baseURI;
+
+    constructor(string memory _baseURI) {
+        baseURI = _baseURI;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override {}
+    function updateBaseURI(string memory uri) external {
+        baseURI = uri;
+    }
+
+    function tokenURI(uint256 tokenId) external view returns (string memory) {
+        return string(
+            abi.encodePacked(baseURI, "?contractAddress=", toString(msg.sender), "&tokenId=", Strings.toString(tokenId))
+        );
+    }
+
+    function toString(address addr) internal pure returns (string memory) {
+        return Strings.toHexString(uint160(addr), 20);
+    }
 }
