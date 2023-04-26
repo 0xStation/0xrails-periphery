@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-contract BadgeStorageV0 {}
+import "forge-std/Test.sol";
+
+contract DemoTeset is Test {}
