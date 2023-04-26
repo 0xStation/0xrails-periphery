@@ -1,0 +1,36 @@
+{
+  "transactions": [
+    {
+      "hash": "0xa7e5cbb64006a7a1b804ef1576c2bee9e63cbf64a9f8c070f7b82a9e732122ae",
+      "transactionType": "CALL",
+      "contractName": null,
+      "contractAddress": "0xf611ddA769F29BB0d76B2780647f224d89E5194D",
+      "function": null,
+      "arguments": null,
+      "rpc": "https://polygon-mainnet.g.alchemy.com/v2/E_3nprhA_RTEkMN-TRJsFRKxYD1k46oQ",
+      "transaction": {
+        "type": "0x02",
+        "from": "0x016562aa41a8697720ce0943f003141f5deae006",
+        "to": "0xf611dda769f29bb0d76b2780647f224d89e5194d",
+        "gas": "0xb56f",
+        "value": "0x0",
+        "data": "0xf2fde38b000000000000000000000000bb942519a1339992630b13c3252f04fcb09d4841",
+        "nonce": "0x5",
+        "accessList": []
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [],
+  "libraries": [],
+  "pending": [
+    "0xa7e5cbb64006a7a1b804ef1576c2bee9e63cbf64a9f8c070f7b82a9e732122ae"
+  ],
+  "path": "/Users/cswenberg/Code/station/tokens-v1/broadcast/Deploy.s.sol/137/run-latest.json",
+  "returns": {},
+  "timestamp": 1682518356,
+  "chain": 137,
+  "multi": false,
+  "commit": "8d5756d"
+}

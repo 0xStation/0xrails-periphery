@@ -1,0 +1,1 @@
+forge create --rpc-url $POLYGON_RPC_URL src/badge/Badge.sol:Badge --private-key $PRIVATE_KEY --verify --chain-id 137 --api-key $POLYSCAN_API_KEY

@@ -1,0 +1,41 @@
+{
+  "transactions": [
+    {
+      "hash": "0xec3f5a906ecccf22757bc16d0f347f6cd9c62c7152aab66697d692ed44adaaea",
+      "transactionType": "CALL",
+      "contractName": null,
+      "contractAddress": "0x83140Ce709401cd069c822Da74C9167335D5cBb8",
+      "function": "init(address,address,string,string)",
+      "arguments": [
+        "0x016562aA41A8697720ce0943F003141f5dEAe006",
+        "0x06507C449B1E8EBB8247f44b715F9Fe4E51B365A",
+        "Station Social Badges",
+        "SOCIAL"
+      ],
+      "rpc": "https://eth-goerli.alchemyapi.io/v2/ZJIj3ytrFaWioVp550EyzD4MR9q5VClg",
+      "transaction": {
+        "type": "0x02",
+        "from": "0x7ff6363cd3a4e7f9ece98d78dd3c862bace2163d",
+        "to": "0x83140ce709401cd069c822da74c9167335d5cbb8",
+        "gas": "0x2c134",
+        "value": "0x0",
+        "data": "0x4d91d7d9000000000000000000000000016562aa41a8697720ce0943f003141f5deae00600000000000000000000000006507c449b1e8ebb8247f44b715f9fe4e51b365a000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000001553746174696f6e20536f6369616c2042616467657300000000000000000000000000000000000000000000000000000000000000000000000000000000000006534f4349414c0000000000000000000000000000000000000000000000000000",
+        "nonce": "0x17",
+        "accessList": []
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [],
+  "libraries": [],
+  "pending": [
+    "0xec3f5a906ecccf22757bc16d0f347f6cd9c62c7152aab66697d692ed44adaaea"
+  ],
+  "path": "/Users/cswenberg/Code/station/tokens-v1/broadcast/Deploy.s.sol/5/run-latest.json",
+  "returns": {},
+  "timestamp": 1682510827,
+  "chain": 5,
+  "multi": false,
+  "commit": "8d5756d"
+}
