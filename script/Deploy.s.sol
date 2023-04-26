@@ -14,15 +14,16 @@ contract Deploy is Script {
 
         address owner = 0x016562aA41A8697720ce0943F003141f5dEAe006;
 
-        // address renderer = address(new Renderer(owner, "https://token.station.express/api/v1/nftMetadata"));
-        // address badgeImpl = address(new Badge());
+        address renderer = address(new Renderer(owner, "https://token.station.express/api/v1/nftMetadata"));
+        address badgeImpl = address(new Badge());
+
+        bytes memory initData =
+            abi.encodeWithSelector(Badge(badgeImpl).init.selector, owner, renderer, "Friends of Station", "FRIENDS");
+        address badgeProxy = address(new ERC1967Proxy(badgeImpl, initData));
 
         // address badgeImpl = 0xe3c8a875D02F78C0E7F887599ad5e7fc2C33da02;
-        // address badgeProxy = address(new ERC1967Proxy(badgeImpl, ""));
-
-        address badgeProxy = 0xf611ddA769F29BB0d76B2780647f224d89E5194D;
+        // address badgeProxy = 0xf611ddA769F29BB0d76B2780647f224d89E5194D;
         // address renderer = 0xadd4a6bBb15B27dAb50fd3382a1C68F8BcE51cd1;
-        // Badge(badgeProxy).init(owner, renderer, "Friends of Station", "FRIENDS");
         Badge(badgeProxy).transferOwnership(0xBb942519A1339992630b13c3252F04fCB09D4841);
     }
 }
