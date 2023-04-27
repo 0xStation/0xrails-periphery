@@ -1,38 +1,56 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
-import "solmate/src/tokens/ERC721.sol";
+import "openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "openzeppelin-contracts-upgradeable/contracts/token/ERC721/ERC721Upgradeable.sol";
+import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 import "../lib/renderer/IRenderer.sol";
-import "./IMebership.sol";
 import "./storage/MembershipStorageV0.sol";
+import "./IMembership.sol";
 
-contract Membership is IMembership, Initializable, UUPSUpgradeable, Ownable, ERC721, MembershipStorageV0 {
-    function init(address _owner, address _renderer, string memory _name, string memory _symbol) external initializer {
-        _transferOwnership(_owner);
-        __ERC721_init(_name, _symbol);
-        renderer = _renderer;
-        emit UpdatedRenderer(_renderer);
-    }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+ contract Membership is IMembership, Initializable, UUPSUpgradeable, ERC721Upgradeable, Ownable, MembershipStorageV0 {
+  ///                                                          ///
+  ///                         INITIALIZER                      ///
+  ///                                                          ///
 
-    function tokenURI(uint256 id) public view override returns (string memory) {
-        return IRenderer(renderer).tokenURI(id);
-    }
+  /// @dev Initializes the ERC721 Token.
+  /// @param owner_ The address to transfer ownership to.
+  /// @param renderer_ The address of the renderer.
+  /// @param name_ The name of the token.
+  /// @param symbol_ The encoded function call
+  function initialize(address owner_, address renderer_, string memory name_, string memory symbol_) public initializer {
+      _transferOwnership(owner_);
+      renderer = renderer_;
+      __ERC721_init(name_, symbol_);
+      emit UpdatedRenderer(renderer_);
+  }
 
-    function updateRenderer(address _renderer) external onlyOwner {
-        renderer = _renderer;
-        emit UpdatedRenderer(_renderer);
-    }
+  ///                                                          ///
+  ///                        METHODS                           ///
+  ///                                                          ///
 
-    function mintTo(address recipient, uint256 tokenId) external onlyOwner {
-        _mint(recipient, tokenId);
-    }
+  function updateRenderer(address _renderer) external onlyOwner {
+      renderer = _renderer;
+      emit UpdatedRenderer(_renderer);
+  }
 
-    function burn(uint256 tokenId) external {
-        _burn(tokenId);
-    }
+  function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
+  function mintTo(address recipient, uint256 tokenId) external onlyOwner {
+      _mint(recipient, tokenId);
+  }
+
+  function burn(uint256 tokenId, uint256 amount) external onlyOwner {
+
+  }
+
+  function _msgData() internal pure override(ContextUpgradeable, Context) returns (bytes calldata) {
+      return msg.data;
+  }
+
+  function _msgSender() internal view override(ContextUpgradeable, Context) returns (address) {
+      return msg.sender;
+  }
 }
