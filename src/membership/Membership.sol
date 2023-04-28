@@ -3,14 +3,17 @@ pragma solidity ^0.8.13;
 
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 import "openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "openzeppelin-contracts-upgradeable/contracts/token/ERC721/ERC721Upgradeable.sol";
+import "solmate/src/tokens/ERC721.sol";
 import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 import "../lib/renderer/IRenderer.sol";
 import "./storage/MembershipStorageV0.sol";
 import "./IMembership.sol";
 
 
- contract Membership is IMembership, Initializable, UUPSUpgradeable, ERC721Upgradeable, Ownable, MembershipStorageV0 {
+ contract Membership is IMembership, Initializable, UUPSUpgradeable, Ownable, ERC721, MembershipStorageV0 {
+
+  constructor() ERC721("", "") {}
+
   ///                                                          ///
   ///                         INITIALIZER                      ///
   ///                                                          ///
@@ -23,7 +26,8 @@ import "./IMembership.sol";
   function initialize(address owner_, address renderer_, string memory name_, string memory symbol_) public initializer {
       _transferOwnership(owner_);
       renderer = renderer_;
-      __ERC721_init(name_, symbol_);
+      name = name_;
+      symbol = symbol_;
       emit UpdatedRenderer(renderer_);
   }
 
@@ -37,7 +41,7 @@ import "./IMembership.sol";
   }
 
   function tokenURI(uint256 id) public view override returns (string memory) {
-      return IRenderer(renderer).tokenURI(id);
+    return IRenderer(renderer).tokenURI(id);
   }
 
   function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
@@ -46,15 +50,7 @@ import "./IMembership.sol";
       _mint(recipient, tokenId);
   }
 
-  function burn(uint256 tokenId, uint256 amount) external onlyOwner {
-
-  }
-
-  function _msgData() internal pure override(ContextUpgradeable, Context) returns (bytes calldata) {
-      return msg.data;
-  }
-
-  function _msgSender() internal view override(ContextUpgradeable, Context) returns (address) {
-      return msg.sender;
+  function burnFrom(uint256 tokenId) external onlyOwner {
+    _burn(tokenId);
   }
 }
