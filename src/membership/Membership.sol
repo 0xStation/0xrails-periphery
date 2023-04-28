@@ -36,6 +36,10 @@ import "./IMembership.sol";
       emit UpdatedRenderer(_renderer);
   }
 
+  function tokenURI(uint256 id) public view override returns (string memory) {
+      return IRenderer(renderer).tokenURI(id);
+  }
+
   function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
   function mintTo(address recipient, uint256 tokenId) external onlyOwner {
