@@ -7,16 +7,13 @@ import "solmate/src/tokens/ERC721.sol";
 import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 import "../lib/renderer/IRenderer.sol";
 import "./storage/MembershipStorageV0.sol";
+import "../lib/ERC5058/ERC5058.sol";
 import "./IMembership.sol";
 
 
- contract Membership is IMembership, Initializable, UUPSUpgradeable, Ownable, ERC721, MembershipStorageV0 {
+ contract Membership is IMembership, Initializable, UUPSUpgradeable, Ownable, ERC5058, MembershipStorageV0 {
 
   constructor() ERC721("", "") {}
-
-  ///                                                          ///
-  ///                         INITIALIZER                      ///
-  ///                                                          ///
 
   /// @dev Initializes the ERC721 Token.
   /// @param owner_ The address to transfer ownership to.
@@ -30,10 +27,6 @@ import "./IMembership.sol";
       symbol = symbol_;
       emit UpdatedRenderer(renderer_);
   }
-
-  ///                                                          ///
-  ///                        METHODS                           ///
-  ///                                                          ///
 
   function updateRenderer(address _renderer) external onlyOwner {
       renderer = _renderer;
