@@ -21,7 +21,7 @@ contract Badge is IBadge, Initializable, UUPSUpgradeable, Ownable, ERC1155, Badg
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function uri(uint256 id) public view override returns (string memory) {
-        return IRenderer(renderer).tokenURI(id);
+      return IRenderer(renderer).tokenURI(id);
     }
 
     function updateRenderer(address _renderer) external onlyOwner {

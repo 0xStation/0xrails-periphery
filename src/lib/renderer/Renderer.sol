@@ -21,11 +21,15 @@ contract Renderer is IRenderer, Ownable {
     }
 
     function tokenURI(uint256 tokenId) external view returns (string memory) {
+      uint256 chainId = block.chainid;
+
         return string(
             abi.encodePacked(
                 baseURI,
                 "?contractAddress=",
                 Strings.toHexString(uint160(msg.sender), 20),
+                "&chainId=",
+                Strings.toString(chainId),
                 "&tokenId=",
                 Strings.toString(tokenId)
             )
