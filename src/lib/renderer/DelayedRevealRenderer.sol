@@ -10,10 +10,13 @@ contract DelayedRevealRenderer is IRenderer, Ownable {
 
     bool public revealed;
     string public baseURI;
+    string public preRevealedContentHash;
+    mapping (uint256 => string) private contentHashes;
 
-    constructor(address _owner, string memory _baseURI) {
+    constructor(address _owner, string memory _baseURI, string memory _prePrevealedContentHash) {
         _transferOwnership(_owner);
         baseURI = _baseURI;
+        preRevealedContentHash = _prePrevealedContentHash;
         revealed = false;
     }
 
@@ -26,19 +29,24 @@ contract DelayedRevealRenderer is IRenderer, Ownable {
         emit UpdatedBaseURI(_baseURI);
     }
 
+    function setContentHash(uint256 tokenId, string memory contentHash) external onlyOwner {
+        contentHashes[tokenId] = contentHash;
+    }
+
     function tokenURI(uint256 tokenId) external view returns (string memory) {
-      string memory revealedParam = revealed ? "" : "&revealed=false";
-      return string(
+      if (!revealed) {
+        return string(
+            abi.encodePacked(
+                baseURI,
+                preRevealedContentHash
+            )
+        );
+      }
+       return string(
           abi.encodePacked(
               baseURI,
-              "?contractAddress=",
-              Strings.toHexString(uint160(msg.sender), 20),
-              "&chainId=",
-              Strings.toString(block.chainid),
-              "&tokenId=",
-              Strings.toString(tokenId),
-              revealedParam
+              contentHashes[tokenId]
           )
       );
-  }
+    }
 }
