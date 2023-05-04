@@ -51,7 +51,7 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
         _mint(recipient, tokenId);
     }
 
-    function burn(uint256 tokenId) external permitted(Operation.BURN) {
+    function burnFrom(uint256 tokenId) external permitted(Operation.BURN) {
         _burn(tokenId);
     }
 }
