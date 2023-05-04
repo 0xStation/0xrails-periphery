@@ -5,4 +5,5 @@ pragma solidity ^0.8.13;
 // interesting that they are not in solmate/1155
 contract MembershipStorageV0 {
     address public renderer;
+    uint256 public counter;
 }
