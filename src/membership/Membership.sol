@@ -48,7 +48,7 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function mintTo(address recipient) external permitted(Operation.MINT) {
-        _mint(recipient, counter++);
+        _mint(recipient, totalSupply++);
     }
 
     function burnFrom(uint256 tokenId) external permitted(Operation.BURN) {
