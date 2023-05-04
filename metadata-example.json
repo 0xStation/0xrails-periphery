@@ -1,0 +1,11 @@
+{
+  "description": "A test of delayed renderer.",
+  "image": "https://arweave.net/6aTigS11BHtE-ef3z6KkOoOjUYh1zYuxFcVzLBFe1UI/post.png",
+  "name": "Friend #1",
+  "attributes": [
+    {
+      "trait_type": "Friendliness",
+      "value": 10
+    }
+  ]
+}

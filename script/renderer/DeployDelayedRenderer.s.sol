@@ -7,9 +7,8 @@ import "../../src/lib/renderer/DelayedRevealRenderer.sol";
 contract Deploy is Script {
     function run() public {
         vm.startBroadcast();
-        string memory preRevealedContentHash = "Y9UUu06gXVKAo0FVuQME961OsGtctMcGzfroB94Qiig";
-        string memory ARWeavebaseURI = "ar://";
-        new DelayedRevealRenderer(msg.sender, ARWeavebaseURI, preRevealedContentHash);
+        string memory ARWeavebaseURI = "https://arweave.net/ubzo5fhIAPutLVa7Gj4cYKwhiwzU8pu1wzP3cbcjbXY/";
+        new DelayedRevealRenderer(msg.sender, ARWeavebaseURI);
         vm.stopBroadcast();
     }
 }

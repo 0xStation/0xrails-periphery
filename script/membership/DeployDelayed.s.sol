@@ -11,7 +11,7 @@ contract Deploy is Script {
 
     function run() public {
         vm.startBroadcast();
-        address delayed_renderer = 0xe458D8De66253DD8D934B71656e1EC4cE53dedA4;
+        address delayed_renderer = 0x4377183d9f9376E7DA270c3d103F0250A5ec803f;
         address membershipImpl = address(new Membership());
 
         bytes memory initData =

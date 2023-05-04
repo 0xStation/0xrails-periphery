@@ -23,60 +23,14 @@
       "additionalContracts": []
     }
   ],
-  "receipts": [
-    {
-      "transactionHash": "0x8f7eff7e71a7386bd251dadbc56ccb677d939c11445b0fdb25949a3b3c67fcbb",
-      "transactionIndex": "0x2",
-      "blockHash": "0x5946ab9d9fecbb293fd1c59fbce6b0e99e8af356e8e84cd6fcfa7516a4561266",
-      "blockNumber": "0x885e8c",
-      "from": "0xE7affDB964178261Df49B86BFdBA78E9d768Db6D",
-      "to": null,
-      "cumulativeGasUsed": "0xa8f58",
-      "gasUsed": "0x9eb48",
-      "contractAddress": "0x4377183d9f9376E7DA270c3d103F0250A5ec803f",
-      "logs": [
-        {
-          "address": "0x4377183d9f9376E7DA270c3d103F0250A5ec803f",
-          "topics": [
-            "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "0x000000000000000000000000e7affdb964178261df49b86bfdba78e9d768db6d"
-          ],
-          "data": "0x",
-          "blockHash": "0x5946ab9d9fecbb293fd1c59fbce6b0e99e8af356e8e84cd6fcfa7516a4561266",
-          "blockNumber": "0x885e8c",
-          "transactionHash": "0x8f7eff7e71a7386bd251dadbc56ccb677d939c11445b0fdb25949a3b3c67fcbb",
-          "transactionIndex": "0x2",
-          "logIndex": "0x0",
-          "removed": false
-        },
-        {
-          "address": "0x4377183d9f9376E7DA270c3d103F0250A5ec803f",
-          "topics": [
-            "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
-            "0x000000000000000000000000e7affdb964178261df49b86bfdba78e9d768db6d",
-            "0x000000000000000000000000e7affdb964178261df49b86bfdba78e9d768db6d"
-          ],
-          "data": "0x",
-          "blockHash": "0x5946ab9d9fecbb293fd1c59fbce6b0e99e8af356e8e84cd6fcfa7516a4561266",
-          "blockNumber": "0x885e8c",
-          "transactionHash": "0x8f7eff7e71a7386bd251dadbc56ccb677d939c11445b0fdb25949a3b3c67fcbb",
-          "transactionIndex": "0x2",
-          "logIndex": "0x1",
-          "removed": false
-        }
-      ],
-      "status": "0x1",
-      "logsBloom": "0x00000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000001000000000000000000000020000000000000000000800000000000000000000000000000000400000000000000000000000000000000000000000000000000000000004100000000000000000000000000000000000000000000000000100020000000000000000000000000001000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000",
-      "type": "0x2",
-      "effectiveGasPrice": "0xb522331b"
-    }
-  ],
+  "receipts": [],
   "libraries": [],
-  "pending": [],
+  "pending": [
+    "0x8f7eff7e71a7386bd251dadbc56ccb677d939c11445b0fdb25949a3b3c67fcbb"
+  ],
   "path": "/Users/mcgingras/Projects/0xstation/tokens-v1/broadcast/DeployDelayedRenderer.s.sol/5/run-latest.json",
   "returns": {},
-  "timestamp": 1683153254,
+  "timestamp": 1683153241,
   "chain": 5,
   "multi": false,
   "commit": "672e70b"

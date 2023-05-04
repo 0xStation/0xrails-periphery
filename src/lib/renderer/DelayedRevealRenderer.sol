@@ -3,49 +3,47 @@ pragma solidity ^0.8.13;
 
 import "openzeppelin-contracts/contracts/utils/Strings.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
-import "./IRenderer.sol";
+import "./IDelayedRevealRenderer.sol";
 
-contract DelayedRevealRenderer is IRenderer, Ownable {
+contract DelayedRevealRenderer is IDelayedRevealRenderer, Ownable {
     using Strings for uint256;
 
-    bool public revealed;
-    string public baseURI;
-    string public preRevealedContentHash;
-    mapping (uint256 => string) private contentHashes;
+    mapping(address => bool) public revealed;
+    mapping(address => string) public baseURIs;
 
-    constructor(address _owner, string memory _baseURI, string memory _prePrevealedContentHash) {
+    constructor(address _owner) {
         _transferOwnership(_owner);
-        baseURI = _baseURI;
-        preRevealedContentHash = _prePrevealedContentHash;
-        revealed = false;
     }
 
-    function reveal() external onlyOwner {
-        revealed = true;
+    function reveal(address token) external onlyOwner {
+        require(msg.sender == Ownable(token).owner(), "NOT_OWNER");
+        revealed[token] = true;
+        emit Revealed(token);
     }
 
-    function updateBaseURI(string memory _baseURI) external onlyOwner {
-        baseURI = _baseURI;
-        emit UpdatedBaseURI(_baseURI);
+    function updateBaseURI(address token, string memory _baseURI) external onlyOwner {
+        require(msg.sender == Ownable(token).owner(), "NOT_OWNER");
+        baseURIs[token] = _baseURI;
+        emit UpdatedBaseURI(token, _baseURI);
     }
 
-    function setContentHash(uint256 tokenId, string memory contentHash) external onlyOwner {
-        contentHashes[tokenId] = contentHash;
-    }
+    function tokenURI(address token, uint256 tokenId) external view returns (string memory) {
+      bool isRevealed = revealed[token];
+      string memory baseURI = baseURIs[token];
 
-    function tokenURI(uint256 tokenId) external view returns (string memory) {
-      if (!revealed) {
+      if (!isRevealed) {
         return string(
             abi.encodePacked(
                 baseURI,
-                preRevealedContentHash
+                "pre.json"
             )
         );
       }
        return string(
           abi.encodePacked(
               baseURI,
-              contentHashes[tokenId]
+              Strings.toString(tokenId),
+              ".json"
           )
       );
     }
