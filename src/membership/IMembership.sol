@@ -6,5 +6,5 @@ interface IMembership {
 
     function updateRenderer(address _renderer) external;
     function mintTo(address recipient, uint256 tokenId) external;
-    function burnFrom(uint256 tokenId) external;
+    function burn(uint256 tokenId) external;
 }
