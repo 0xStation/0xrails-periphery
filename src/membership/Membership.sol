@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "openzeppelin-contracts/contracts/access/Ownable.sol";
+import "openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
 import "openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "solmate/src/tokens/ERC721.sol";
-import "openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
 import "../lib/renderer/IRenderer.sol";
+import "../lib/Permissions.sol";
 import "./storage/MembershipStorageV0.sol";
 import "./IMembership.sol";
 
-contract Membership is IMembership, Initializable, UUPSUpgradeable, Ownable, ERC721, MembershipStorageV0 {
+contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions, ERC721, MembershipStorageV0 {
     constructor() ERC721("", "") {}
 
     ///                                                          ///
@@ -47,11 +47,11 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Ownable, ERC
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    function mintTo(address recipient, uint256 tokenId) external onlyOwner {
-        _mint(recipient, tokenId);
+    function mintTo(address recipient) external permitted(Operation.MINT) {
+        _mint(recipient, totalSupply++);
     }
 
-    function burnFrom(uint256 tokenId) external onlyOwner {
+    function burnFrom(uint256 tokenId) external permitted(Operation.BURN) {
         _burn(tokenId);
     }
 }
