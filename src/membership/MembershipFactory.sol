@@ -3,7 +3,8 @@ pragma solidity ^0.8.13;
 
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 import "openzeppelin-contracts/contracts/security/Pausable.sol";
-import "openzeppelin-contracts/contracts/proxy/Clones.sol";
+import "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
 import "./IMembership.sol";
 
 contract MembershipFactory is Ownable, Pausable {
@@ -16,14 +17,15 @@ contract MembershipFactory is Ownable, Pausable {
         _transferOwnership(_owner);
     }
 
-    /// @notice create a new Membership via OZ Clones
+    /// @notice create a new Membership via ERC1967Proxy
     function create(address owner, address renderer, string memory name, string memory symbol)
         external
         whenNotPaused
         returns (address membership)
     {
-        membership = Clones.clone(template);
-        IMembership(membership).initialize(owner, renderer, name, symbol);
+        bytes memory initData =
+            abi.encodeWithSelector(IMembership(template).initialize.selector, owner, renderer, name, symbol);
+        membership  = address(new ERC1967Proxy(template, initData));
 
         emit MembershipCreated(membership);
     }
