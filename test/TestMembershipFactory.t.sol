@@ -6,7 +6,7 @@ import "../src/lib/renderer/Renderer.sol";
 import "../src/membership/Membership.sol";
 import "../src/membership/MembershipFactory.sol";
 
-contract Blank is Test {
+contract MembershipFactoryTest is Test {
   address public membershipFactory;
   address public rendererImpl;
   address public membershipImpl;
