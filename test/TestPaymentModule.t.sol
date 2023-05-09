@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import "../src/lib/renderer/Renderer.sol";
 import "../src/membership/Membership.sol";
 import "../src/membership/MembershipFactory.sol";
-import "../src/modules/Payment.sol";
+import "../src/modules/FixedETHPurchaseModule.sol";
 
 contract PaymentModuleTest is Test {
   address public membershipFactory;
@@ -18,7 +18,7 @@ contract PaymentModuleTest is Test {
     rendererImpl = address(new Renderer(address(1), "https://tokens.station.express"));
     membershipImpl = address(new Membership());
     membershipFactory = address(new MembershipFactory(membershipImpl, address(1)));
-    paymentModuleImpl = address(new PaymentModule());
+    paymentModuleImpl = address(new FixedETHPurchaseModule());
     vm.stopPrank();
   }
 
@@ -38,8 +38,8 @@ contract PaymentModuleTest is Test {
     startHoax(address(1));
     address membership = MembershipFactory(membershipFactory).create(address(1), rendererImpl, "Friends of Station", "FRIENDS");
     Membership membershipContract = Membership(membership);
-    PaymentModule paymentModule = PaymentModule(paymentModuleImpl);
-    paymentModule.addCollection(membership, 1);
+    FixedETHPurchaseModule paymentModule = FixedETHPurchaseModule(paymentModuleImpl);
+    paymentModule.setup(membership, membership, 1);
     membershipContract.addMintModule(paymentModuleImpl);
 
     paymentModule.mint{value: 1}(membership);

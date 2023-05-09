@@ -12,10 +12,6 @@ import "./IMembership.sol";
 contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions, ERC721, MembershipStorageV0 {
     constructor() ERC721("", "") {}
 
-    ///                                                          ///
-    ///                         INITIALIZER                      ///
-    ///                                                          ///
-
     /// @dev Initializes the ERC721 Token.
     /// @param owner_ The address to transfer ownership to.
     /// @param renderer_ The address of the renderer.
@@ -23,7 +19,7 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
     /// @param symbol_ The encoded function call
     function initialize(address owner_, address renderer_, string memory name_, string memory symbol_)
         public
-        initializer
+        initializer returns (bool success)
     {
         _transferOwnership(owner_);
         renderer = renderer_;
@@ -32,11 +28,9 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
         emit UpdatedRenderer(renderer_);
     }
 
-    ///                                                          ///
-    ///                        METHODS                           ///
-    ///                                                          ///
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    function updateRenderer(address _renderer) external onlyOwner {
+    function updateRenderer(address _renderer) external onlyOwner returns (bool success) {
         renderer = _renderer;
         emit UpdatedRenderer(_renderer);
     }
@@ -45,13 +39,11 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
         return IRenderer(renderer).tokenURI(id);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
-
-    function mintTo(address recipient) external permitted(Operation.MINT) {
+    function mintTo(address recipient) external permitted(Operation.MINT) returns (bool success) {
         _mint(recipient, totalSupply++);
     }
 
-    function burnFrom(uint256 tokenId) external permitted(Operation.BURN) {
+    function burnFrom(uint256 tokenId) external permitted(Operation.BURN) returns (bool success) {
         _burn(tokenId);
     }
 
