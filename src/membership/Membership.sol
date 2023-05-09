@@ -26,6 +26,7 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
         name = name_;
         symbol = symbol_;
         emit UpdatedRenderer(renderer_);
+        return true;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
@@ -33,6 +34,7 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
     function updateRenderer(address _renderer) external onlyOwner returns (bool success) {
         renderer = _renderer;
         emit UpdatedRenderer(_renderer);
+        return true;
     }
 
     function tokenURI(uint256 id) public view override returns (string memory) {
@@ -41,10 +43,12 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
 
     function mintTo(address recipient) external permitted(Operation.MINT) returns (bool success) {
         _mint(recipient, totalSupply++);
+        return true;
     }
 
     function burnFrom(uint256 tokenId) external permitted(Operation.BURN) returns (bool success) {
         _burn(tokenId);
+        return true;
     }
 
     function addMintModule (address _module) external onlyOwner {
