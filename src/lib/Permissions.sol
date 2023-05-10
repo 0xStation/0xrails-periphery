@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "openzeppelin-contracts/contracts/access/Ownable.sol";
+import {Owned} from "solmate/src/auth/Owned.sol";
 
 /// @notice Multi-role system managed by a singular owner with enums and bitmap packing
-/// @dev inspired by OZ's AccessControl
+/// @dev inspired by OZ's AccessControl and Solmate's Owned
 /// TODO: add supportsInterface compatibility
-contract Permissions is Ownable {
+abstract contract Permissions {
     /// @dev to remain backwards compatible, can only extend this list
     enum Operation {
         UPGRADE, // update proxy implementation & permits
@@ -16,8 +16,11 @@ contract Permissions is Ownable {
         RENDER // render nft metadata
     }
 
+    event OwnershipTransferred(address indexed user, address indexed newOwner);
     event Permit(address indexed account, bytes32 permissions);
 
+    // primary superadmin of the contract
+    address public owner;
     // accounts => 256 auth'd operations, each represented by their own bit
     mapping(address => bytes32) public permissions;
 
@@ -29,11 +32,22 @@ contract Permissions is Ownable {
 
     /// @dev make internal function for modifier to reduce copied code when re-using modifier
     function _checkPermit(Operation operation) internal view {
-        require(owner() == msg.sender || hasPermission(msg.sender, operation), "NOT_PERMITTED");
+        require(owner == msg.sender || hasPermission(msg.sender, operation), "NOT_PERMITTED");
     }
 
     function hasPermission(address account, Operation operation) public view virtual returns (bool) {
         return permissions[account] & _operationBit(operation) != 0;
+    }
+
+    function transferOwnership(address newOwner) external {
+        require(owner == msg.sender, "NOT_PERMITTED");
+        _transferOwnership(newOwner);
+    }
+
+    function _transferOwnership(address newOwner) internal {
+        address oldOwner = owner;
+        owner = newOwner;
+        emit OwnershipTransferred(oldOwner, newOwner);
     }
 
     function permit(address account, bytes32 _permissions) external permitted(Operation.UPGRADE) {
