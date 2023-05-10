@@ -7,51 +7,58 @@ import "openzeppelin-contracts/contracts/access/Ownable.sol";
 /// @dev inspired by OZ's AccessControl
 /// TODO: add supportsInterface compatibility
 contract Permissions is Ownable {
+    /// @dev to remain backwards compatible, can only extend this list
     enum Operation {
-        MINT,
-        BURN
+        UPGRADE, // update proxy implementation & permits
+        MINT, // mint new tokens
+        BURN, // burn existing tokens
+        TRANSFER, // transfer existing tokens
+        RENDER // render nft metadata
     }
 
-    event PermissionGranted(address indexed account, Operation indexed operation);
-    event PermissionRevoked(address indexed account, Operation indexed operation);
+    event Permit(address indexed account, bytes32 permissions);
 
     // accounts => 256 auth'd operations, each represented by their own bit
-    mapping(address => bytes32) internal permissions;
+    mapping(address => bytes32) public permissions;
 
     // check if sender is owner or has the permission for the operation
     modifier permitted(Operation operation) {
-        require(owner() == msg.sender || hasPermission(msg.sender, operation), "NOT_PERMITTED");
+        _checkPermit(operation);
         _;
+    }
+
+    /// @dev make internal function for modifier to reduce copied code when re-using modifier
+    function _checkPermit(Operation operation) internal view {
+        require(owner() == msg.sender || hasPermission(msg.sender, operation), "NOT_PERMITTED");
     }
 
     function hasPermission(address account, Operation operation) public view virtual returns (bool) {
         return permissions[account] & _operationBit(operation) != 0;
     }
 
-    function grantPermission(address account, Operation operation) external onlyOwner {
-        _grant(account, operation);
+    function permit(address account, bytes32 _permissions) external permitted(Operation.UPGRADE) {
+        _permit(account, _permissions);
     }
 
-    function revokePermission(address account, Operation operation) external onlyOwner {
-        _revoke(account, operation);
+    /// @dev setup module parameters atomically with enabling/disabling permissions
+    function permitAndSetup(address account, bytes32 _permissions, bytes calldata setupData)
+        external
+        permitted(Operation.UPGRADE)
+    {
+        _permit(account, _permissions);
+        (bool success,) = account.call(setupData);
+        require(success, "SETUP_FAILED");
     }
 
-    function _grant(address account, Operation operation) internal {
-        require(account != address(0), "ZERO_ADDRESS");
-        // bitwise OR with 1 bitshifted `operation` positions left
-        // result: `operation` index value = 1
-        permissions[account] |= _operationBit(operation);
-
-        emit PermissionGranted(account, operation);
+    function _permit(address account, bytes32 _permissions) internal {
+        permissions[account] = _permissions;
+        emit Permit(account, _permissions);
     }
 
-    function _revoke(address account, Operation operation) internal {
-        require(account != address(0), "ZERO_ADDRESS");
-        // bitwise AND with NOT(1 bitshifted `operation` positions left)
-        // result: `operation` index value = 0
-        permissions[account] &= ~_operationBit(operation);
-
-        emit PermissionRevoked(account, operation);
+    function permissionsValue(Operation[] memory operations) external pure returns (bytes32 value) {
+        for (uint256 i; i < operations.length; i++) {
+            value |= _operationBit(operations[i]);
+        }
     }
 
     function _operationBit(Operation operation) internal pure returns (bytes32) {
