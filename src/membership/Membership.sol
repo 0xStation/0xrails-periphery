@@ -48,7 +48,7 @@ contract Membership is IMembership, UUPSUpgradeable, Permissions, ERC721Upgradea
 
     function mintTo(address recipient) external permitted(Operation.MINT) returns (uint256 tokenId) {
         tokenId = ++totalSupply;
-        _mint(recipient, tokenId);
+        _safeMint(recipient, tokenId);
         return tokenId;
     }
 
