@@ -44,7 +44,10 @@ contract PaymentModuleTest is Test {
         Membership membershipContract = Membership(membership);
         FixedETHPurchaseModule paymentModule = FixedETHPurchaseModule(paymentModuleImpl);
         paymentModule.setup(membership, membership, price);
-        membershipContract.grantPermission(paymentModuleImpl, Permissions.Operation.MINT);
+
+        Permissions.Operation[] memory operations = new Permissions.Operation[](1);
+        operations[0] = Permissions.Operation.MINT;
+        membershipContract.permit(paymentModuleImpl, membershipContract.permissionsValue(operations));
 
         paymentModule.mint{value: price + fee}(membership);
 

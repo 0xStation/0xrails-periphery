@@ -18,13 +18,13 @@ contract Badge is IBadge, Initializable, UUPSUpgradeable, Permissions, ERC1155, 
         emit UpdatedRenderer(_renderer);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override permitted(Operation.UPGRADE) {}
 
     function uri(uint256 id) public view override returns (string memory) {
         return IRenderer(renderer).tokenURI(id);
     }
 
-    function updateRenderer(address _renderer) external onlyOwner returns (bool) {
+    function updateRenderer(address _renderer) external permitted(Operation.RENDER) returns (bool) {
         renderer = _renderer;
         emit UpdatedRenderer(_renderer);
         return true;

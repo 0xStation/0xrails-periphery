@@ -23,19 +23,22 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
         returns (bool success)
     {
         _transferOwnership(owner_);
-        renderer = renderer_;
+        _updateRenderer(renderer_);
         name = name_;
         symbol = symbol_;
-        emit UpdatedRenderer(renderer_);
         return true;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override permitted(Operation.UPGRADE) {}
 
-    function updateRenderer(address _renderer) external onlyOwner returns (bool success) {
+    function updateRenderer(address _renderer) external permitted(Operation.RENDER) returns (bool success) {
+        _updateRenderer(_renderer);
+        return true;
+    }
+
+    function _updateRenderer(address _renderer) internal {
         renderer = _renderer;
         emit UpdatedRenderer(_renderer);
-        return true;
     }
 
     function tokenURI(uint256 id) public view override returns (string memory) {
@@ -48,6 +51,12 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
     }
 
     function burnFrom(uint256 tokenId) external permitted(Operation.BURN) returns (bool success) {
+        _burn(tokenId);
+        return true;
+    }
+
+    function burn(uint256 tokenId) external returns (bool success) {
+        require(msg.sender == ownerOf(tokenId));
         _burn(tokenId);
         return true;
     }
