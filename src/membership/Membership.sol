@@ -12,8 +12,6 @@ import "./IMembership.sol";
 import {ITokenGuard} from "src/lib/guard/ITokenGuard.sol";
 
 contract Membership is IMembership, UUPSUpgradeable, Permissions, ERC721Upgradeable, MembershipStorageV0 {
-    address constant MAX_ADDRESS = 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF;
-
     constructor() {}
 
     /// @dev Initializes the ERC721 Token.
@@ -69,24 +67,20 @@ contract Membership is IMembership, UUPSUpgradeable, Permissions, ERC721Upgradea
         address guard;
         // MINT
         if (from == address(0)) {
-            guard = _guardFor(Operation.MINT);
+            guard = guards[Operation.MINT];
         }
         // BURN
         else if (to == address(0)) {
-            guard = _guardFor(Operation.BURN);
+            guard = guards[Operation.BURN];
         }
         // TRANSFER
         else {
-            guard = _guardFor(Operation.TRANSFER);
+            guard = guards[Operation.TRANSFER];
         }
 
         require(
             guard != MAX_ADDRESS && (guard == address(0) || ITokenGuard(guard).isAllowed(msg.sender, from, to, tokenId)),
             "NOT_ALLOWED"
         );
-    }
-
-    function _guardFor(Operation operation) internal view returns (address) {
-        return guards[uint8(operation)];
     }
 }
