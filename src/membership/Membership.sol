@@ -3,14 +3,15 @@ pragma solidity ^0.8.13;
 
 import "openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
 import "openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "solmate/src/tokens/ERC721.sol";
+import {ERC721Upgradeable} from "openzeppelin-contracts-upgradeable/contracts/token/ERC721/ERC721Upgradeable.sol";
+// import {ERC721} from "solmate/src/tokens/ERC721.sol";
 import "../lib/renderer/IRenderer.sol";
 import "../lib/Permissions.sol";
 import "./storage/MembershipStorageV0.sol";
 import "./IMembership.sol";
 
-contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions, ERC721, MembershipStorageV0 {
-    constructor() ERC721("", "") {}
+contract Membership is IMembership, UUPSUpgradeable, Permissions, ERC721Upgradeable, MembershipStorageV0 {
+    constructor() {}
 
     /// @dev Initializes the ERC721 Token.
     /// @param owner_ The address to transfer ownership to.
@@ -24,8 +25,7 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
     {
         _transferOwnership(owner_);
         _updateRenderer(renderer_);
-        name = name_;
-        symbol = symbol_;
+        __ERC721_init(name_, symbol_);
         return true;
     }
 
@@ -45,9 +45,10 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
         return IRenderer(renderer).tokenURI(id);
     }
 
-    function mintTo(address recipient) external permitted(Operation.MINT) returns (bool success) {
-        _mint(recipient, totalSupply++);
-        return true;
+    function mintTo(address recipient) external permitted(Operation.MINT) returns (uint256 tokenId) {
+        tokenId = ++totalSupply;
+        _mint(recipient, tokenId);
+        return tokenId;
     }
 
     function burnFrom(uint256 tokenId) external permitted(Operation.BURN) returns (bool success) {
