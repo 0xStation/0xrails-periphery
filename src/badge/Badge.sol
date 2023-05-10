@@ -24,20 +24,28 @@ contract Badge is IBadge, Initializable, UUPSUpgradeable, Permissions, ERC1155, 
         return IRenderer(renderer).tokenURI(id);
     }
 
-    function updateRenderer(address _renderer) external onlyOwner {
+    function updateRenderer(address _renderer) external onlyOwner returns (bool) {
         renderer = _renderer;
         emit UpdatedRenderer(_renderer);
+        return true;
     }
 
-    function mintTo(address recipient, uint256 tokenId) external permitted(Operation.MINT) {
+    function mintTo(address recipient, uint256 tokenId) external permitted(Operation.MINT) returns (bool) {
         _mint(recipient, tokenId, 1, "");
+        return true;
     }
 
-    function burnFrom(address account, uint256 tokenId, uint256 amount) external permitted(Operation.BURN) {
+    function burnFrom(address account, uint256 tokenId, uint256 amount)
+        external
+        permitted(Operation.BURN)
+        returns (bool)
+    {
         _burn(account, tokenId, amount);
+        return true;
     }
 
-    function burn(uint256 tokenId, uint256 amount) external {
+    function burn(uint256 tokenId, uint256 amount) external returns (bool) {
         _burn(msg.sender, tokenId, amount);
+        return true;
     }
 }

@@ -9,7 +9,10 @@ import "../../src/modules/FixedETHPurchaseModule.sol";
 contract Deploy is Script {
     function run() public {
         vm.startBroadcast();
-        new FixedETHPurchaseModule();
+
+        address owner = 0x016562aA41A8697720ce0943F003141f5dEAe006; // personal wallet
+        uint256 fee = 0.0007 ether;
+        new FixedETHPurchaseModule(owner, fee);
         vm.stopBroadcast();
     }
 }

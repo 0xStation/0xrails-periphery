@@ -19,7 +19,8 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
     /// @param symbol_ The encoded function call
     function initialize(address owner_, address renderer_, string memory name_, string memory symbol_)
         public
-        initializer returns (bool success)
+        initializer
+        returns (bool success)
     {
         _transferOwnership(owner_);
         renderer = renderer_;
@@ -49,9 +50,5 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
     function burnFrom(uint256 tokenId) external permitted(Operation.BURN) returns (bool success) {
         _burn(tokenId);
         return true;
-    }
-
-    function addMintModule (address _module) external onlyOwner {
-        _grant(_module, Operation.MINT);
     }
 }

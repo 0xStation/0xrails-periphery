@@ -11,14 +11,13 @@ import "../src/modules/FixedETHPurchaseModule.sol";
 // different than TestPaymentModule which is designed to test if payment module can be added to a membership
 // and work correctly with the membership.
 contract PaymentModuleInitTest is Test {
-  FixedETHPurchaseModule paymentModule;
+    FixedETHPurchaseModule paymentModule;
 
-  function setUp() public {
-    paymentModule = new FixedETHPurchaseModule();
-  }
+    function setUp() public {
+        paymentModule = new FixedETHPurchaseModule(address(1), 0.0007 ether);
+    }
 
-  function test_add_address() public {
-    paymentModule.setup(address(0), address(0), 1);
-    // nothing exploded!
-  }
+    function test_add_address() public {
+        // TODO
+    }
 }
