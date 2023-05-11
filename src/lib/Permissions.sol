@@ -64,11 +64,11 @@ abstract contract Permissions {
 
     /// @dev make internal function for modifier to reduce copied code when re-using modifier
     function _checkPermit(Operation operation) internal view {
-        require(owner == msg.sender || hasPermission(msg.sender, operation), "NOT_PERMITTED");
+        require(hasPermission(msg.sender, operation), "NOT_PERMITTED");
     }
 
     function hasPermission(address account, Operation operation) public view virtual returns (bool) {
-        return permissions[account] & _operationBit(operation) != 0;
+        return owner == account || permissions[account] & _operationBit(operation) != 0;
     }
 
     function permit(address account, bytes32 _permissions) external permitted(Operation.UPGRADE) {

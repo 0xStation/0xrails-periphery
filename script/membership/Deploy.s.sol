@@ -11,14 +11,14 @@ contract Deploy is Script {
 
     function run() public {
         vm.startBroadcast();
-        address frog_personal = 0x65A3870F48B5237f27f674Ec42eA1E017E111D63;
-        // latest renderer as of 4.28.23
-        // https://goerli.etherscan.io/address/0xbe38029bfc6641f32d42f5c01c4332c7fcdc5af9
-        address renderer = 0xBE38029BFC6641f32d42F5C01c4332C7fCDC5Af9;
+        address owner = 0x016562aA41A8697720ce0943F003141f5dEAe006;
+        // latest renderer as of 5.11.23
+        // https://goerli.etherscan.io/address/0xc0935a7284859199c016Aa4F66704CEB501013E6
+        address renderer = 0xC4748Fb528Bcf583144225e3F3d0b765B413383A;
         address membershipImpl = address(new Membership());
 
         bytes memory initData =
-            abi.encodeWithSelector(Membership(membershipImpl).initialize.selector, frog_personal, renderer, "Friends of Station", "FRIENDS");
+            abi.encodeWithSelector(Membership(membershipImpl).initialize.selector, owner, renderer, "6551 Squad", "TBA");
         new ERC1967Proxy(membershipImpl, initData);
         vm.stopBroadcast();
     }
