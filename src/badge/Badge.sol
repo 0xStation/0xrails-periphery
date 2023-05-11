@@ -57,4 +57,33 @@ contract Badge is IBadge, UUPSUpgradeable, ERC1155Upgradeable, Permissions, Badg
         _burn(msg.sender, tokenId, amount);
         return true;
     }
+
+    function _afterTokenTransfer(
+        address operator,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory
+    ) internal override {
+        address guard;
+        // MINT
+        if (from == address(0)) {
+            guard = guards[Operation.MINT];
+        }
+        // BURN
+        else if (to == address(0)) {
+            guard = guards[Operation.BURN];
+        }
+        // TRANSFER
+        else {
+            guard = guards[Operation.TRANSFER];
+        }
+
+        require(
+            guard != MAX_ADDRESS
+                && (guard == address(0) || ITokenGuard(guard).isAllowed(operator, from, to, ids, amounts)),
+            "NOT_ALLOWED"
+        );
+    }
 }
