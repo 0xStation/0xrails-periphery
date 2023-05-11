@@ -37,8 +37,8 @@ contract FixedETHPurchaseModule is Ownable {
 
         feeBalance += fee;
         balances[collection] += price;
-        (bool success) = IMembership(collection).mintTo(msg.sender);
-        require(success, "MINT_FAILED");
+        (uint256 tokenId) = IMembership(collection).mintTo(msg.sender);
+        require(tokenId > 0, "MINT_FAILED");
         emit Purchase(collection, msg.sender, price, fee);
     }
 

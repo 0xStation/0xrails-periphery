@@ -10,7 +10,7 @@ contract Example {
         // 2. update any local state
 
         // 3. mint
-        (bool success) = IMembership(membership).mintTo(msg.sender);
-        require(success, "MINT_FAILED");
+        (uint256 tokenId) = IMembership(membership).mintTo(msg.sender);
+        require(tokenId > 0, "MINT_FAILED");
     }
 }

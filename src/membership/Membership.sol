@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
-import "openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "solmate/src/tokens/ERC721.sol";
-import "../lib/renderer/IRenderer.sol";
-import "../lib/Permissions.sol";
-import "./storage/MembershipStorageV0.sol";
-import "./IMembership.sol";
+// interfaces
+import {IMembership} from "./IMembership.sol";
+import {ITokenGuard} from "src/lib/guard/ITokenGuard.sol";
+import {IRenderer} from "../lib/renderer/IRenderer.sol";
+// contracts
+import {UUPSUpgradeable} from "openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {ERC721Upgradeable} from "openzeppelin-contracts-upgradeable/contracts/token/ERC721/ERC721Upgradeable.sol";
+import {Permissions} from "../lib/Permissions.sol";
+import {MembershipStorageV0} from "./storage/MembershipStorageV0.sol";
 
-contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions, ERC721, MembershipStorageV0 {
-    constructor() ERC721("", "") {}
+contract Membership is IMembership, UUPSUpgradeable, ERC721Upgradeable, Permissions, MembershipStorageV0 {
+    constructor() {}
 
     /// @dev Initializes the ERC721 Token.
     /// @param owner_ The address to transfer ownership to.
@@ -24,8 +26,7 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
     {
         _transferOwnership(owner_);
         _updateRenderer(renderer_);
-        name = name_;
-        symbol = symbol_;
+        __ERC721_init(name_, symbol_);
         return true;
     }
 
@@ -45,9 +46,10 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
         return IRenderer(renderer).tokenURI(id);
     }
 
-    function mintTo(address recipient) external permitted(Operation.MINT) returns (bool success) {
-        _mint(recipient, totalSupply++);
-        return true;
+    function mintTo(address recipient) external permitted(Operation.MINT) returns (uint256 tokenId) {
+        tokenId = ++totalSupply;
+        _safeMint(recipient, tokenId);
+        return tokenId;
     }
 
     function burnFrom(uint256 tokenId) external permitted(Operation.BURN) returns (bool success) {
@@ -59,5 +61,26 @@ contract Membership is IMembership, Initializable, UUPSUpgradeable, Permissions,
         require(msg.sender == ownerOf(tokenId));
         _burn(tokenId);
         return true;
+    }
+
+    function _afterTokenTransfer(address from, address to, uint256 tokenId, uint256) internal override {
+        address guard;
+        // MINT
+        if (from == address(0)) {
+            guard = guards[Operation.MINT];
+        }
+        // BURN
+        else if (to == address(0)) {
+            guard = guards[Operation.BURN];
+        }
+        // TRANSFER
+        else {
+            guard = guards[Operation.TRANSFER];
+        }
+
+        require(
+            guard != MAX_ADDRESS && (guard == address(0) || ITokenGuard(guard).isAllowed(msg.sender, from, to, tokenId)),
+            "NOT_ALLOWED"
+        );
     }
 }
