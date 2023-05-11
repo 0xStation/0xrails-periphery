@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
-import "openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
-import {ERC721Upgradeable} from "openzeppelin-contracts-upgradeable/contracts/token/ERC721/ERC721Upgradeable.sol";
-// import {ERC721} from "solmate/src/tokens/ERC721.sol";
-import "../lib/renderer/IRenderer.sol";
-import "../lib/Permissions.sol";
-import "./storage/MembershipStorageV0.sol";
-import "./IMembership.sol";
+// interfaces
+import {IMembership} from "./IMembership.sol";
 import {ITokenGuard} from "src/lib/guard/ITokenGuard.sol";
+import {IRenderer} from "../lib/renderer/IRenderer.sol";
+// contracts
+import {UUPSUpgradeable} from "openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {ERC721Upgradeable} from "openzeppelin-contracts-upgradeable/contracts/token/ERC721/ERC721Upgradeable.sol";
+import {Permissions} from "../lib/Permissions.sol";
+import {MembershipStorageV0} from "./storage/MembershipStorageV0.sol";
 
-contract Membership is IMembership, UUPSUpgradeable, Permissions, ERC721Upgradeable, MembershipStorageV0 {
+contract Membership is IMembership, UUPSUpgradeable, ERC721Upgradeable, Permissions, MembershipStorageV0 {
     constructor() {}
 
     /// @dev Initializes the ERC721 Token.
