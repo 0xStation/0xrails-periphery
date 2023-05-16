@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import "forge-std/Test.sol";
 import {IMembership} from "../membership/IMembership.sol";
-import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
+import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 
 contract FixedStablecoinPurchaseModule is Ownable {
     // collection -> price in currency
@@ -31,10 +32,22 @@ contract FixedStablecoinPurchaseModule is Ownable {
         currency = _currency;
     }
 
-    function setup(address collection, address paymentCollector, uint256 price) external {
+    function permissionsValue(address[] memory enabledTokens) external view returns (bytes32 value) {
+        for (uint256 i; i < enabledTokens.length; i++) {
+            value |= _operationBit(enabledTokens[i]);
+        }
+    }
+
+    function _operationBit(address token) internal view returns (bytes32) {
+        uint8 key = stablecoinKey[token];
+        return bytes32(1 << uint8(key));
+    }
+
+    function setup(address collection, address paymentCollector, uint256 price, bytes32 enabled) external {
         require(msg.sender == collection || msg.sender == Ownable(collection).owner(), "NOT_ALLOWED");
         stablecoinPrices[collection] = price;
         paymentCollectors[collection] = paymentCollector;
+        enabledCoins[collection] = enabled;
     }
 
     function append(address token) external onlyOwner {
@@ -47,13 +60,16 @@ contract FixedStablecoinPurchaseModule is Ownable {
     }
 
     function mint(address collection, address token) external payable {
-        require(_stablecoinEnabled(collection, token), "TOKEN NOT SUPPORTED");
+        require(stablecoinEnabled(collection, token), "TOKEN NOT SUPPORTED");
         uint256 price = stablecoinPrices[collection];
-        uint256 totalCost = getMintAmount(token, price);
+        // reverts if approval amount is < totalCost
+        // uint256 totalCost = getMintAmount(token, price);
+        uint256 totalCost = price;
         require(msg.value >= fee, "MISSING FEE");
         feeBalance += fee;
-        IERC20(token).transfer(paymentCollectors[collection], totalCost);
+        IERC20(token).transferFrom(msg.sender, paymentCollectors[collection], totalCost);
         (uint256 tokenId) = IMembership(collection).mintTo(msg.sender);
+        console.log(tokenId);
         require(tokenId > 0, "MINT_FAILED");
         emit Purchase(collection, msg.sender, price, fee);
     }
@@ -70,21 +86,22 @@ contract FixedStablecoinPurchaseModule is Ownable {
         enabledCoins[collection] = _bitmap;
     }
 
-    function _stablecoinEnabled(address collection, address token) public view returns(bool) {
+    function stablecoinEnabled(address collection, address token) public view returns(bool) {
         bytes32 _bitmap = enabledCoins[collection];
         uint8 key = stablecoinKey[token];
-        uint256 bitmapUint = uint256(_bitmap);
-        return (bitmapUint & (1 << key)) != 0;
-
+        return (_bitmap & bytes32(1 << key)) != 0;
     }
 
-    function getMintAmount(address token, uint256 depositAmount) public view returns (uint256) {
-        uint256 tokenDecimals = IERC20(token).decimals();
-        return depositAmount * 10**(tokenDecimals);
-    }
+    // function getMintAmount(address token, uint256 depositAmount) public view returns (uint256) {
+    //     uint256 tokenDecimals = IERC20(token).decimals();
+    //     return depositAmount * 10**(tokenDecimals);
+    //     return depositAmount;
+    // }
 }
 
 interface IERC20 {
-  function transfer(address _to, uint256 _value) external returns (bool success);
+  function transferFrom(address _from, address _to, uint256 _value) external returns (bool success);
   function decimals() external view returns (uint8);
+  function balanceOf(address _owner) external view returns (uint256 balance);
+
 }

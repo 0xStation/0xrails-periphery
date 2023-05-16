@@ -3,7 +3,6 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "../src/lib/renderer/Renderer.sol";
-import "../src/membership/Membership.sol";
 import "../src/membership/MembershipFactory.sol";
 import "../src/modules/FixedETHPurchaseModule.sol";
 

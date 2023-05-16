@@ -48,7 +48,6 @@ contract PaymentModuleTest is Test {
         Permissions.Operation[] memory operations = new Permissions.Operation[](1);
         operations[0] = Permissions.Operation.MINT;
         membershipContract.permit(paymentModuleImpl, membershipContract.permissionsValue(operations));
-
         paymentModule.mint{value: price + fee}(membership);
 
         assertEq(membershipContract.ownerOf(1), address(1));
