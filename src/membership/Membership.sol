@@ -29,23 +29,6 @@ contract Membership is IMembership, UUPSUpgradeable, ERC721Upgradeable, Permissi
         __ERC721_init(newName, newSymbol);
     }
 
-    /// @notice Initializes the ERC1155 token and makes other setup state changes.
-    /// @param newOwner The address to transfer ownership to.
-    /// @param newRenderer The address of the renderer.
-    /// @param newName The name of the token.
-    /// @param newSymbol The symbol of the token.
-    /// @param setupCalls The calls to make on other functions to initialize additional state.
-    function initAndSetup(
-        address newOwner,
-        address newRenderer,
-        string calldata newName,
-        string calldata newSymbol,
-        bytes[] calldata setupCalls
-    ) external {
-        init(newOwner, newRenderer, newName, newSymbol);
-        batch(false, setupCalls); // non-atomic batch, setup calls allowed to fail to not undo state changes made by init
-    }
-
     function _authorizeUpgrade(address newImplementation) internal override permitted(Operation.UPGRADE) {}
 
     function updateRenderer(address _renderer) external permitted(Operation.RENDER) returns (bool success) {

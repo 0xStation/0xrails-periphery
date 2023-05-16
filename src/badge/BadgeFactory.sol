@@ -5,6 +5,7 @@ import "openzeppelin-contracts/access/Ownable.sol";
 import "openzeppelin-contracts/security/Pausable.sol";
 import "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "./IBadge.sol";
+import {Batch} from "src/lib/Batch.sol";
 
 contract BadgeFactory is Ownable, Pausable {
     address public template;
@@ -18,7 +19,7 @@ contract BadgeFactory is Ownable, Pausable {
 
     /// @notice create a new Badge via via ERC1967Proxy
     function create(address owner, address renderer, string memory name, string memory symbol)
-        external
+        public
         whenNotPaused
         returns (address badge)
     {
@@ -35,12 +36,9 @@ contract BadgeFactory is Ownable, Pausable {
         string memory name,
         string memory symbol,
         bytes[] calldata setupCalls
-    ) external whenNotPaused returns (address membership) {
-        bytes memory initData =
-            abi.encodeWithSelector(IBadge(template).initAndSetup.selector, owner, renderer, name, symbol, setupCalls);
-        membership = address(new ERC1967Proxy(template, initData));
-
-        emit BadgeCreated(membership);
+    ) external whenNotPaused returns (address badge, Batch.Result[] memory setupResults) {
+        badge = create(owner, renderer, name, symbol);
+        setupResults = Batch(badge).batch(false, setupCalls); // not-atomic batch call
     }
 
     function pause() external onlyOwner {
