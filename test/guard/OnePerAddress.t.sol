@@ -6,6 +6,8 @@ import {OnePerAddress} from "src/lib/guard/OnePerAddress.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
+import {Badge} from "src/badge/Badge.sol";
+import {BadgeFactory} from "src/badge/BadgeFactory.sol";
 import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Account as TBA} from "tokenbound/src/Account.sol";
 
@@ -17,16 +19,18 @@ contract OnePerAddressTest is Test {
     address public rendererImpl;
     address public membershipImpl;
     MembershipFactory public membershipFactory;
+    address public badgeImpl;
+    BadgeFactory public badgeFactory;
 
     function setUp() public {
         onePerAddress = address(new OnePerAddress());
         rendererImpl = address(new Renderer(msg.sender, "https://tokens.station.express"));
-        setUp_membership();
-    }
-
-    function setUp_membership() public {
+        // membership
         membershipImpl = address(new Membership());
         membershipFactory = new MembershipFactory(membershipImpl, msg.sender);
+        // badge
+        badgeImpl = address(new Badge());
+        badgeFactory = new BadgeFactory(badgeImpl, msg.sender);
     }
 
     // create Account that supports NFT receivers to avoid fuzz errors on existing contracts in testing ops
@@ -75,6 +79,51 @@ contract OnePerAddressTest is Test {
         // balances still 1
         assertEq(Membership(proxy).balanceOf(account1), 1);
         assertEq(Membership(proxy).balanceOf(account2), 1);
+        vm.stopPrank();
+    }
+
+    function test_badgeMint(uint256 tokenId) public {
+        address owner = createAccount();
+        address account = createAccount();
+
+        address proxy = badgeFactory.create(owner, rendererImpl, "Test", "TEST");
+        vm.startPrank(owner);
+        // set guard
+        Permissions(proxy).guard(Permissions.Operation.MINT, onePerAddress);
+        // first mint, should pass
+        Badge(proxy).mintTo(account, tokenId, 1);
+        assertEq(Badge(proxy).balanceOf(account, tokenId), 1);
+        // second mint, should fail
+        vm.expectRevert("NOT_ALLOWED");
+        Badge(proxy).mintTo(account, tokenId, 1);
+        // balance still 1
+        assertEq(Badge(proxy).balanceOf(account, tokenId), 1);
+        vm.stopPrank();
+    }
+
+    function test_badgeTransfer(uint256 tokenId) public {
+        address owner = createAccount();
+        address account1 = createAccount();
+        address account2 = createAccount();
+
+        address proxy = badgeFactory.create(owner, rendererImpl, "Test", "TEST");
+        vm.startPrank(owner);
+        // set guard
+        Permissions(proxy).guard(Permissions.Operation.TRANSFER, onePerAddress);
+        // mint to two addresses, should pass
+        Badge(proxy).mintTo(account1, tokenId, 1);
+        Badge(proxy).mintTo(account2, tokenId, 1);
+        assertEq(Badge(proxy).balanceOf(account1, tokenId), 1);
+        assertEq(Badge(proxy).balanceOf(account2, tokenId), 1);
+        vm.stopPrank();
+        vm.startPrank(account1);
+        // transfer 1->2, should fail
+        vm.expectRevert("NOT_ALLOWED");
+        bytes memory data;
+        Badge(proxy).safeTransferFrom(account1, account2, tokenId, 1, data);
+        // balances still 1
+        assertEq(Badge(proxy).balanceOf(account1, tokenId), 1);
+        assertEq(Badge(proxy).balanceOf(account2, tokenId), 1);
         vm.stopPrank();
     }
 }
