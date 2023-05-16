@@ -5,13 +5,30 @@ import "forge-std/Test.sol";
 import "../src/lib/renderer/Renderer.sol";
 import { Membership } from "../src/membership/Membership.sol";
 import "../src/membership/MembershipFactory.sol";
-import "../src/modules/FixedETHPurchaseModule.sol";
+import "../src/modules/FixedStablecoinPurchaseModule.sol";
+import { ERC20 } from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+
+
+contract ERC20Decimals is ERC20 {
+    uint8 private _decimals;
+
+    constructor(string memory name_, string memory symbol_, uint8 decimals_) ERC20(name_, symbol_) {
+        _decimals = decimals_;
+    }
+
+    function decimals() public view virtual override returns (uint8) {
+        return _decimals;
+    }
+}
+
 
 contract PaymentModuleTest is Test {
     address public membershipFactory;
     address public rendererImpl;
     address public membershipImpl;
-    address public paymentModuleImpl;
+    address public fixedStablecoinPurchaseModuleImpl;
+    address public fakeERC20Six;
+    address public fakeERC20Eighteen;
     uint256 fee = 0.0007 ether;
 
     function setUp() public {
@@ -19,7 +36,9 @@ contract PaymentModuleTest is Test {
         rendererImpl = address(new Renderer(address(1), "https://tokens.station.express"));
         membershipImpl = address(new Membership());
         membershipFactory = address(new MembershipFactory(membershipImpl, address(1)));
-        paymentModuleImpl = address(new FixedETHPurchaseModule(address(1), fee));
+        fixedStablecoinPurchaseModuleImpl = address(new FixedStablecoinPurchaseModule(address(1), fee, "USD"));
+        fakeERC20Six = address(new ERC20Decimals("FakeUSDC", "USDC", 6));
+        fakeERC20Eighteen = address(new ERC20("FakeDAI", "DAI"));
         vm.stopPrank();
     }
 
@@ -42,16 +61,16 @@ contract PaymentModuleTest is Test {
         address membership =
             MembershipFactory(membershipFactory).create(address(1), rendererImpl, "Friends of Station", "FRIENDS");
         Membership membershipContract = Membership(membership);
-        FixedETHPurchaseModule paymentModule = FixedETHPurchaseModule(paymentModuleImpl);
+        FixedStablecoinPurchaseModule paymentModule = FixedStablecoinPurchaseModule(fixedStablecoinPurchaseModuleImpl);
         paymentModule.setup(membership, membership, price);
 
         Permissions.Operation[] memory operations = new Permissions.Operation[](1);
         operations[0] = Permissions.Operation.MINT;
-        membershipContract.permit(paymentModuleImpl, membershipContract.permissionsValue(operations));
+        membershipContract.permit(fixedStablecoinPurchaseModuleImpl, membershipContract.permissionsValue(operations));
 
         paymentModule.mint{value: price + fee}(membership);
 
-        assertEq(membershipContract.ownerOf(1), address(1));
+        assertEq(membershipContract.ownerOf(0), address(1));
         vm.stopPrank();
     }
 }
