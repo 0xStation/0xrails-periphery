@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "openzeppelin-contracts/contracts/utils/Strings.sol";
-import "openzeppelin-contracts/contracts/access/Ownable.sol";
+import "openzeppelin-contracts/utils/Strings.sol";
+import "openzeppelin-contracts/access/Ownable.sol";
 import "./IDelayedRevealRenderer.sol";
 
 contract DelayedRevealRenderer is IDelayedRevealRenderer, Ownable {
@@ -28,23 +28,12 @@ contract DelayedRevealRenderer is IDelayedRevealRenderer, Ownable {
     }
 
     function tokenURI(address token, uint256 tokenId) external view returns (string memory) {
-      bool isRevealed = revealed[token];
-      string memory baseURI = baseURIs[token];
+        bool isRevealed = revealed[token];
+        string memory baseURI = baseURIs[token];
 
-      if (!isRevealed) {
-        return string(
-            abi.encodePacked(
-                baseURI,
-                "pre.json"
-            )
-        );
-      }
-       return string(
-          abi.encodePacked(
-              baseURI,
-              Strings.toString(tokenId),
-              ".json"
-          )
-      );
+        if (!isRevealed) {
+            return string(abi.encodePacked(baseURI, "pre.json"));
+        }
+        return string(abi.encodePacked(baseURI, Strings.toString(tokenId), ".json"));
     }
 }

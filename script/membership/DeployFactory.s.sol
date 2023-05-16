@@ -5,7 +5,7 @@ import "forge-std/Script.sol";
 import "../../src/lib/renderer/Renderer.sol";
 import "../../src/membership/Membership.sol";
 import "../../src/membership/MembershipFactory.sol";
-import "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 // DEPLOY SCRIPT (goerli)
 // forge script script/membership/DeployFactory.s.sol:Deploy --fork-url $GOERLI_RPC_URL --keystores $ETH_KEYSTORE --password $KEYSTORE_PASSWORD --sender $ETH_FROM --broadcast
