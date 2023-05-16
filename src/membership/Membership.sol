@@ -9,9 +9,10 @@ import {IRenderer} from "../lib/renderer/IRenderer.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
 import {ERC721Upgradeable} from "openzeppelin-contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {Permissions} from "../lib/Permissions.sol";
+import {Batch} from "../lib/Batch.sol";
 import {MembershipStorageV0} from "./storage/MembershipStorageV0.sol";
 
-contract Membership is IMembership, UUPSUpgradeable, ERC721Upgradeable, Permissions, MembershipStorageV0 {
+contract Membership is IMembership, UUPSUpgradeable, ERC721Upgradeable, Permissions, Batch, MembershipStorageV0 {
     constructor() {}
 
     /// @dev Initializes the ERC721 Token.
@@ -19,7 +20,7 @@ contract Membership is IMembership, UUPSUpgradeable, ERC721Upgradeable, Permissi
     /// @param renderer_ The address of the renderer.
     /// @param name_ The name of the token.
     /// @param symbol_ The encoded function call
-    function initialize(address owner_, address renderer_, string memory name_, string memory symbol_)
+    function init(address owner_, address renderer_, string memory name_, string memory symbol_)
         public
         initializer
         returns (bool success)

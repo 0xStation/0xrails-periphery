@@ -9,9 +9,10 @@ import {IRenderer} from "../lib/renderer/IRenderer.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
 import {ERC1155Upgradeable} from "openzeppelin-contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import {Permissions} from "../lib/Permissions.sol";
+import {Batch} from "../lib/Batch.sol";
 import {BadgeStorageV0} from "./storage/BadgeStorageV0.sol";
 
-contract Badge is IBadge, UUPSUpgradeable, ERC1155Upgradeable, Permissions, BadgeStorageV0 {
+contract Badge is IBadge, UUPSUpgradeable, ERC1155Upgradeable, Permissions, Batch, BadgeStorageV0 {
     function init(address _owner, address _renderer, string memory _name, string memory _symbol) external initializer {
         _transferOwnership(_owner);
         _updateRenderer(_renderer);
