@@ -105,10 +105,12 @@ contract OnePerAddressTest is Test {
         address owner = createAccount();
         address account1 = createAccount();
         address account2 = createAccount();
+        address account3 = createAccount();
+        bytes memory data;
 
         address proxy = badgeFactory.create(owner, rendererImpl, "Test", "TEST");
-        vm.startPrank(owner);
         // set guard
+        vm.startPrank(owner);
         Permissions(proxy).guard(Permissions.Operation.TRANSFER, onePerAddress);
         // mint to two addresses, should pass
         Badge(proxy).mintTo(account1, tokenId, 1);
@@ -116,14 +118,20 @@ contract OnePerAddressTest is Test {
         assertEq(Badge(proxy).balanceOf(account1, tokenId), 1);
         assertEq(Badge(proxy).balanceOf(account2, tokenId), 1);
         vm.stopPrank();
+        // transfer 1->3, should work
         vm.startPrank(account1);
-        // transfer 1->2, should fail
-        vm.expectRevert("NOT_ALLOWED");
-        bytes memory data;
-        Badge(proxy).safeTransferFrom(account1, account2, tokenId, 1, data);
-        // balances still 1
-        assertEq(Badge(proxy).balanceOf(account1, tokenId), 1);
+        Badge(proxy).safeTransferFrom(account1, account3, tokenId, 1, data);
+        assertEq(Badge(proxy).balanceOf(account1, tokenId), 0);
         assertEq(Badge(proxy).balanceOf(account2, tokenId), 1);
+        assertEq(Badge(proxy).balanceOf(account3, tokenId), 1);
+        vm.stopPrank();
+        // transfer 2->3, should fail
+        vm.startPrank(account2);
+        vm.expectRevert("NOT_ALLOWED");
+        Badge(proxy).safeTransferFrom(account2, account3, tokenId, 1, data);
+        assertEq(Badge(proxy).balanceOf(account1, tokenId), 0);
+        assertEq(Badge(proxy).balanceOf(account2, tokenId), 1);
+        assertEq(Badge(proxy).balanceOf(account3, tokenId), 1);
         vm.stopPrank();
     }
 }
