@@ -6,8 +6,8 @@ import {IMembership} from "./IMembership.sol";
 import {ITokenGuard} from "src/lib/guard/ITokenGuard.sol";
 import {IRenderer} from "../lib/renderer/IRenderer.sol";
 // contracts
-import {UUPSUpgradeable} from "openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
-import {ERC721Upgradeable} from "openzeppelin-contracts-upgradeable/contracts/token/ERC721/ERC721Upgradeable.sol";
+import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
+import {ERC721Upgradeable} from "openzeppelin-contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {Permissions} from "../lib/Permissions.sol";
 import {MembershipStorageV0} from "./storage/MembershipStorageV0.sol";
 
@@ -67,15 +67,15 @@ contract Membership is IMembership, UUPSUpgradeable, ERC721Upgradeable, Permissi
         address guard;
         // MINT
         if (from == address(0)) {
-            guard = guards[Operation.MINT];
+            guard = guardOf[Operation.MINT];
         }
         // BURN
         else if (to == address(0)) {
-            guard = guards[Operation.BURN];
+            guard = guardOf[Operation.BURN];
         }
         // TRANSFER
         else {
-            guard = guards[Operation.TRANSFER];
+            guard = guardOf[Operation.TRANSFER];
         }
 
         require(

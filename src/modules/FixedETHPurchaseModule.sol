@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {IMembership} from "../membership/IMembership.sol";
-import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
+import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 
 contract FixedETHPurchaseModule is Ownable {
     mapping(address => uint256) public prices;

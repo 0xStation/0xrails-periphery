@@ -51,7 +51,7 @@ contract PaymentModuleTest is Test {
 
         paymentModule.mint{value: price + fee}(membership);
 
-        assertEq(membershipContract.ownerOf(0), address(1));
+        assertEq(membershipContract.ownerOf(1), address(1));
         vm.stopPrank();
     }
 }

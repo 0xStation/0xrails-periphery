@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import "forge-std/Script.sol";
 import "../../src/lib/renderer/Renderer.sol";
 import "../../src/badge/Badge.sol";
-import "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract Deploy is Script {
     function setUp() public {}

@@ -6,8 +6,8 @@ import {IBadge} from "./IBadge.sol";
 import {ITokenGuard} from "src/lib/guard/ITokenGuard.sol";
 import {IRenderer} from "../lib/renderer/IRenderer.sol";
 // contracts
-import {UUPSUpgradeable} from "openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
-import {ERC1155Upgradeable} from "openzeppelin-contracts-upgradeable/contracts/token/ERC1155/ERC1155Upgradeable.sol";
+import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
+import {ERC1155Upgradeable} from "openzeppelin-contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import {Permissions} from "../lib/Permissions.sol";
 import {BadgeStorageV0} from "./storage/BadgeStorageV0.sol";
 
@@ -69,15 +69,15 @@ contract Badge is IBadge, UUPSUpgradeable, ERC1155Upgradeable, Permissions, Badg
         address guard;
         // MINT
         if (from == address(0)) {
-            guard = guards[Operation.MINT];
+            guard = guardOf[Operation.MINT];
         }
         // BURN
         else if (to == address(0)) {
-            guard = guards[Operation.BURN];
+            guard = guardOf[Operation.BURN];
         }
         // TRANSFER
         else {
-            guard = guards[Operation.TRANSFER];
+            guard = guardOf[Operation.TRANSFER];
         }
 
         require(
