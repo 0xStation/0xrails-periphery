@@ -15,11 +15,7 @@ contract Deploy is Script {
         address membershipImpl = address(new Membership());
 
         bytes memory initData = abi.encodeWithSelector(
-            Membership(membershipImpl).initialize.selector,
-            msg.sender,
-            delayed_renderer,
-            "Friends of Station",
-            "FRIENDS"
+            Membership(membershipImpl).init.selector, msg.sender, delayed_renderer, "Friends of Station", "FRIENDS"
         );
         new ERC1967Proxy(membershipImpl, initData);
         vm.stopBroadcast();

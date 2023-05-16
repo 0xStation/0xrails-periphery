@@ -9,25 +9,24 @@ import {IRenderer} from "../lib/renderer/IRenderer.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
 import {ERC721Upgradeable} from "openzeppelin-contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {Permissions} from "../lib/Permissions.sol";
+import {Batch} from "../lib/Batch.sol";
 import {MembershipStorageV0} from "./storage/MembershipStorageV0.sol";
 
-contract Membership is IMembership, UUPSUpgradeable, ERC721Upgradeable, Permissions, MembershipStorageV0 {
+contract Membership is IMembership, UUPSUpgradeable, ERC721Upgradeable, Permissions, Batch, MembershipStorageV0 {
     constructor() {}
 
-    /// @dev Initializes the ERC721 Token.
-    /// @param owner_ The address to transfer ownership to.
-    /// @param renderer_ The address of the renderer.
-    /// @param name_ The name of the token.
-    /// @param symbol_ The encoded function call
-    function initialize(address owner_, address renderer_, string memory name_, string memory symbol_)
+    /// @notice Initializes the ERC721 token.
+    /// @param newOwner The address to transfer ownership to.
+    /// @param newRenderer The address of the renderer.
+    /// @param newName The name of the token.
+    /// @param newSymbol The symbol of the token.
+    function init(address newOwner, address newRenderer, string calldata newName, string calldata newSymbol)
         public
         initializer
-        returns (bool success)
     {
-        _transferOwnership(owner_);
-        _updateRenderer(renderer_);
-        __ERC721_init(name_, symbol_);
-        return true;
+        _transferOwnership(newOwner);
+        _updateRenderer(newRenderer);
+        __ERC721_init(newName, newSymbol);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override permitted(Operation.UPGRADE) {}

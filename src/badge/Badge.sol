@@ -9,14 +9,23 @@ import {IRenderer} from "../lib/renderer/IRenderer.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
 import {ERC1155Upgradeable} from "openzeppelin-contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import {Permissions} from "../lib/Permissions.sol";
+import {Batch} from "../lib/Batch.sol";
 import {BadgeStorageV0} from "./storage/BadgeStorageV0.sol";
 
-contract Badge is IBadge, UUPSUpgradeable, ERC1155Upgradeable, Permissions, BadgeStorageV0 {
-    function init(address _owner, address _renderer, string memory _name, string memory _symbol) external initializer {
-        _transferOwnership(_owner);
-        _updateRenderer(_renderer);
-        name = _name;
-        symbol = _symbol;
+contract Badge is IBadge, UUPSUpgradeable, ERC1155Upgradeable, Permissions, Batch, BadgeStorageV0 {
+    /// @notice Initializes the ERC1155 token.
+    /// @param newOwner The address to transfer ownership to.
+    /// @param newRenderer The address of the renderer.
+    /// @param newName The name of the token.
+    /// @param newSymbol The symbol of the token.
+    function init(address newOwner, address newRenderer, string calldata newName, string calldata newSymbol)
+        public
+        initializer
+    {
+        _transferOwnership(newOwner);
+        _updateRenderer(newRenderer);
+        name = newName;
+        symbol = newSymbol;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override permitted(Operation.UPGRADE) {}
