@@ -76,12 +76,12 @@ abstract contract Permissions {
     }
 
     /// @dev setup module parameters atomically with enabling/disabling permissions
-    function permitAndSetup(address account, bytes32 newPermissions, bytes calldata setupData)
+    function permitAndSetup(address account, bytes32 newPermissions, bytes calldata setupCall)
         external
         permitted(Operation.UPGRADE)
     {
         _permit(account, newPermissions);
-        _setup(account, setupData);
+        _setup(account, setupCall);
     }
 
     function _permit(address account, bytes32 newPermissions) internal {
@@ -107,12 +107,12 @@ abstract contract Permissions {
         _guard(operation, newGuard);
     }
 
-    function guardAndSetup(Operation operation, address newGuard, bytes calldata setupData)
+    function guardAndSetup(Operation operation, address newGuard, bytes calldata setupCall)
         external
         permitted(Operation.UPGRADE)
     {
         _guard(operation, newGuard);
-        _setup(newGuard, setupData);
+        _setup(newGuard, setupCall);
     }
 
     function _guard(Operation operation, address newGuard) internal {

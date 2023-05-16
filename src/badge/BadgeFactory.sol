@@ -16,7 +16,7 @@ contract BadgeFactory is Ownable, Pausable {
         _transferOwnership(_owner);
     }
 
-    /// @notice create a new badge via OZ Clones
+    /// @notice create a new Badge via via ERC1967Proxy
     function create(address owner, address renderer, string memory name, string memory symbol)
         external
         whenNotPaused
@@ -26,6 +26,21 @@ contract BadgeFactory is Ownable, Pausable {
         badge = address(new ERC1967Proxy(template, initData));
 
         emit BadgeCreated(badge);
+    }
+
+    /// @notice create a new Badge via ERC1967Proxy and setup other parameters
+    function createAndSetup(
+        address owner,
+        address renderer,
+        string memory name,
+        string memory symbol,
+        bytes[] calldata setupCalls
+    ) external whenNotPaused returns (address membership) {
+        bytes memory initData =
+            abi.encodeWithSelector(IBadge(template).initAndSetup.selector, owner, renderer, name, symbol, setupCalls);
+        membership = address(new ERC1967Proxy(template, initData));
+
+        emit BadgeCreated(membership);
     }
 
     function pause() external onlyOwner {

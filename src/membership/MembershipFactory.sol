@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "openzeppelin-contracts/access/Ownable.sol";
 import "openzeppelin-contracts/security/Pausable.sol";
-import "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import "./IMembership.sol";
 
@@ -24,7 +24,23 @@ contract MembershipFactory is Ownable, Pausable {
         returns (address membership)
     {
         bytes memory initData =
-            abi.encodeWithSelector(IMembership(template).initialize.selector, owner, renderer, name, symbol);
+            abi.encodeWithSelector(IMembership(template).init.selector, owner, renderer, name, symbol);
+        membership = address(new ERC1967Proxy(template, initData));
+
+        emit MembershipCreated(membership);
+    }
+
+    /// @notice create a new Membership via ERC1967Proxy and setup other parameters
+    function createAndSetup(
+        address owner,
+        address renderer,
+        string memory name,
+        string memory symbol,
+        bytes[] calldata setupCalls
+    ) external whenNotPaused returns (address membership) {
+        bytes memory initData = abi.encodeWithSelector(
+            IMembership(template).initAndSetup.selector, owner, renderer, name, symbol, setupCalls
+        );
         membership = address(new ERC1967Proxy(template, initData));
 
         emit MembershipCreated(membership);
