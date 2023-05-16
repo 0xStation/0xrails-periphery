@@ -5,7 +5,8 @@ import {ITokenGuard} from "./ITokenGuard.sol";
 
 // Enforces that one address can own one of a token at a time.
 // Often used for identity and reputational use cases.
-// Called after token transfer takes place.
+// Guard called after token transfer state change made through _afterTokenTransfer hook.
+// Supports all of erc20, erc721, and erc1155 standards.
 contract OnePerAddress is ITokenGuard {
     // erc20 & erc721
     function isAllowed(address, address, address to, uint256) external returns (bool) {

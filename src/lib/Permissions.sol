@@ -23,7 +23,7 @@ abstract contract Permissions {
 
     event OwnershipTransferred(address indexed user, address indexed newOwner);
     event Permit(address indexed account, bytes32 permissions);
-    event GuardUpdated(Operation operation, address guard);
+    event Guard(Operation indexed operation, address indexed guard);
 
     /*=============
         STORAGE
@@ -32,10 +32,10 @@ abstract contract Permissions {
     // primary superadmin of the contract
     address public owner;
     // accounts => 256 auth'd operations, each represented by their own bit
-    mapping(address => bytes32) public permissions;
+    mapping(address => bytes32) public permissionsOf;
     // Operation => Guard smart contract, applies additional invariant constraints per operation
     // address(0) represents no constraints, address(max) represents full constraints = not allowed
-    mapping(Operation => address) internal guards;
+    mapping(Operation => address) public guardOf;
 
     /*=============
         OWNABLE
@@ -68,26 +68,25 @@ abstract contract Permissions {
     }
 
     function hasPermission(address account, Operation operation) public view virtual returns (bool) {
-        return owner == account || permissions[account] & _operationBit(operation) != 0;
+        return owner == account || permissionsOf[account] & _operationBit(operation) != 0;
     }
 
-    function permit(address account, bytes32 _permissions) external permitted(Operation.UPGRADE) {
-        _permit(account, _permissions);
+    function permit(address account, bytes32 newPermissions) external permitted(Operation.UPGRADE) {
+        _permit(account, newPermissions);
     }
 
     /// @dev setup module parameters atomically with enabling/disabling permissions
-    function permitAndSetup(address account, bytes32 _permissions, bytes calldata setupData)
+    function permitAndSetup(address account, bytes32 newPermissions, bytes calldata setupData)
         external
         permitted(Operation.UPGRADE)
     {
-        _permit(account, _permissions);
-        (bool success,) = account.call(setupData);
-        require(success, "SETUP_FAILED");
+        _permit(account, newPermissions);
+        _setup(account, setupData);
     }
 
-    function _permit(address account, bytes32 _permissions) internal {
-        permissions[account] = _permissions;
-        emit Permit(account, _permissions);
+    function _permit(address account, bytes32 newPermissions) internal {
+        permissionsOf[account] = newPermissions;
+        emit Permit(account, newPermissions);
     }
 
     function permissionsValue(Operation[] memory operations) external pure returns (bytes32 value) {
@@ -104,8 +103,25 @@ abstract contract Permissions {
         GUARDS
     ============*/
 
-    function setGuard(Operation operation, address newGuard) public permitted(Operation.UPGRADE) {
-        guards[operation] = newGuard;
-        emit GuardUpdated(operation, newGuard);
+    function guard(Operation operation, address newGuard) external permitted(Operation.UPGRADE) {
+        _guard(operation, newGuard);
+    }
+
+    function guardAndSetup(Operation operation, address newGuard, bytes calldata setupData)
+        external
+        permitted(Operation.UPGRADE)
+    {
+        _guard(operation, newGuard);
+        _setup(newGuard, setupData);
+    }
+
+    function _guard(Operation operation, address newGuard) internal {
+        guardOf[operation] = newGuard;
+        emit Guard(operation, newGuard);
+    }
+
+    function _setup(address account, bytes calldata data) internal {
+        (bool success,) = account.call(data);
+        require(success, "SETUP_FAILED");
     }
 }
