@@ -7,6 +7,7 @@ import {Permissions} from "src/lib/Permissions.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
 import {Renderer} from "src/lib/renderer/Renderer.sol";
+import {Account as TBA} from "tokenbound/src/Account.sol";
 
 // designed to make sure the payment module itself is working properly.
 // different than TestPaymentModule which is designed to test if payment module can be added to a membership
@@ -28,10 +29,14 @@ contract OnePerAddressTest is Test {
         membershipFactory = new MembershipFactory(membershipImpl, msg.sender);
     }
 
-    function test_membershipMint(address owner, address account) public {
-        vm.assume(owner != address(0));
-        vm.assume(account != address(0));
-        vm.assume(account != address(this));
+    // create Account that supports NFT receivers to avoid fuzz errors on existing contracts in testing ops
+    function createAccount() public returns (address) {
+        return address(new TBA(address(0)));
+    }
+
+    function test_membershipMint() public {
+        address owner = createAccount();
+        address account = createAccount();
 
         address proxy = membershipFactory.create(owner, rendererImpl, "Test", "TEST");
         vm.startPrank(owner);
@@ -48,10 +53,10 @@ contract OnePerAddressTest is Test {
         vm.stopPrank();
     }
 
-    function test_membershipTransfer(address owner, address account1, address account2) public {
-        vm.assume(owner != address(0));
-        vm.assume(account1 != address(0) && account1 != address(this));
-        vm.assume(account2 != address(0) && account2 != address(this));
+    function test_membershipTransfer() public {
+        address owner = createAccount();
+        address account1 = createAccount();
+        address account2 = createAccount();
 
         address proxy = membershipFactory.create(owner, rendererImpl, "Test", "TEST");
         vm.startPrank(owner);
