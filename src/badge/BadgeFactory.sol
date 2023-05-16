@@ -38,7 +38,7 @@ contract BadgeFactory is Ownable, Pausable {
         bytes[] calldata setupCalls
     ) external whenNotPaused returns (address badge, Batch.Result[] memory setupResults) {
         badge = create(owner, renderer, name, symbol);
-        setupResults = Batch(badge).batch(false, setupCalls); // not-atomic batch call
+        setupResults = Batch(badge).batch(false, setupCalls); // non-atomic batch call
     }
 
     function pause() external onlyOwner {

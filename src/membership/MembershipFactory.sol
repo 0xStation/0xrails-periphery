@@ -40,7 +40,7 @@ contract MembershipFactory is Ownable, Pausable {
         bytes[] calldata setupCalls
     ) external whenNotPaused returns (address membership, Batch.Result[] memory setupResults) {
         membership = create(owner, renderer, name, symbol);
-        setupResults = Batch(membership).batch(false, setupCalls); // not-atomic batch call
+        setupResults = Batch(membership).batch(false, setupCalls); // non-atomic batch call
     }
 
     function pause() external onlyOwner {
