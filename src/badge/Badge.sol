@@ -69,15 +69,15 @@ contract Badge is IBadge, UUPSUpgradeable, ERC1155Upgradeable, Permissions, Badg
         address guard;
         // MINT
         if (from == address(0)) {
-            guard = guards[Operation.MINT];
+            guard = guardOf[Operation.MINT];
         }
         // BURN
         else if (to == address(0)) {
-            guard = guards[Operation.BURN];
+            guard = guardOf[Operation.BURN];
         }
         // TRANSFER
         else {
-            guard = guards[Operation.TRANSFER];
+            guard = guardOf[Operation.TRANSFER];
         }
 
         require(
