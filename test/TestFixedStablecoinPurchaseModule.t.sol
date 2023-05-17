@@ -102,20 +102,32 @@ contract PaymentModuleTest is Test {
     function test_append_mint() public {
         uint256 price = 1000;
         startHoax(address(12));
+        uint256 preMintDAIBalance = ERC20(fakeDAIImpl).balanceOf(address(12));
+        uint256 preMintUSDCBalance = ERC20(fakeUSDCImpl).balanceOf(address(12));
         paymentModule.append(fakeUSDCImpl);
         paymentModule.append(fakeDAIImpl);
         address[] memory enabledTokens = new address[](2);
         enabledTokens[0] = fakeUSDCImpl;
         enabledTokens[1] = fakeDAIImpl;
         paymentModule.setup(membershipInstance, address(2), price, paymentModule.enabledTokensValue(enabledTokens));
+        // test mint with DAI
         paymentModule.mint{value: fee}(membershipInstance, fakeDAIImpl);
-        uint256 mintAmountInStables = paymentModule.getMintAmount(fakeDAIImpl, price);
+        uint256 mintAmountInDAI = paymentModule.getMintAmount(fakeDAIImpl, price);
         // ensure token was minted
         assertEq(membershipContract.ownerOf(1), address(12));
-        // ensure erc20 is spent
-        assertEq(ERC20(fakeDAIImpl).balanceOf(address(12)), 1000 * 10 ** 18 - mintAmountInStables);
-        // ensure erc20 is received
-        assertEq(ERC20(fakeDAIImpl).balanceOf(address(2)), mintAmountInStables);
+        // ensure DAI is spent
+        assertEq(ERC20(fakeDAIImpl).balanceOf(address(12)), preMintDAIBalance - mintAmountInDAI);
+        // ensure DAI is received
+        assertEq(ERC20(fakeDAIImpl).balanceOf(address(2)), mintAmountInDAI);
+        // test mint with USDC
+        paymentModule.mint{value: fee}(membershipInstance, fakeUSDCImpl);
+        uint256 mintAmountInUSDC = paymentModule.getMintAmount(fakeUSDCImpl, price);
+        // ensure token was minted
+        assertEq(membershipContract.ownerOf(2), address(12));
+        // ensure DAI is spent
+        assertEq(ERC20(fakeUSDCImpl).balanceOf(address(12)), preMintUSDCBalance - mintAmountInUSDC);
+        // ensure DAI is received
+        assertEq(ERC20(fakeUSDCImpl).balanceOf(address(2)), mintAmountInUSDC);
         vm.stopPrank();
     }
 
