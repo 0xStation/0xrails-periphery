@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import "forge-std/Test.sol";
 import {IMembership} from "../membership/IMembership.sol";
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 
@@ -29,6 +30,8 @@ contract FixedStablecoinPurchaseModule is Ownable {
 
     constructor(address _owner, uint256 _fee, string memory _currency, uint8 _decimals) {
         _transferOwnership(_owner);
+        // needed to leave 0 as a miss for keyOf
+        keyCounter = 1;
         fee = _fee;
         currency = _currency;
         decimals = _decimals;
@@ -56,7 +59,7 @@ contract FixedStablecoinPurchaseModule is Ownable {
         uint256 totalCost = getMintAmount(token, price);
         require(msg.value >= fee, "MISSING FEE");
         feeBalance += fee;
-        IERC20(token).transfer(paymentCollectors[collection], totalCost);
+        IERC20(token).transferFrom(msg.sender, paymentCollectors[collection], totalCost);
         (uint256 tokenId) = IMembership(collection).mintTo(msg.sender);
         require(tokenId > 0, "MINT_FAILED");
         emit Purchase(collection, msg.sender, price, fee);
@@ -108,7 +111,7 @@ contract FixedStablecoinPurchaseModule is Ownable {
 }
 
 interface IERC20 {
-  function transfer(address _to, uint256 _value) external returns (bool success);
+  function transferFrom(address _from, address _to, uint256 _value) external returns (bool success);
   function decimals() external view returns (uint8);
   function balanceOf(address _owner) external view returns (uint256 balance);
 }
