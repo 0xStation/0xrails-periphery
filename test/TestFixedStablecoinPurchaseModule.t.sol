@@ -36,43 +36,92 @@ contract PaymentModuleTest is Test {
     address public membershipFactory;
     address public rendererImpl;
     address public membershipImpl;
+    address public membershipInstance;
+    Membership public membershipContract;
     address public fixedStablecoinPurchaseModuleImpl;
+    FixedStablecoinPurchaseModule public paymentModule;
+
     address public fakeUSDCImpl;
     address public fakeDAIImpl;
     uint256 fee = 0.0007 ether;
 
     function setUp() public {
-        startHoax(address(1));
-        rendererImpl = address(new Renderer(address(1), "https://tokens.station.express"));
+        startHoax(address(12));
+        rendererImpl = address(new Renderer(address(12), "https://tokens.station.express"));
         membershipImpl = address(new Membership());
-        membershipFactory = address(new MembershipFactory(membershipImpl, address(1)));
-        fixedStablecoinPurchaseModuleImpl = address(new FixedStablecoinPurchaseModule(address(1), fee, "USD"));
+        membershipFactory = address(new MembershipFactory(membershipImpl, address(12)));
+        fixedStablecoinPurchaseModuleImpl = address(new FixedStablecoinPurchaseModule(address(12), fee, "USD", 2));
+        paymentModule = FixedStablecoinPurchaseModule(fixedStablecoinPurchaseModuleImpl);
         fakeUSDCImpl = address(new ERC20Decimals("FakeUSDC", "USDC", 6));
         fakeDAIImpl = address(new ERC20Minter("FakeDAI", "DAI"));
-        vm.stopPrank();
-    }
-
-    function test_add_module_and_mint() public {
-        startHoax(address(1));
-        address membership =
-            MembershipFactory(membershipFactory).create(address(1), rendererImpl, "Friends of Station", "FRIENDS");
-        Membership membershipContract = Membership(membership);
-        FixedStablecoinPurchaseModule paymentModule = FixedStablecoinPurchaseModule(fixedStablecoinPurchaseModuleImpl);
-        paymentModule.append(fakeUSDCImpl);
-        paymentModule.append(fakeDAIImpl);
-        paymentModule.setup(membership, membership, 10, bytes32(uint256(3)));
+        membershipInstance =
+            MembershipFactory(membershipFactory).create(address(12), rendererImpl, "Friends of Station", "FRIENDS");
+        membershipContract = Membership(membershipInstance);
 
         Permissions.Operation[] memory operations = new Permissions.Operation[](1);
         operations[0] = Permissions.Operation.MINT;
         membershipContract.permit(fixedStablecoinPurchaseModuleImpl, membershipContract.permissionsValue(operations));
 
-        // give account fake DAI
-        ERC20Minter(fakeDAIImpl).mint(address(1), 10000000000);
-        // approve fake DAI to payment module
-        ERC20(fakeDAIImpl).approve(fixedStablecoinPurchaseModuleImpl, 10000000000);
+         // give account fake DAI + fake USDC
+        ERC20Minter(fakeDAIImpl).mint(address(12), 1000 * 10 ** 18);
+        ERC20(fakeDAIImpl).approve(fixedStablecoinPurchaseModuleImpl, 1000 * 10 ** 18);
+        ERC20Minter(fakeUSDCImpl).mint(address(12), 1000 * 10 ** 6);
+        ERC20(fakeUSDCImpl).approve(fixedStablecoinPurchaseModuleImpl, 1000 * 10 ** 6);
+        vm.stopPrank();
+    }
 
-        paymentModule.mint{value: fee}(membership, fakeDAIImpl);
-        assertEq(membershipContract.ownerOf(1), address(1));
+    // 1. token exists but is not enabled for collection
+    // 2. the token doesnt exist at the module level
+    function test_stablecoinEnabled() public {
+        startHoax(address(12));
+        paymentModule.append(fakeUSDCImpl);
+        paymentModule.append(fakeDAIImpl);
+        assertEq(paymentModule.stablecoinEnabled(membershipImpl, fakeUSDCImpl), true);
+        assertEq(paymentModule.stablecoinEnabled(membershipImpl, fakeDAIImpl), true);
+        vm.stopPrank();
+    }
+
+    // WHAT HAPPENS IF WE ENABLE TOKENS THAT ARE NOT YET APPENDED?
+    function test_enabledTokensValue() public {
+        startHoax(address(12));
+        paymentModule.append(fakeUSDCImpl);
+        paymentModule.append(fakeDAIImpl);
+        address[] memory enabledTokens = new address[](2);
+        enabledTokens[0] = fakeUSDCImpl;
+        enabledTokens[1] = fakeDAIImpl;
+        assertEq(paymentModule.enabledTokensValue(enabledTokens), bytes32(uint256(3)));
+        vm.stopPrank();
+    }
+
+    function test_append_mint() public {
+        uint256 price = 10;
+        startHoax(address(12));
+        paymentModule.append(fakeUSDCImpl);
+        paymentModule.append(fakeDAIImpl);
+        address[] memory enabledTokens = new address[](2);
+        enabledTokens[0] = fakeUSDCImpl;
+        enabledTokens[1] = fakeDAIImpl;
+        paymentModule.setup(membershipInstance, address(2), price, paymentModule.enabledTokensValue(enabledTokens));
+        paymentModule.mint{value: fee}(membershipInstance, fakeDAIImpl);
+        // ensure token was minted
+        assertEq(membershipContract.ownerOf(1), address(12));
+        // ensure erc20 is spent
+        assertEq(ERC20(fakeDAIImpl).balanceOf(address(12)), 1000 - price);
+        // ensure erc20 is received
+        assertEq(ERC20(fakeDAIImpl).balanceOf(address(2)), price);
+        vm.stopPrank();
+    }
+
+    function test_withdrawFee() public {
+      uint256 price = 10;
+        startHoax(address(12));
+        paymentModule.append(fakeUSDCImpl);
+        paymentModule.append(fakeDAIImpl);
+        paymentModule.setup(membershipInstance, address(2), price, bytes32(uint256(3)));
+        paymentModule.mint{value: fee}(membershipInstance, fakeDAIImpl);
+        uint256 beforeWithdrawBalance = address(12).balance;
+        paymentModule.withdrawFee();
+        assertEq(address(12).balance, beforeWithdrawBalance + fee);
         vm.stopPrank();
     }
 }
