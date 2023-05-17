@@ -7,6 +7,7 @@ import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.so
 
 import "./IMembership.sol";
 import {Batch} from "src/lib/Batch.sol";
+import {Permissions} from "src/lib/Permissions.sol";
 
 contract MembershipFactory is Ownable, Pausable {
     address public template;
@@ -39,8 +40,12 @@ contract MembershipFactory is Ownable, Pausable {
         string memory symbol,
         bytes[] calldata setupCalls
     ) external whenNotPaused returns (address membership, Batch.Result[] memory setupResults) {
-        membership = create(owner, renderer, name, symbol);
-        setupResults = Batch(membership).batch(false, setupCalls); // non-atomic batch call
+        // set factory as owner so it can make calls to protected functions for setup
+        membership = create(address(this), renderer, name, symbol);
+        // make non-atomic batch call, using permission as owner to do anything
+        setupResults = Batch(membership).batch(false, setupCalls);
+        // transfer ownership to provided argument
+        Permissions(membership).transferOwnership(owner);
     }
 
     function pause() external onlyOwner {
