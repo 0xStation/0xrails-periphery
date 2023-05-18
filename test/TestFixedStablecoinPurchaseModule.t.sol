@@ -123,6 +123,22 @@ contract PaymentModuleTest is Test {
         vm.stopPrank();
     }
 
+    function test_mint_revertIfNoFee(uint256 price) public {
+      // 2 decimals of precision, so price must be less than BASE_BALANCE with that many decimals
+      // since that is what the wallet has been given. Else, it will throw insufficient balance error
+      vm.assume(price < BASE_BALANCE * 10 ** 2);
+      startHoax(owner);
+      paymentModule.append(fakeUSDCImpl);
+      paymentModule.append(fakeDAIImpl);
+      address[] memory enabledTokens = new address[](2);
+      enabledTokens[0] = fakeUSDCImpl;
+      enabledTokens[1] = fakeDAIImpl;
+      paymentModule.setup(membershipInstance, paymentReciever, price, paymentModule.enabledTokensValue(enabledTokens));
+      vm.expectRevert("MISSING_FEE");
+      paymentModule.mint(membershipInstance, fakeDAIImpl);
+      vm.stopPrank();
+    }
+
     function test_withdrawFee(uint256 price) public {
        // 2 decimals of precision, so price must be less than BASE_BALANCE with that many decimals
         // since that is what the wallet has been given. Else, it will throw insufficient balance error

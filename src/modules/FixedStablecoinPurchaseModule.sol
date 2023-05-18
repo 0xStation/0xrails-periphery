@@ -25,7 +25,7 @@ contract FixedStablecoinPurchaseModule is Ownable {
     // currency type for this particular contract. (USD, EUR, etc.)
     string public currency;
 
-    event Purchase(address indexed collection, address indexed buyer, uint256 price, uint256 fee);
+    event PurchaseToken(address indexed collection, address indexed buyer, address indexed token, uint256 price, uint256 fee, string currency);
     event WithdrawFee(address indexed recipient, uint256 amount);
 
     constructor(address _owner, uint256 _fee, string memory _currency, uint8 _decimals) {
@@ -57,12 +57,12 @@ contract FixedStablecoinPurchaseModule is Ownable {
         require(stablecoinEnabled(collection, token), "TOKEN NOT ENABLED BY COLLECTION");
         uint256 price = stablecoinPrices[collection];
         uint256 totalCost = getMintPrice(token, price);
-        require(msg.value >= fee, "MISSING FEE");
+        require(msg.value >= fee, "MISSING_FEE");
         feeBalance += fee;
         IERC20(token).transferFrom(msg.sender, paymentCollectors[collection], totalCost);
         (uint256 tokenId) = IMembership(collection).mintTo(msg.sender);
         require(tokenId > 0, "MINT_FAILED");
-        emit Purchase(collection, msg.sender, price, fee);
+        emit PurchaseToken(collection, msg.sender, token, price, fee, currency);
     }
 
     function withdrawFee() external {
