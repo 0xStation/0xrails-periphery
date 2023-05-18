@@ -6,33 +6,11 @@ import "../src/lib/renderer/Renderer.sol";
 import { Membership } from "../src/membership/Membership.sol";
 import "../src/membership/MembershipFactory.sol";
 import "../src/modules/FixedStablecoinPurchaseModule.sol";
-import { ERC20 } from "openzeppelin-contracts/token/ERC20/ERC20.sol";
-
-contract ERC20Decimals is ERC20 {
-    uint8 private _decimals;
-
-    constructor(string memory name_, string memory symbol_, uint8 decimals_) ERC20(name_, symbol_) {
-        _decimals = decimals_;
-    }
-
-    function decimals() public view virtual override returns (uint8) {
-        return _decimals;
-    }
-
-    function mint(address to, uint256 amount) public {
-        _mint(to, amount);
-    }
-}
-
-contract ERC20Minter is ERC20 {
-    constructor(string memory name_, string memory symbol_) ERC20(name_, symbol_) {}
-
-    function mint(address to, uint256 amount) public {
-        _mint(to, amount);
-    }
-}
+import { FakeERC20 } from './utils/FakeERC20.sol';
 
 contract PaymentModuleTest is Test {
+    address public owner = address(123);
+    address public paymentReciever = address(456);
     address public membershipFactory;
     address public rendererImpl;
     address public membershipImpl;
@@ -44,18 +22,19 @@ contract PaymentModuleTest is Test {
     address public fakeUSDCImpl;
     address public fakeDAIImpl;
     uint256 fee = 0.0007 ether;
+    uint256 BASE_BALANCE = 1000;
 
     function setUp() public {
-        startHoax(address(12));
-        rendererImpl = address(new Renderer(address(12), "https://tokens.station.express"));
+        startHoax(owner);
+        rendererImpl = address(new Renderer(owner, "https://tokens.station.express"));
         membershipImpl = address(new Membership());
-        membershipFactory = address(new MembershipFactory(membershipImpl, address(12)));
-        fixedStablecoinPurchaseModuleImpl = address(new FixedStablecoinPurchaseModule(address(12), fee, "USD", 2));
+        membershipFactory = address(new MembershipFactory(membershipImpl, owner));
+        fixedStablecoinPurchaseModuleImpl = address(new FixedStablecoinPurchaseModule(owner, fee, "USD", 2));
         paymentModule = FixedStablecoinPurchaseModule(fixedStablecoinPurchaseModuleImpl);
-        fakeUSDCImpl = address(new ERC20Decimals("FakeUSDC", "USDC", 6));
-        fakeDAIImpl = address(new ERC20Minter("FakeDAI", "DAI"));
+        fakeUSDCImpl = address(new FakeERC20(6));
+        fakeDAIImpl = address(new FakeERC20(18));
         membershipInstance =
-            MembershipFactory(membershipFactory).create(address(12), rendererImpl, "Friends of Station", "FRIENDS");
+            MembershipFactory(membershipFactory).create(owner, rendererImpl, "Friends of Station", "FRIENDS");
         membershipContract = Membership(membershipInstance);
 
         Permissions.Operation[] memory operations = new Permissions.Operation[](1);
@@ -64,76 +43,91 @@ contract PaymentModuleTest is Test {
 
          // give account fake DAI + fake USDC
          // 1000 USD equivalent
-        ERC20Minter(fakeDAIImpl).mint(address(12), 1000 * 10 ** 18);
-        ERC20(fakeDAIImpl).approve(fixedStablecoinPurchaseModuleImpl, 1000 * 10 ** 18);
-        ERC20Minter(fakeUSDCImpl).mint(address(12), 1000 * 10 ** 6);
-        ERC20(fakeUSDCImpl).approve(fixedStablecoinPurchaseModuleImpl, 1000 * 10 ** 6);
+        FakeERC20(fakeDAIImpl).mint(owner, BASE_BALANCE * 10 ** 18);
+        FakeERC20(fakeDAIImpl).approve(fixedStablecoinPurchaseModuleImpl, BASE_BALANCE * 10 ** 18);
+        FakeERC20(fakeUSDCImpl).mint(owner, BASE_BALANCE * 10 ** 6);
+        FakeERC20(fakeUSDCImpl).approve(fixedStablecoinPurchaseModuleImpl, BASE_BALANCE * 10 ** 6);
         vm.stopPrank();
     }
 
     // 1. token exists but is not enabled for collection
     // 2. the token doesnt exist at the module level
     function test_stablecoinEnabled() public {
-        startHoax(address(12));
+        uint256 defaultPrice = 1;
+        startHoax(owner);
+        // 1. add fakeUSDCImpl and fakeDAIImpl to payment module
         paymentModule.append(fakeUSDCImpl);
         paymentModule.append(fakeDAIImpl);
+        // 2. create address array of tokens we want enabled
         address[] memory enabledTokens = new address[](2);
         enabledTokens[0] = fakeUSDCImpl;
         enabledTokens[1] = fakeDAIImpl;
-        paymentModule.setup(membershipInstance, address(2), 0, paymentModule.enabledTokensValue(enabledTokens));
+        // 3. setup payment module with enabled tokens for membership instance
+        paymentModule.setup(membershipInstance, paymentReciever, defaultPrice, paymentModule.enabledTokensValue(enabledTokens));
+        // 4. ensure stablecoinEnabled function returns true, since both tokens were added
         assertEq(paymentModule.stablecoinEnabled(membershipInstance, fakeUSDCImpl), true);
         assertEq(paymentModule.stablecoinEnabled(membershipInstance, fakeDAIImpl), true);
+        // 5. ensure stablecoinEnabled function reverts, since junk address was not added
+        vm.expectRevert("STABLECOIN_NOT_SUPPORTED");
+        paymentModule.stablecoinEnabled(membershipInstance, address(789));
         vm.stopPrank();
     }
 
     function test_enabledTokensValue() public {
-        startHoax(address(12));
+        startHoax(owner);
+        // 1. add fakeUSDCImpl and fakeDAIImpl to payment module
         paymentModule.append(fakeUSDCImpl);
         paymentModule.append(fakeDAIImpl);
+         // 2. create address array of tokens we want enabled
         address[] memory enabledTokens = new address[](2);
         enabledTokens[0] = fakeUSDCImpl;
         enabledTokens[1] = fakeDAIImpl;
+        // 3. assert enabledTokens address array returns as we expect
+        // since we have two enabled tokens matching keys 1 and 2 we expect a bytes32 value of 0000...0110
         // 0000...0110 = 6
         assertEq(paymentModule.enabledTokensValue(enabledTokens), bytes32(uint256(6)));
         vm.stopPrank();
     }
 
-    // with 2 decimals of precision, 1000 = 10 USD
-    function test_append_mint() public {
-        uint256 price = 1000;
-        startHoax(address(12));
-        uint256 preMintDAIBalance = ERC20(fakeDAIImpl).balanceOf(address(12));
-        uint256 preMintUSDCBalance = ERC20(fakeUSDCImpl).balanceOf(address(12));
+    function test_append_mint(uint256 price) public {
+        // 2 decimals of precision, so price must be less than BASE_BALANCE with that many decimals
+        // since that is what the wallet has been given. Else, it will throw insufficient balance error
+        vm.assume(price < BASE_BALANCE * 10 ** 2);
+        startHoax(owner);
+        uint256 preMintDAIBalance = FakeERC20(fakeDAIImpl).balanceOf(owner);
+        uint256 preMintUSDCBalance = FakeERC20(fakeUSDCImpl).balanceOf(owner);
         paymentModule.append(fakeUSDCImpl);
         paymentModule.append(fakeDAIImpl);
         address[] memory enabledTokens = new address[](2);
         enabledTokens[0] = fakeUSDCImpl;
         enabledTokens[1] = fakeDAIImpl;
-        paymentModule.setup(membershipInstance, address(2), price, paymentModule.enabledTokensValue(enabledTokens));
+        paymentModule.setup(membershipInstance, paymentReciever, price, paymentModule.enabledTokensValue(enabledTokens));
         // test mint with DAI
         paymentModule.mint{value: fee}(membershipInstance, fakeDAIImpl);
-        uint256 mintAmountInDAI = paymentModule.getMintAmount(fakeDAIImpl, price);
+        uint256 mintAmountInDAI = paymentModule.getMintPrice(fakeDAIImpl, price);
         // ensure token was minted
-        assertEq(membershipContract.ownerOf(1), address(12));
+        assertEq(membershipContract.ownerOf(1), owner);
         // ensure DAI is spent
-        assertEq(ERC20(fakeDAIImpl).balanceOf(address(12)), preMintDAIBalance - mintAmountInDAI);
+        assertEq(FakeERC20(fakeDAIImpl).balanceOf(owner), preMintDAIBalance - mintAmountInDAI);
         // ensure DAI is received
-        assertEq(ERC20(fakeDAIImpl).balanceOf(address(2)), mintAmountInDAI);
+        assertEq(FakeERC20(fakeDAIImpl).balanceOf(paymentReciever), mintAmountInDAI);
         // test mint with USDC
         paymentModule.mint{value: fee}(membershipInstance, fakeUSDCImpl);
-        uint256 mintAmountInUSDC = paymentModule.getMintAmount(fakeUSDCImpl, price);
+        uint256 mintAmountInUSDC = paymentModule.getMintPrice(fakeUSDCImpl, price);
         // ensure token was minted
-        assertEq(membershipContract.ownerOf(2), address(12));
+        assertEq(membershipContract.ownerOf(2), owner);
         // ensure DAI is spent
-        assertEq(ERC20(fakeUSDCImpl).balanceOf(address(12)), preMintUSDCBalance - mintAmountInUSDC);
+        assertEq(FakeERC20(fakeUSDCImpl).balanceOf(owner), preMintUSDCBalance - mintAmountInUSDC);
         // ensure DAI is received
-        assertEq(ERC20(fakeUSDCImpl).balanceOf(address(2)), mintAmountInUSDC);
+        assertEq(FakeERC20(fakeUSDCImpl).balanceOf(paymentReciever), mintAmountInUSDC);
         vm.stopPrank();
     }
 
-    function test_withdrawFee() public {
-      uint256 price = 10;
-        startHoax(address(12));
+    function test_withdrawFee(uint256 price) public {
+       // 2 decimals of precision, so price must be less than BASE_BALANCE with that many decimals
+        // since that is what the wallet has been given. Else, it will throw insufficient balance error
+        vm.assume(price < BASE_BALANCE * 10 ** 2);
+        startHoax(owner);
         paymentModule.append(fakeUSDCImpl);
         paymentModule.append(fakeDAIImpl);
         address[] memory enabledTokens = new address[](2);
@@ -141,9 +135,9 @@ contract PaymentModuleTest is Test {
         enabledTokens[1] = fakeDAIImpl;
         paymentModule.setup(membershipInstance, address(2), price, paymentModule.enabledTokensValue(enabledTokens));
         paymentModule.mint{value: fee}(membershipInstance, fakeDAIImpl);
-        uint256 beforeWithdrawBalance = address(12).balance;
+        uint256 beforeWithdrawBalance = owner.balance;
         paymentModule.withdrawFee();
-        assertEq(address(12).balance, beforeWithdrawBalance + fee);
+        assertEq(owner.balance, beforeWithdrawBalance + fee);
         vm.stopPrank();
     }
 }

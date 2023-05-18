@@ -9,9 +9,9 @@ contract FixedStablecoinPurchaseModule is Ownable {
     // collection -> price in currency
     mapping(address => uint256) public stablecoinPrices;
     // collection -> bitmap of stables that are enabled
-    mapping(address => bytes32) enabledCoins;
+    mapping(address => bytes32) public enabledCoins;
     // stablecoin address -> key in bitmap
-    mapping(address => uint8) stablecoinKey;
+    mapping(address => uint8) public stablecoinKey;
     // collection -> payment collector able to widraw balance
     mapping(address => address) public paymentCollectors;
     // station fee
@@ -56,7 +56,7 @@ contract FixedStablecoinPurchaseModule is Ownable {
     function mint(address collection, address token) external payable {
         require(stablecoinEnabled(collection, token), "TOKEN NOT ENABLED BY COLLECTION");
         uint256 price = stablecoinPrices[collection];
-        uint256 totalCost = getMintAmount(token, price);
+        uint256 totalCost = getMintPrice(token, price);
         require(msg.value >= fee, "MISSING FEE");
         feeBalance += fee;
         IERC20(token).transferFrom(msg.sender, paymentCollectors[collection], totalCost);
@@ -86,32 +86,31 @@ contract FixedStablecoinPurchaseModule is Ownable {
 
     function enabledTokensValue(address[] memory enabledTokens) external view returns (bytes32 value) {
         for (uint256 i; i < enabledTokens.length; i++) {
-            value |= _operationBit(enabledTokens[i]);
+            value |= _tokenBit(enabledTokens[i]);
         }
     }
 
-    function _operationBit(address token) internal view returns (bytes32) {
-        uint8 key = keyOf(token);
-        return bytes32(1 << uint8(key));
+    function _tokenBit(address token) internal view returns (bytes32) {
+        return bytes32(1 << uint8(keyOf(token)));
     }
 
-    function getMintAmount(address token, uint256 depositAmount) public view returns (uint256) {
+    function getMintPrice(address token, uint256 mintPrice) public view returns (uint256) {
         uint256 tokenDecimals = IERC20(token).decimals();
         if (decimals < tokenDecimals) {
             // need to pad zeros to input amount
-            return depositAmount * 10**(tokenDecimals - decimals);
+            return mintPrice * 10**(tokenDecimals - decimals);
         } else if (decimals > tokenDecimals) {
             // need to remove zeros from depositAmount
-            return depositAmount / 10**(decimals - tokenDecimals);
+            return mintPrice / 10**(decimals - tokenDecimals);
         } else {
-            // club and deposit tokens have same decimals, no change needed
-            return depositAmount;
+            // chosen token (stablecoin) and contract currency have same decimals, no need to do anything.
+            return mintPrice;
         }
     }
 }
 
 interface IERC20 {
-  function transferFrom(address _from, address _to, uint256 _value) external returns (bool success);
+  function transferFrom(address from, address to, uint256 value) external returns (bool success);
   function decimals() external view returns (uint8);
-  function balanceOf(address _owner) external view returns (uint256 balance);
+  function balanceOf(address owner) external view returns (uint256 balance);
 }
