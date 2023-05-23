@@ -34,7 +34,7 @@ contract PaymentModuleTest is Test {
         fakeUSDCImpl = address(new FakeERC20(6));
         fakeDAIImpl = address(new FakeERC20(18));
         membershipInstance =
-            MembershipFactory(membershipFactory).create(owner, rendererImpl, "Friends of Station", "FRIENDS");
+            MembershipFactory(membershipFactory).create(owner, paymentReciever, rendererImpl, "Friends of Station", "FRIENDS");
         membershipContract = Membership(membershipInstance);
 
         Permissions.Operation[] memory operations = new Permissions.Operation[](1);
@@ -63,7 +63,7 @@ contract PaymentModuleTest is Test {
         enabledTokens[0] = fakeUSDCImpl;
         enabledTokens[1] = fakeDAIImpl;
         // 3. setup payment module with enabled tokens for membership instance
-        paymentModule.setup(membershipInstance, paymentReciever, defaultPrice, paymentModule.enabledTokensValue(enabledTokens));
+        paymentModule.setup(membershipInstance, defaultPrice, paymentModule.enabledTokensValue(enabledTokens));
         // 4. ensure stablecoinEnabled function returns true, since both tokens were added
         assertEq(paymentModule.stablecoinEnabled(membershipInstance, fakeUSDCImpl), true);
         assertEq(paymentModule.stablecoinEnabled(membershipInstance, fakeDAIImpl), true);
@@ -101,7 +101,7 @@ contract PaymentModuleTest is Test {
         address[] memory enabledTokens = new address[](2);
         enabledTokens[0] = fakeUSDCImpl;
         enabledTokens[1] = fakeDAIImpl;
-        paymentModule.setup(membershipInstance, paymentReciever, price, paymentModule.enabledTokensValue(enabledTokens));
+        paymentModule.setup(membershipInstance, price, paymentModule.enabledTokensValue(enabledTokens));
         // test mint with DAI
         paymentModule.mint{value: fee}(membershipInstance, fakeDAIImpl);
         uint256 mintAmountInDAI = paymentModule.getMintPrice(fakeDAIImpl, price);
@@ -133,7 +133,7 @@ contract PaymentModuleTest is Test {
       address[] memory enabledTokens = new address[](2);
       enabledTokens[0] = fakeUSDCImpl;
       enabledTokens[1] = fakeDAIImpl;
-      paymentModule.setup(membershipInstance, paymentReciever, price, paymentModule.enabledTokensValue(enabledTokens));
+      paymentModule.setup(membershipInstance, price, paymentModule.enabledTokensValue(enabledTokens));
       vm.expectRevert("MISSING_FEE");
       paymentModule.mint(membershipInstance, fakeDAIImpl);
       vm.stopPrank();

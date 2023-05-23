@@ -2,11 +2,11 @@
 pragma solidity ^0.8.13;
 
 import {IMembership} from "../membership/IMembership.sol";
+import {Membership} from "../membership/Membership.sol";
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 
 contract FixedETHPurchaseModule is Ownable {
     mapping(address => uint256) public prices;
-    mapping(address => address) public paymentCollectors;
     mapping(address => uint256) public balances;
     uint256 public fee;
     uint256 public feeBalance;
@@ -20,10 +20,9 @@ contract FixedETHPurchaseModule is Ownable {
         fee = _fee;
     }
 
-    function setup(address collection, address paymentCollector, uint256 price) external {
+    function setup(address collection, uint256 price) external {
         require(msg.sender == collection || msg.sender == Ownable(collection).owner(), "NOT_ALLOWED");
         prices[collection] = price;
-        paymentCollectors[collection] = paymentCollector;
     }
 
     function updateFee(uint256 newFee) external onlyOwner {
@@ -43,7 +42,7 @@ contract FixedETHPurchaseModule is Ownable {
     }
 
     function withdraw(address collection) external {
-        address recipient = paymentCollectors[collection];
+        address recipient = Membership(collection).paymentCollector();
         uint256 balance = balances[collection];
         balances[collection] = 0;
         payable(recipient).transfer(balance);

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "forge-std/Test.sol";
 import {IMembership} from "../membership/IMembership.sol";
+import {Membership} from "../membership/Membership.sol";
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 
 contract FixedStablecoinPurchaseModule is Ownable {
@@ -12,8 +12,6 @@ contract FixedStablecoinPurchaseModule is Ownable {
     mapping(address => bytes32) public enabledCoins;
     // stablecoin address -> key in bitmap
     mapping(address => uint8) public stablecoinKey;
-    // collection -> payment collector able to widraw balance
-    mapping(address => address) public paymentCollectors;
     // station fee
     uint256 public fee;
     // current balance of station fee to be withdrawn
@@ -48,7 +46,6 @@ contract FixedStablecoinPurchaseModule is Ownable {
 
     function _setup(address collection, address paymentCollector, uint256 price, bytes32 enabled) internal {
         stablecoinPrices[collection] = price;
-        paymentCollectors[collection] = paymentCollector;
         enabledCoins[collection] = enabled;
     }
 
@@ -67,7 +64,8 @@ contract FixedStablecoinPurchaseModule is Ownable {
         uint256 totalCost = getMintPrice(token, price);
         require(msg.value >= fee, "MISSING_FEE");
         feeBalance += fee;
-        IERC20(token).transferFrom(msg.sender, paymentCollectors[collection], totalCost);
+        address recipient = Membership(collection).paymentCollector();
+        IERC20(token).transferFrom(msg.sender, recipient, totalCost);
         (uint256 tokenId) = IMembership(collection).mintTo(msg.sender);
         require(tokenId > 0, "MINT_FAILED");
         emit PurchaseToken(collection, msg.sender, token, price, fee, currency);

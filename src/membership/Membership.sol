@@ -13,6 +13,7 @@ import {Batch} from "../lib/Batch.sol";
 import {MembershipStorageV0} from "./storage/MembershipStorageV0.sol";
 
 contract Membership is IMembership, UUPSUpgradeable, ERC721Upgradeable, Permissions, Batch, MembershipStorageV0 {
+    address public paymentCollector;
     constructor() {}
 
     /// @notice Initializes the ERC721 token.
@@ -20,10 +21,11 @@ contract Membership is IMembership, UUPSUpgradeable, ERC721Upgradeable, Permissi
     /// @param newRenderer The address of the renderer.
     /// @param newName The name of the token.
     /// @param newSymbol The symbol of the token.
-    function init(address newOwner, address newRenderer, string calldata newName, string calldata newSymbol)
+    function init(address newOwner, address newRenderer, address _paymentCollector, string calldata newName, string calldata newSymbol)
         public
         initializer
     {
+        paymentCollector = _paymentCollector;
         _transferOwnership(newOwner);
         _updateRenderer(newRenderer);
         __ERC721_init(newName, newSymbol);
