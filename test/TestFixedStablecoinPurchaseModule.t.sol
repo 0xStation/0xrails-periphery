@@ -156,4 +156,115 @@ contract PaymentModuleTest is Test {
         assertEq(owner.balance, beforeWithdrawBalance + fee);
         vm.stopPrank();
     }
+
+    function test_getMintPrice_largerDecimals(uint256 price) public {
+        // geting overflows if the price is too high
+        vm.assume(price < 10 ** 18);
+        startHoax(owner);
+        paymentModule.append(fakeUSDCImpl);
+        paymentModule.append(fakeDAIImpl);
+        address[] memory enabledTokens = new address[](2);
+        enabledTokens[0] = fakeUSDCImpl;
+        enabledTokens[1] = fakeDAIImpl;
+        paymentModule.setup(membershipInstance, price, paymentModule.enabledTokensValue(enabledTokens));
+        uint8 moduleDecimals = paymentModule.decimals();
+        // test mint with DAI
+        uint256 mintPriceInDAI = paymentModule.getMintPrice(fakeDAIImpl, price);
+        uint8 daiDecimals = IERC20(fakeDAIImpl).decimals();
+        assertEq(mintPriceInDAI, price * 10 ** (daiDecimals - moduleDecimals));
+        // test mint with USDC
+        uint256 mintPriceInUSDC = paymentModule.getMintPrice(fakeUSDCImpl, price);
+        uint8 usdcDecimals = IERC20(fakeUSDCImpl).decimals();
+        assertEq(mintPriceInUSDC, price * 10 ** (usdcDecimals - moduleDecimals));
+        vm.stopPrank();
+    }
+
+    function test_getMintPrice_sameDecimals(uint256 price) public {
+        // geting overflows if the price is too high
+        vm.assume(price < 10 ** 18);
+        startHoax(owner);
+        uint8 decimals = paymentModule.decimals();
+        address newTokenImpl = address(new FakeERC20(decimals));
+        paymentModule.append(newTokenImpl);
+        address[] memory enabledTokens = new address[](1);
+        enabledTokens[0] = newTokenImpl;
+        paymentModule.setup(membershipInstance, price, paymentModule.enabledTokensValue(enabledTokens));
+
+        uint256 mintPrice = paymentModule.getMintPrice(newTokenImpl, price);
+        assertEq(mintPrice, price);
+        vm.stopPrank();
+    }
+
+    function test_getMintPrice_smallerDecimals(uint256 price, uint8 tokenDecimals) public {
+        // geting overflows if the price is too high
+        vm.assume(price < 10 ** 18);
+        uint8 decimals = paymentModule.decimals();
+        vm.assume(tokenDecimals < decimals && tokenDecimals > 0);
+
+        startHoax(owner);
+        address newTokenImpl = address(new FakeERC20(tokenDecimals));
+        paymentModule.append(newTokenImpl);
+        address[] memory enabledTokens = new address[](1);
+        enabledTokens[0] = newTokenImpl;
+        paymentModule.setup(membershipInstance, price, paymentModule.enabledTokensValue(enabledTokens));
+
+        uint256 mintPrice = paymentModule.getMintPrice(newTokenImpl, price);
+
+        assertEq(mintPrice, price / 10 ** (decimals - tokenDecimals));
+        vm.stopPrank();
+    }
+
+    function test_keyOf_success(uint256 price) public {
+        // geting overflows if the price is too high
+        vm.assume(price < 10 ** 18);
+        startHoax(owner);
+        paymentModule.append(fakeUSDCImpl);
+        paymentModule.append(fakeDAIImpl);
+        address[] memory enabledTokens = new address[](2);
+        enabledTokens[0] = fakeUSDCImpl;
+        enabledTokens[1] = fakeDAIImpl;
+        paymentModule.setup(membershipInstance, price, paymentModule.enabledTokensValue(enabledTokens));
+
+        // match usdc key
+        uint8 usdcKey = paymentModule.keyOf(fakeUSDCImpl);
+        assertEq(usdcKey, 1);
+        // match dai key
+        uint8 daiKey = paymentModule.keyOf(fakeDAIImpl);
+        assertEq(daiKey, 2);
+        vm.stopPrank();
+    }
+
+    function test_keyOf_revert(uint256 price) public {
+        // geting overflows if the price is too high
+        vm.assume(price < 10 ** 18);
+        startHoax(owner);
+        address newTokenImpl = address(new FakeERC20(2));
+        paymentModule.append(fakeUSDCImpl);
+        paymentModule.append(fakeDAIImpl);
+        address[] memory enabledTokens = new address[](2);
+        enabledTokens[0] = fakeUSDCImpl;
+        enabledTokens[1] = fakeDAIImpl;
+        paymentModule.setup(membershipInstance, price, paymentModule.enabledTokensValue(enabledTokens));
+
+         vm.expectRevert("STABLECOIN_NOT_SUPPORTED");
+        uint8 usdcKey = paymentModule.keyOf(newTokenImpl);
+        vm.stopPrank();
+    }
+
+    function test_updateFee() public {
+        startHoax(owner);
+        uint256 newFee = 0.0005 ether;
+        paymentModule.updateFee(newFee);
+        assertEq(paymentModule.fee(), newFee);
+        vm.stopPrank();
+    }
+
+    function test_updateFee_nonOwner(address nonOwner) public {
+        vm.assume(nonOwner != owner);
+        startHoax(nonOwner);
+        uint256 newFee = 0.0005 ether;
+        vm.expectRevert("Ownable: caller is not the owner");
+        paymentModule.updateFee(newFee);
+        vm.stopPrank();
+    }
 }

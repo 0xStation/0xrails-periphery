@@ -106,7 +106,7 @@ contract FixedStablecoinPurchaseModule is Ownable {
             // need to pad zeros to input amount
             return mintPrice * 10**(tokenDecimals - decimals);
         } else if (decimals > tokenDecimals) {
-            // need to remove zeros from depositAmount
+            // need to remove zeros from mintPrice
             return mintPrice / 10**(decimals - tokenDecimals);
         } else {
             // chosen token (stablecoin) and contract currency have same decimals, no need to do anything.
