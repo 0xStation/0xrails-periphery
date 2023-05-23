@@ -36,7 +36,7 @@ contract Deploy is Script {
         enabledTokens[0] = address(fakeToken);
 
         bytes memory setupModuleData =
-            abi.encodeWithSelector(bytes4(keccak256("setup(address,uint256,bytes32)")), msg.sender, 1, purchaseModule.enabledTokensValue(enabledTokens));
+            abi.encodeWithSelector(bytes4(keccak256("setup(uint256,bytes32)")), 1, purchaseModule.enabledTokensValue(enabledTokens));
 
         bytes memory permitMintModuleData =
             abi.encodeWithSelector(Permissions.permitAndSetup.selector, purchaseModule, permissionsValue(Permissions.Operation.MINT, address(membershipImpl)), setupModuleData);
@@ -51,7 +51,7 @@ contract Deploy is Script {
         setupCalls[0] = permitMintModuleData;
         setupCalls[1] = permitFrogUpgradeModuleData;
         setupCalls[2] = permitSymUpgradeModuleData;
-        factory.createAndSetup(msg.sender, address(renderer), "Altman Membership", "ALTMAN", setupCalls);
+        factory.createAndSetup(msg.sender, address(renderer), msg.sender, "Altman Membership", "ALTMAN", setupCalls);
         vm.stopBroadcast();
     }
 

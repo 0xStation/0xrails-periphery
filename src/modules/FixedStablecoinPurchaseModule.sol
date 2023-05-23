@@ -35,16 +35,16 @@ contract FixedStablecoinPurchaseModule is Ownable {
         decimals = _decimals;
     }
 
-    function setup(address collection, address paymentCollector, uint256 price, bytes32 enabled) external {
+    function setup(address collection, uint256 price, bytes32 enabled) external {
         require(msg.sender == Ownable(collection).owner(), "NOT_ALLOWED");
-        _setup(collection, paymentCollector, price, enabled);
+        _setup(collection, price, enabled);
     }
 
-    function setup(address paymentCollector, uint256 price, bytes32 enabled) external {
-        _setup(msg.sender, paymentCollector, price, enabled);
+    function setup(uint256 price, bytes32 enabled) external {
+        _setup(msg.sender, price, enabled);
     }
 
-    function _setup(address collection, address paymentCollector, uint256 price, bytes32 enabled) internal {
+    function _setup(address collection, uint256 price, bytes32 enabled) internal {
         stablecoinPrices[collection] = price;
         enabledCoins[collection] = enabled;
     }

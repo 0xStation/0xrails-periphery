@@ -149,7 +149,7 @@ contract PaymentModuleTest is Test {
         address[] memory enabledTokens = new address[](2);
         enabledTokens[0] = fakeUSDCImpl;
         enabledTokens[1] = fakeDAIImpl;
-        paymentModule.setup(membershipInstance, address(2), price, paymentModule.enabledTokensValue(enabledTokens));
+        paymentModule.setup(membershipInstance, price, paymentModule.enabledTokensValue(enabledTokens));
         paymentModule.mint{value: fee}(membershipInstance, fakeDAIImpl);
         uint256 beforeWithdrawBalance = owner.balance;
         paymentModule.withdrawFee();

@@ -41,7 +41,7 @@ contract PaymentModuleTest is Test {
         vm.assume(price < 2 ** 128);
         startHoax(address(1));
         address membership =
-            MembershipFactory(membershipFactory).create(address(1), rendererImpl, "Friends of Station", "FRIENDS");
+            MembershipFactory(membershipFactory).create(address(1), paymentReciever, rendererImpl, "Friends of Station", "FRIENDS");
         Membership membershipContract = Membership(membership);
         FixedETHPurchaseModule paymentModule = FixedETHPurchaseModule(paymentModuleImpl);
         paymentModule.setup(membership, price);
