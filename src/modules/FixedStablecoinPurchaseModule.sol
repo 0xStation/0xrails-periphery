@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {IMembership} from "../membership/IMembership.sol";
-import {Membership} from "../membership/Membership.sol";
+import { IMembership } from "../membership/IMembership.sol";
+import { Membership } from "../membership/Membership.sol";
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 
 contract FixedStablecoinPurchaseModule is Ownable {
@@ -23,13 +23,11 @@ contract FixedStablecoinPurchaseModule is Ownable {
     // currency type for this particular contract. (USD, EUR, etc.)
     string public currency;
 
-    event PurchaseToken(address indexed collection, address indexed buyer, address indexed token, uint256 price, uint256 fee, string currency);
+    event Purchase(address indexed collection, address indexed buyer, address indexed paymentToken, uint256 price, uint256 fee);
     event WithdrawFee(address indexed recipient, uint256 amount);
 
     constructor(address _owner, uint256 _fee, string memory _currency, uint8 _decimals) {
         _transferOwnership(_owner);
-        // needed to leave 0 as a miss for keyOf
-        keyCounter = 1;
         fee = _fee;
         currency = _currency;
         decimals = _decimals;
@@ -50,7 +48,7 @@ contract FixedStablecoinPurchaseModule is Ownable {
     }
 
     function append(address token) external onlyOwner {
-        uint8 newKey = keyCounter++;
+        uint8 newKey = ++keyCounter;
         stablecoinKey[token] = newKey;
     }
 
@@ -59,16 +57,24 @@ contract FixedStablecoinPurchaseModule is Ownable {
     }
 
     function mint(address collection, address token) external payable {
+      _mint(collection, token, msg.sender);
+    }
+
+    function mintTo(address collection, address token, address to) external payable {
+      _mint(collection, token, to);
+    }
+
+    function _mint(address collection, address token, address to) internal {
         require(stablecoinEnabled(collection, token), "TOKEN NOT ENABLED BY COLLECTION");
         uint256 price = stablecoinPrices[collection];
         uint256 totalCost = getMintPrice(token, price);
-        require(msg.value >= fee, "MISSING_FEE");
+        require(msg.value == fee, "MISSING_FEE");
         feeBalance += fee;
         address recipient = Membership(collection).paymentCollector();
         IERC20(token).transferFrom(msg.sender, recipient, totalCost);
-        (uint256 tokenId) = IMembership(collection).mintTo(msg.sender);
+        (uint256 tokenId) = IMembership(collection).mintTo(to);
         require(tokenId > 0, "MINT_FAILED");
-        emit PurchaseToken(collection, msg.sender, token, price, fee, currency);
+        emit Purchase(collection, to, token, price, fee);
     }
 
     function withdrawFee() external {
@@ -86,8 +92,7 @@ contract FixedStablecoinPurchaseModule is Ownable {
 
     function stablecoinEnabled(address collection, address token) public view returns (bool) {
         bytes32 _bitmap = enabledCoins[collection];
-        uint8 key = keyOf(token);
-        return (_bitmap & bytes32(1 << key)) != 0;
+        return (_bitmap & _tokenBit(token)) != 0;
     }
 
     function enabledTokensValue(address[] memory enabledTokens) external view returns (bytes32 value) {
