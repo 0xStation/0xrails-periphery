@@ -11,6 +11,7 @@ abstract contract Batch {
 
     function batch(bool atomic, bytes[] calldata calls) public payable returns (Result[] memory results) {
         uint256 len = calls.length;
+        results = new Result[](len);
         for (uint256 i = 0; i < len; i++) {
             Result memory result = results[i];
             (result.success, result.returnData) = address(this).delegatecall(calls[i]);

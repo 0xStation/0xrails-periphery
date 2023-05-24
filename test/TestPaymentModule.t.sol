@@ -3,11 +3,12 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "../src/lib/renderer/Renderer.sol";
-import {Membership, Permissions} from "../src/membership/Membership.sol";
+import { Membership } from "../src/membership/Membership.sol";
 import "../src/membership/MembershipFactory.sol";
 import "../src/modules/FixedETHPurchaseModule.sol";
 
 contract PaymentModuleTest is Test {
+    address public paymentReciever = address(456);
     address public membershipFactory;
     address public rendererImpl;
     address public membershipImpl;
@@ -28,7 +29,7 @@ contract PaymentModuleTest is Test {
     function test_mint_without_adding_payment_module_should_fail() public {
         startHoax(address(2));
         address membership =
-            MembershipFactory(membershipFactory).create(address(1), rendererImpl, "Friends of Station", "FRIENDS");
+            MembershipFactory(membershipFactory).create(address(1), paymentReciever, rendererImpl, "Friends of Station", "FRIENDS");
         Membership membershipContract = Membership(membership);
 
         vm.expectRevert("NOT_PERMITTED");
@@ -40,15 +41,14 @@ contract PaymentModuleTest is Test {
         vm.assume(price < 2 ** 128);
         startHoax(address(1));
         address membership =
-            MembershipFactory(membershipFactory).create(address(1), rendererImpl, "Friends of Station", "FRIENDS");
+            MembershipFactory(membershipFactory).create(address(1), paymentReciever, rendererImpl, "Friends of Station", "FRIENDS");
         Membership membershipContract = Membership(membership);
         FixedETHPurchaseModule paymentModule = FixedETHPurchaseModule(paymentModuleImpl);
-        paymentModule.setup(membership, membership, price);
+        paymentModule.setup(membership, price);
 
         Permissions.Operation[] memory operations = new Permissions.Operation[](1);
         operations[0] = Permissions.Operation.MINT;
         membershipContract.permit(paymentModuleImpl, membershipContract.permissionsValue(operations));
-
         paymentModule.mint{value: price + fee}(membership);
 
         assertEq(membershipContract.ownerOf(1), address(1));

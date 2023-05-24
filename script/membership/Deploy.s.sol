@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Script.sol";
 import "../../src/lib/renderer/Renderer.sol";
-import "../../src/membership/Membership.sol";
+import { Membership } from  "../../src/membership/Membership.sol";
 import "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract Deploy is Script {

@@ -20,13 +20,13 @@ contract MembershipFactory is Ownable, Pausable {
     }
 
     /// @notice create a new Membership via ERC1967Proxy
-    function create(address owner, address renderer, string memory name, string memory symbol)
+    function create(address owner, address renderer, address paymentCollector, string memory name, string memory symbol)
         public
         whenNotPaused
         returns (address membership)
     {
         bytes memory initData =
-            abi.encodeWithSelector(IMembership(template).init.selector, owner, renderer, name, symbol);
+            abi.encodeWithSelector(IMembership(template).init.selector, owner, paymentCollector, renderer, name, symbol);
         membership = address(new ERC1967Proxy(template, initData));
 
         emit MembershipCreated(membership);
@@ -36,12 +36,13 @@ contract MembershipFactory is Ownable, Pausable {
     function createAndSetup(
         address owner,
         address renderer,
+        address paymentCollector,
         string memory name,
         string memory symbol,
         bytes[] calldata setupCalls
     ) external whenNotPaused returns (address membership, Batch.Result[] memory setupResults) {
         // set factory as owner so it can make calls to protected functions for setup
-        membership = create(address(this), renderer, name, symbol);
+        membership = create(address(this), paymentCollector, renderer, name, symbol);
         // make non-atomic batch call, using permission as owner to do anything
         setupResults = Batch(membership).batch(false, setupCalls);
         // transfer ownership to provided argument
