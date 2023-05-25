@@ -1,1 +1,6 @@
 forge create --rpc-url $POLYGON_RPC_URL src/badge/Badge.sol:Badge --private-key $PRIVATE_KEY --verify --chain-id 137 --api-key $POLYSCAN_API_KEY
+forge create --rpc-url $GOERLI_RPC_URL --private-key $PRIVATE_KEY --verify --chain-id 5 --api-key $ETHERSCAN_API_KEY src/badge/Badge.sol:Badge
+
+forge script --fork-url $GOERLI_RPC_URL --keystores $ETH_KEYSTORE --sender $ETH_FROM --broadcast  script/renderer/Deploy.s.sol:Deploy
+
+forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY 0xbf4b0f5adac0fc653410b6aaf378665f00f80ecb src/membership/Membership.sol:Membership

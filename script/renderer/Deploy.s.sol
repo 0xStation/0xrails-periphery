@@ -8,7 +8,9 @@ contract Deploy is Script {
     function run() public {
         vm.startBroadcast();
         address owner = 0x016562aA41A8697720ce0943F003141f5dEAe006;
-        new Renderer(owner, "https://tokenbound.station.express/api/v1/nftMetadata");
+        string memory baseURI = "https://members.station.express/api/v1/nftMetadata";
+
+        new Renderer(owner, baseURI);
         vm.stopBroadcast();
     }
 }
