@@ -20,26 +20,43 @@ contract Membership is IMembership, UUPSUpgradeable, ERC721Upgradeable, Permissi
     /// @param newRenderer The address of the renderer.
     /// @param newName The name of the token.
     /// @param newSymbol The symbol of the token.
-    function init(address newOwner, address newRenderer, address newPaymentCollector, string calldata newName, string calldata newSymbol)
-        public
-        initializer
-    {
-        paymentCollector = newPaymentCollector;
+    function init(
+        address newOwner,
+        address newRenderer,
+        address newPaymentCollector,
+        string calldata newName,
+        string calldata newSymbol
+    ) public initializer {
         _transferOwnership(newOwner);
         _updateRenderer(newRenderer);
+        _updatePaymentCollector(newPaymentCollector);
         __ERC721_init(newName, newSymbol);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override permitted(Operation.UPGRADE) {}
 
-    function updateRenderer(address _renderer) external permitted(Operation.RENDER) returns (bool success) {
-        _updateRenderer(_renderer);
+    function updateRenderer(address newRenderer) external permitted(Operation.RENDER) returns (bool success) {
+        _updateRenderer(newRenderer);
         return true;
     }
 
-    function _updateRenderer(address _renderer) internal {
-        renderer = _renderer;
-        emit UpdatedRenderer(_renderer);
+    function _updateRenderer(address newRenderer) internal {
+        renderer = newRenderer;
+        emit UpdatedRenderer(newRenderer);
+    }
+
+    function updatePaymentCollector(address newPaymentCollector)
+        external
+        permitted(Operation.UPGRADE)
+        returns (bool success)
+    {
+        _updatePaymentCollector(newPaymentCollector);
+        return true;
+    }
+
+    function _updatePaymentCollector(address newPaymentCollector) internal {
+        paymentCollector = newPaymentCollector;
+        emit UpdatedPaymentCollector(newPaymentCollector);
     }
 
     function tokenURI(uint256 id) public view override returns (string memory) {
