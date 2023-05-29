@@ -29,9 +29,8 @@ contract Deploy is Script {
         // address membershipImpl = 0xA9879cbfa6a1Fe2964F37BcCD6fcF6ea61EfcDbf; // polygon
         // address membershipImpl = address(new Membership());
 
-        bytes memory initData = abi.encodeWithSelector(
-            Membership(membershipImpl).init.selector, msg.sender, renderer, paymentCollector, name, symbol
-        );
+        bytes memory initData =
+            abi.encodeWithSelector(Membership(membershipImpl).init.selector, msg.sender, renderer, name, symbol);
         address proxy = address(new ERC1967Proxy(membershipImpl, initData));
 
         // config

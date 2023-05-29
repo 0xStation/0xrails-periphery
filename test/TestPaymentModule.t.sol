@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "../src/lib/renderer/Renderer.sol";
-import { Membership } from "../src/membership/Membership.sol";
+import {Membership} from "../src/membership/Membership.sol";
 import "../src/membership/MembershipFactory.sol";
 import "../src/modules/FixedETHPurchaseModule.sol";
 
@@ -29,7 +29,7 @@ contract PaymentModuleTest is Test {
     function test_mint_without_adding_payment_module_should_fail() public {
         startHoax(address(2));
         address membership =
-            MembershipFactory(membershipFactory).create(address(1), paymentReciever, rendererImpl, "Friends of Station", "FRIENDS");
+            MembershipFactory(membershipFactory).create(address(1), rendererImpl, "Friends of Station", "FRIENDS");
         Membership membershipContract = Membership(membership);
 
         vm.expectRevert("NOT_PERMITTED");
@@ -41,7 +41,7 @@ contract PaymentModuleTest is Test {
         vm.assume(price < 2 ** 128);
         startHoax(address(1));
         address membership =
-            MembershipFactory(membershipFactory).create(address(1), paymentReciever, rendererImpl, "Friends of Station", "FRIENDS");
+            MembershipFactory(membershipFactory).create(address(1), rendererImpl, "Friends of Station", "FRIENDS");
         Membership membershipContract = Membership(membership);
         FixedETHPurchaseModule paymentModule = FixedETHPurchaseModule(paymentModuleImpl);
         paymentModule.setup(membership, price);
