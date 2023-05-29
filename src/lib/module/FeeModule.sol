@@ -33,7 +33,7 @@ contract FeeModule is Ownable {
     }
 
     function _registerFee() internal returns (uint256 paidFee) {
-        paidFee = fee; // read from state once, gas opt
+        paidFee = fee; // read from state once, gas optimization
         require(msg.value == paidFee, "INVALID_FEE");
         feeBalance += paidFee;
     }

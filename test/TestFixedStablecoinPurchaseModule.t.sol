@@ -3,10 +3,10 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "../src/lib/renderer/Renderer.sol";
-import { Membership } from "../src/membership/Membership.sol";
+import {Membership} from "../src/membership/Membership.sol";
 import "../src/membership/MembershipFactory.sol";
 import "../src/modules/FixedStablecoinPurchaseModule.sol";
-import { FakeERC20 } from './utils/FakeERC20.sol';
+import {FakeERC20} from "./utils/FakeERC20.sol";
 
 contract PaymentModuleTest is Test {
     address public owner = address(123);
@@ -34,15 +34,16 @@ contract PaymentModuleTest is Test {
         fakeUSDCImpl = address(new FakeERC20(6));
         fakeDAIImpl = address(new FakeERC20(18));
         membershipInstance =
-            MembershipFactory(membershipFactory).create(owner, paymentReciever, rendererImpl, "Friends of Station", "FRIENDS");
+            MembershipFactory(membershipFactory).create(owner, rendererImpl, "Friends of Station", "FRIENDS");
         membershipContract = Membership(membershipInstance);
 
         Permissions.Operation[] memory operations = new Permissions.Operation[](1);
         operations[0] = Permissions.Operation.MINT;
         membershipContract.permit(fixedStablecoinPurchaseModuleImpl, membershipContract.permissionsValue(operations));
+        membershipContract.updatePaymentCollector(paymentReciever);
 
-         // give account fake DAI + fake USDC
-         // 1000 USD equivalent
+        // give account fake DAI + fake USDC
+        // 1000 USD equivalent
         FakeERC20(fakeDAIImpl).mint(owner, BASE_BALANCE * 10 ** 18);
         FakeERC20(fakeDAIImpl).approve(fixedStablecoinPurchaseModuleImpl, BASE_BALANCE * 10 ** 18);
         FakeERC20(fakeUSDCImpl).mint(owner, BASE_BALANCE * 10 ** 6);
@@ -78,7 +79,7 @@ contract PaymentModuleTest is Test {
         // 1. add fakeUSDCImpl and fakeDAIImpl to payment module
         paymentModule.append(fakeUSDCImpl);
         paymentModule.append(fakeDAIImpl);
-         // 2. create address array of tokens we want enabled
+        // 2. create address array of tokens we want enabled
         address[] memory enabledTokens = new address[](2);
         enabledTokens[0] = fakeUSDCImpl;
         enabledTokens[1] = fakeDAIImpl;
@@ -124,23 +125,23 @@ contract PaymentModuleTest is Test {
     }
 
     function test_mint_revertIfNoFee(uint256 price) public {
-      // 2 decimals of precision, so price must be less than BASE_BALANCE with that many decimals
-      // since that is what the wallet has been given. Else, it will throw insufficient balance error
-      vm.assume(price < BASE_BALANCE * 10 ** 2);
-      startHoax(owner);
-      paymentModule.append(fakeUSDCImpl);
-      paymentModule.append(fakeDAIImpl);
-      address[] memory enabledTokens = new address[](2);
-      enabledTokens[0] = fakeUSDCImpl;
-      enabledTokens[1] = fakeDAIImpl;
-      paymentModule.setup(membershipInstance, price, paymentModule.enabledTokensValue(enabledTokens));
-      vm.expectRevert("MISSING_FEE");
-      paymentModule.mint(membershipInstance, fakeDAIImpl);
-      vm.stopPrank();
+        // 2 decimals of precision, so price must be less than BASE_BALANCE with that many decimals
+        // since that is what the wallet has been given. Else, it will throw insufficient balance error
+        vm.assume(price < BASE_BALANCE * 10 ** 2);
+        startHoax(owner);
+        paymentModule.append(fakeUSDCImpl);
+        paymentModule.append(fakeDAIImpl);
+        address[] memory enabledTokens = new address[](2);
+        enabledTokens[0] = fakeUSDCImpl;
+        enabledTokens[1] = fakeDAIImpl;
+        paymentModule.setup(membershipInstance, price, paymentModule.enabledTokensValue(enabledTokens));
+        vm.expectRevert("MISSING_FEE");
+        paymentModule.mint(membershipInstance, fakeDAIImpl);
+        vm.stopPrank();
     }
 
     function test_withdrawFee(uint256 price) public {
-       // 2 decimals of precision, so price must be less than BASE_BALANCE with that many decimals
+        // 2 decimals of precision, so price must be less than BASE_BALANCE with that many decimals
         // since that is what the wallet has been given. Else, it will throw insufficient balance error
         vm.assume(price < BASE_BALANCE * 10 ** 2);
         startHoax(owner);
@@ -246,7 +247,7 @@ contract PaymentModuleTest is Test {
         enabledTokens[1] = fakeDAIImpl;
         paymentModule.setup(membershipInstance, price, paymentModule.enabledTokensValue(enabledTokens));
 
-         vm.expectRevert("STABLECOIN_NOT_SUPPORTED");
+        vm.expectRevert("STABLECOIN_NOT_SUPPORTED");
         uint8 usdcKey = paymentModule.keyOf(newTokenImpl);
         vm.stopPrank();
     }

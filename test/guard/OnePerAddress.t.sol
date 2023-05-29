@@ -42,7 +42,7 @@ contract OnePerAddressTest is Test {
         address owner = createAccount();
         address account = createAccount();
 
-        address proxy = membershipFactory.create(owner, owner, rendererImpl, "Test", "TEST");
+        address proxy = membershipFactory.create(owner, rendererImpl, "Test", "TEST");
         vm.startPrank(owner);
         // set guard
         Permissions(proxy).guard(Permissions.Operation.MINT, onePerAddress);
@@ -62,7 +62,7 @@ contract OnePerAddressTest is Test {
         address account1 = createAccount();
         address account2 = createAccount();
 
-        address proxy = membershipFactory.create(owner, owner, rendererImpl, "Test", "TEST");
+        address proxy = membershipFactory.create(owner, rendererImpl, "Test", "TEST");
         vm.startPrank(owner);
         // set guard
         Permissions(proxy).guard(Permissions.Operation.TRANSFER, onePerAddress);

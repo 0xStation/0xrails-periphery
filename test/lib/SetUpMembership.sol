@@ -22,6 +22,6 @@ abstract contract SetUpMembership is Helpers {
     }
 
     function create() public returns (Membership proxy) {
-        proxy = Membership(membershipFactory.create(owner, rendererImpl, paymentCollector, "Test", "TEST"));
+        proxy = Membership(membershipFactory.create(owner, rendererImpl, "Test", "TEST"));
     }
 }

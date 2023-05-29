@@ -20,16 +20,12 @@ contract Membership is IMembership, UUPSUpgradeable, ERC721Upgradeable, Permissi
     /// @param newRenderer The address of the renderer.
     /// @param newName The name of the token.
     /// @param newSymbol The symbol of the token.
-    function init(
-        address newOwner,
-        address newRenderer,
-        address newPaymentCollector,
-        string calldata newName,
-        string calldata newSymbol
-    ) public initializer {
+    function init(address newOwner, address newRenderer, string calldata newName, string calldata newSymbol)
+        public
+        initializer
+    {
         _transferOwnership(newOwner);
         _updateRenderer(newRenderer);
-        _updatePaymentCollector(newPaymentCollector);
         __ERC721_init(newName, newSymbol);
     }
 
@@ -50,13 +46,9 @@ contract Membership is IMembership, UUPSUpgradeable, ERC721Upgradeable, Permissi
         permitted(Operation.UPGRADE)
         returns (bool success)
     {
-        _updatePaymentCollector(newPaymentCollector);
-        return true;
-    }
-
-    function _updatePaymentCollector(address newPaymentCollector) internal {
         paymentCollector = newPaymentCollector;
         emit UpdatedPaymentCollector(newPaymentCollector);
+        return true;
     }
 
     function tokenURI(uint256 id) public view override returns (string memory) {
