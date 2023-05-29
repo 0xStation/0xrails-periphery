@@ -7,20 +7,20 @@ import {FeeModule} from "../lib/module/FeeModule.sol";
 contract PublicFreeMintModule is FeeModule {
     event Mint(address indexed collection, address indexed recipient, uint256 fee);
 
-    constructor(address newOwner) FeeModule(newOwner) {}
+    constructor(address newOwner, uint256 newFee) FeeModule(newOwner, newFee) {}
 
-    function mint(address collection) external payable {
-        _mint(collection, msg.sender);
+    function mint(address collection) external payable returns (uint256 tokenId) {
+        tokenId = _mint(collection, msg.sender);
     }
 
-    function mintTo(address collection, address recipient) external payable {
-        _mint(collection, recipient);
+    function mintTo(address collection, address recipient) external payable returns (uint256 tokenId) {
+        tokenId = _mint(collection, recipient);
     }
 
-    function _mint(address collection, address recipient) internal {
+    function _mint(address collection, address recipient) internal returns (uint256 tokenId) {
         uint256 paidFee = _registerFee(); // reverts on invalid fee
-        (uint256 tokenId) = IMembership(collection).mintTo(recipient);
+        (tokenId) = IMembership(collection).mintTo(recipient);
         require(tokenId > 0, "MINT_FAILED");
-        emit Purchase(collection, recipient, price, paidFee);
+        emit Mint(collection, recipient, paidFee);
     }
 }
