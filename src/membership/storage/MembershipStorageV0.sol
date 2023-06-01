@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-contract MembershipStorageV0 {
+import {IMembership} from "../IMembership.sol";
+
+abstract contract MembershipStorageV0 is IMembership {
     // augment `tokenURI` through a Renderer contract
     address public renderer;
     // self-incrementing id for minting tokens, doubly functions as totalSupply function

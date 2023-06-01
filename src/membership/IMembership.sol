@@ -12,4 +12,7 @@ interface IMembership {
     function mintTo(address recipient) external returns (uint256 tokenId);
     function burnFrom(uint256 tokenId) external returns (bool success);
     function burn(uint256 tokenId) external returns (bool success);
+    function renderer() external returns (address renderer);
+    function totalSupply() external returns (uint256 totalSupply);
+    function paymentCollector() external returns (address paymentCollector);
 }

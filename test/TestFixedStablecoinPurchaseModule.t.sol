@@ -2,10 +2,10 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import "../src/lib/renderer/Renderer.sol";
-import {Membership} from "../src/membership/Membership.sol";
-import "../src/membership/MembershipFactory.sol";
-import "../src/modules/FixedStablecoinPurchaseModule.sol";
+import "src/lib/renderer/Renderer.sol";
+import {Membership} from "src/membership/Membership.sol";
+import "src/membership/MembershipFactory.sol";
+import "src/membership/modules/FixedStablecoinPurchaseModule.sol";
 import {FakeERC20} from "./utils/FakeERC20.sol";
 
 contract PaymentModuleTest is Test {
@@ -248,7 +248,7 @@ contract PaymentModuleTest is Test {
         paymentModule.setup(membershipInstance, price, paymentModule.enabledTokensValue(enabledTokens));
 
         vm.expectRevert("STABLECOIN_NOT_SUPPORTED");
-        uint8 usdcKey = paymentModule.keyOf(newTokenImpl);
+        paymentModule.keyOf(newTokenImpl);
         vm.stopPrank();
     }
 

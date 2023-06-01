@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import { IMembership } from "../membership/IMembership.sol";
-import { Membership } from "../membership/Membership.sol";
+import {IMembership} from "src/membership/IMembership.sol";
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 
 contract FixedStablecoinPurchaseModule is Ownable {
@@ -18,12 +17,14 @@ contract FixedStablecoinPurchaseModule is Ownable {
     uint256 public feeBalance;
     // how many keys currently exist in map
     uint8 public keyCounter;
-     // decimals of percision for currency type
+    // decimals of percision for currency type
     uint8 public decimals;
     // currency type for this particular contract. (USD, EUR, etc.)
     string public currency;
 
-    event Purchase(address indexed collection, address indexed buyer, address indexed paymentToken, uint256 price, uint256 fee);
+    event Purchase(
+        address indexed collection, address indexed buyer, address indexed paymentToken, uint256 price, uint256 fee
+    );
     event WithdrawFee(address indexed recipient, uint256 amount);
 
     constructor(address _owner, uint256 _fee, string memory _currency, uint8 _decimals) {
@@ -57,11 +58,11 @@ contract FixedStablecoinPurchaseModule is Ownable {
     }
 
     function mint(address collection, address token) external payable {
-      _mint(collection, token, msg.sender);
+        _mint(collection, token, msg.sender);
     }
 
     function mintTo(address collection, address token, address to) external payable {
-      _mint(collection, token, to);
+        _mint(collection, token, to);
     }
 
     function _mint(address collection, address token, address to) internal {
@@ -70,7 +71,7 @@ contract FixedStablecoinPurchaseModule is Ownable {
         uint256 totalCost = getMintPrice(token, price);
         require(msg.value == fee, "MISSING_FEE");
         feeBalance += fee;
-        address recipient = Membership(collection).paymentCollector();
+        address recipient = IMembership(collection).paymentCollector();
         IERC20(token).transferFrom(msg.sender, recipient, totalCost);
         (uint256 tokenId) = IMembership(collection).mintTo(to);
         require(tokenId > 0, "MINT_FAILED");
@@ -109,10 +110,10 @@ contract FixedStablecoinPurchaseModule is Ownable {
         uint256 tokenDecimals = IERC20(token).decimals();
         if (decimals < tokenDecimals) {
             // need to pad zeros to input amount
-            return mintPrice * 10**(tokenDecimals - decimals);
+            return mintPrice * 10 ** (tokenDecimals - decimals);
         } else if (decimals > tokenDecimals) {
             // need to remove zeros from mintPrice
-            return mintPrice / 10**(decimals - tokenDecimals);
+            return mintPrice / 10 ** (decimals - tokenDecimals);
         } else {
             // chosen token (stablecoin) and contract currency have same decimals, no need to do anything.
             return mintPrice;
@@ -121,7 +122,7 @@ contract FixedStablecoinPurchaseModule is Ownable {
 }
 
 interface IERC20 {
-  function transferFrom(address from, address to, uint256 value) external returns (bool success);
-  function decimals() external view returns (uint8);
-  function balanceOf(address owner) external view returns (uint256 balance);
+    function transferFrom(address from, address to, uint256 value) external returns (bool success);
+    function decimals() external view returns (uint8);
+    function balanceOf(address owner) external view returns (uint256 balance);
 }

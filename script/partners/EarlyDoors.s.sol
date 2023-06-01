@@ -6,7 +6,7 @@ import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Batch} from "src/lib/Batch.sol";
 import {Permissions} from "src/lib/Permissions.sol";
-import {FixedStablecoinPurchaseModule} from "../../src/modules/FixedStablecoinPurchaseModule.sol";
+import {FixedStablecoinPurchaseModule} from "src/membership/modules/FixedStablecoinPurchaseModule.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 // forge script script/partners/EarlyDoors.s.sol:EarlyDoors --fork-url $MAINNET_RPC_URL --keystores $ETH_KEYSTORE --password $KEYSTORE_PASSWORD --sender $ETH_FROM --broadcast
@@ -47,13 +47,14 @@ contract EarlyDoors is Script {
         // Membership membership = Membership(membershipImpl);
 
         // bytes memory initData =
-            // abi.encodeWithSelector(membership.init.selector, frog, address(renderer), name, symbol);
+        // abi.encodeWithSelector(membership.init.selector, frog, address(renderer), name, symbol);
         // address proxy = address(new ERC1967Proxy(membershipImpl, initData));
         address proxy = 0x0c9F8e98994B930f77EcF9b6c1dc1f5d374F04A8;
 
         // purchase module
         // FixedStablecoinPurchaseModule purchaseModule = new FixedStablecoinPurchaseModule(frog, 0.001 ether, currency, decimals);
-        FixedStablecoinPurchaseModule purchaseModule = FixedStablecoinPurchaseModule(0xf21074833502cBb87d69B7e865C19852a63Ca34b);
+        FixedStablecoinPurchaseModule purchaseModule =
+            FixedStablecoinPurchaseModule(0xf21074833502cBb87d69B7e865C19852a63Ca34b);
 
         // this step has already happened
         // purchaseModule.append(usdcAddress);
@@ -62,11 +63,17 @@ contract EarlyDoors is Script {
         address[] memory enabledTokens = new address[](1);
         enabledTokens[0] = usdcAddress;
         bytes memory setupModuleData = abi.encodeWithSelector(
-            bytes4(keccak256("setup(uint256,bytes32)")), mintPrice * 10**decimals, purchaseModule.enabledTokensValue(enabledTokens)
+            bytes4(keccak256("setup(uint256,bytes32)")),
+            mintPrice * 10 ** decimals,
+            purchaseModule.enabledTokensValue(enabledTokens)
         );
 
         bytes memory permitModule = abi.encodeWithSelector(
-            Permissions.permitAndSetup.selector, address(purchaseModule), operationPermissions(Permissions.Operation.MINT), setupModuleData);
+            Permissions.permitAndSetup.selector,
+            address(purchaseModule),
+            operationPermissions(Permissions.Operation.MINT),
+            setupModuleData
+        );
 
         bytes memory guardMint =
             abi.encodeWithSelector(Permissions.guard.selector, Permissions.Operation.MINT, onePerAddress);
@@ -74,15 +81,16 @@ contract EarlyDoors is Script {
         bytes memory guardTransfer =
             abi.encodeWithSelector(Permissions.guard.selector, Permissions.Operation.TRANSFER, MAX_ADDRESS);
 
-        bytes memory addPaymentCollector = abi.encodeWithSelector(
-            Membership.updatePaymentCollector.selector, paymentCollector
+        bytes memory addPaymentCollector =
+            abi.encodeWithSelector(Membership.updatePaymentCollector.selector, paymentCollector);
+
+        bytes memory permitFrogUpgradeModuleData = abi.encodeWithSelector(
+            Permissions.permit.selector, frog, operationPermissions(Permissions.Operation.UPGRADE)
         );
 
-        bytes memory permitFrogUpgradeModuleData =
-            abi.encodeWithSelector(Permissions.permit.selector, frog, operationPermissions(Permissions.Operation.UPGRADE));
-
-        bytes memory permitSymUpgradeModuleData =
-            abi.encodeWithSelector(Permissions.permit.selector, sym, operationPermissions(Permissions.Operation.UPGRADE));
+        bytes memory permitSymUpgradeModuleData = abi.encodeWithSelector(
+            Permissions.permit.selector, sym, operationPermissions(Permissions.Operation.UPGRADE)
+        );
 
         bytes[] memory setupCalls = new bytes[](6);
         setupCalls[0] = permitModule;

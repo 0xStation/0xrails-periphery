@@ -2,9 +2,9 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import "../src/lib/renderer/Renderer.sol";
-import {Membership} from "../src/membership/Membership.sol";
-import "../src/membership/MembershipFactory.sol";
+import "src/lib/renderer/Renderer.sol";
+import {Membership} from "src/membership/Membership.sol";
+import "src/membership/MembershipFactory.sol";
 
 contract MembershipFactoryTest is Test {
     address public paymentReciever = address(456);

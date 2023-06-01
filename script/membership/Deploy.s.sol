@@ -2,9 +2,9 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Script.sol";
-import "../../src/lib/renderer/Renderer.sol";
-import {Membership} from "../../src/membership/Membership.sol";
-import {Batch} from "../../src/lib/Batch.sol";
+import "src/lib/renderer/Renderer.sol";
+import {Batch} from "src/lib/Batch.sol";
+import {Membership} from "src/membership/Membership.sol";
 import "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract Deploy is Script {
@@ -16,7 +16,8 @@ contract Deploy is Script {
         // address owner = 0xE7affDB964178261Df49B86BFdBA78E9d768Db6D; // frog
         address renderer = 0xf8A31352e237af670D5DC6e9b75a4401A37BaD0E; // goerli
         // address renderer = 0x9AE8391F311292c8E241DB576C6d528932B1939f; // polygon
-        address paymentCollector = owner;
+        // address paymentCollector = owner;
+
         string memory name = "Lobby3";
         string memory symbol = "LOBBY";
 

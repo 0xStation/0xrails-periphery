@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {IMembership} from "../membership/IMembership.sol";
-import {FeeModule} from "../lib/module/FeeModule.sol";
+import {IMembership} from "src/membership/IMembership.sol";
+import {FeeModule} from "src/lib/module/FeeModule.sol";
 
 contract PublicFreeMintModule is FeeModule {
     event Mint(address indexed collection, address indexed recipient, uint256 fee);

@@ -2,12 +2,12 @@
 pragma solidity ^0.8.13;
 
 import {Script} from "forge-std/Script.sol";
+import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Renderer} from "src/lib/renderer/Renderer.sol";
-import {Membership} from "src/membership/Membership.sol";
 import {Batch} from "src/lib/Batch.sol";
 import {Permissions} from "src/lib/Permissions.sol";
-import {PublicFreeMintModule} from "src/modules/PublicFreeMintModule.sol";
-import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {Membership} from "src/membership/Membership.sol";
+import {PublicFreeMintModule} from "src/membership/modules//PublicFreeMintModule.sol";
 
 // forge script script/partners/Plurigrid.s.sol:Plurigrid --fork-url $GOERLI_RPC_URL --keystores $ETH_KEYSTORE --password $KEYSTORE_PASSWORD --sender $ETH_FROM --broadcast
 contract Plurigrid is Script {
@@ -53,23 +53,23 @@ contract Plurigrid is Script {
 
         // config
 
-        // bytes memory permitModule = abi.encodeWithSelector(
-        //     Permissions.permit.selector, module, operationPermissions(Permissions.Operation.MINT)
-        // );
-        // bytes memory guardMint =
-        //     abi.encodeWithSelector(Permissions.guard.selector, Permissions.Operation.MINT, onePerAddress);
-        // bytes memory guardTransfer =
-        //     abi.encodeWithSelector(Permissions.guard.selector, Permissions.Operation.TRANSFER, MAX_ADDRESS);
+        bytes memory permitModule = abi.encodeWithSelector(
+            Permissions.permit.selector, module, operationPermissions(Permissions.Operation.MINT)
+        );
+        bytes memory guardMint =
+            abi.encodeWithSelector(Permissions.guard.selector, Permissions.Operation.MINT, onePerAddress);
+        bytes memory guardTransfer =
+            abi.encodeWithSelector(Permissions.guard.selector, Permissions.Operation.TRANSFER, MAX_ADDRESS);
 
-        // bytes[] memory setupCalls = new bytes[](3);
-        // setupCalls[0] = permitModule;
-        // setupCalls[1] = guardMint;
-        // setupCalls[2] = guardTransfer;
+        bytes[] memory setupCalls = new bytes[](3);
+        setupCalls[0] = permitModule;
+        setupCalls[1] = guardMint;
+        setupCalls[2] = guardTransfer;
 
-        // // make non-atomic batch call, using permission as owner to do anything
-        // Batch(proxy).batch(false, setupCalls);
-        // // transfer ownership to provided argument
-        // Permissions(proxy).transferOwnership(owner);
+        // make non-atomic batch call, using permission as owner to do anything
+        Batch(proxy).batch(false, setupCalls);
+        // transfer ownership to provided argument
+        Permissions(proxy).transferOwnership(owner);
 
         vm.stopBroadcast();
     }

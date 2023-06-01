@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {IMembership} from "../membership/IMembership.sol";
-import {Membership} from "../membership/Membership.sol";
+import {IMembership} from "src/membership/IMembership.sol";
+import {Membership} from "src/membership/Membership.sol";
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 
 contract FixedETHPurchaseModule is Ownable {

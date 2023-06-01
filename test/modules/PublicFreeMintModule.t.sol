@@ -6,7 +6,7 @@ import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
-import {PublicFreeMintModule} from "src/modules/PublicFreeMintModule.sol";
+import {PublicFreeMintModule} from "src/membership/modules/PublicFreeMintModule.sol";
 
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
