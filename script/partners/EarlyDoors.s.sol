@@ -9,7 +9,7 @@ import {Permissions} from "src/lib/Permissions.sol";
 import {FixedStablecoinPurchaseModule} from "../../src/modules/FixedStablecoinPurchaseModule.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-// forge script script/partners/EarlyDoors.s.sol:EarlyDoors --fork-url $GOERLI_RPC_URL --keystores $ETH_KEYSTORE --password $KEYSTORE_PASSWORD --sender $ETH_FROM --broadcast
+// forge script script/partners/EarlyDoors.s.sol:EarlyDoors --fork-url $MAINNET_RPC_URL --keystores $ETH_KEYSTORE --password $KEYSTORE_PASSWORD --sender $ETH_FROM --broadcast
 contract EarlyDoors is Script {
     string public name = "Early Doors";
     string public symbol = "EARLYDOORS";
@@ -23,8 +23,9 @@ contract EarlyDoors is Script {
     address public paymentCollector = 0x7d29e5eba46eeF74B6fC643aEc6300D5FC74F7B5; // early doors safe
     // address public paymentCollector = 0xE7affDB964178261Df49B86BFdBA78E9d768Db6D; // frog
 
-    // address public owner = 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d; // sym
-    address public owner = 0xE7affDB964178261Df49B86BFdBA78E9d768Db6D; // frog
+    address public owner = 0x7d29e5eba46eeF74B6fC643aEc6300D5FC74F7B5; // early doors safe
+    address public frog = 0xE7affDB964178261Df49B86BFdBA78E9d768Db6D;
+    address public sym = 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d;
 
     // address public renderer = 0xf8A31352e237af670D5DC6e9b75a4401A37BaD0E; // goerli
     // address public renderer = 0x9AE8391F311292c8E241DB576C6d528932B1939f; // polygon
@@ -43,15 +44,19 @@ contract EarlyDoors is Script {
     function run() public {
         vm.startBroadcast();
 
-        Membership membership = Membership(membershipImpl);
+        // Membership membership = Membership(membershipImpl);
 
-        bytes memory initData =
-            abi.encodeWithSelector(membership.init.selector, address(owner), address(renderer), name, symbol);
-        address proxy = address(new ERC1967Proxy(membershipImpl, initData));
+        // bytes memory initData =
+            // abi.encodeWithSelector(membership.init.selector, frog, address(renderer), name, symbol);
+        // address proxy = address(new ERC1967Proxy(membershipImpl, initData));
+        address proxy = 0x0c9F8e98994B930f77EcF9b6c1dc1f5d374F04A8;
 
         // purchase module
-        FixedStablecoinPurchaseModule purchaseModule = new FixedStablecoinPurchaseModule(owner, 0.001 ether, currency, decimals);
-        purchaseModule.append(usdcAddress);
+        // FixedStablecoinPurchaseModule purchaseModule = new FixedStablecoinPurchaseModule(frog, 0.001 ether, currency, decimals);
+        FixedStablecoinPurchaseModule purchaseModule = FixedStablecoinPurchaseModule(0xf21074833502cBb87d69B7e865C19852a63Ca34b);
+
+        // this step has already happened
+        // purchaseModule.append(usdcAddress);
 
         // config
         address[] memory enabledTokens = new address[](1);
@@ -65,6 +70,7 @@ contract EarlyDoors is Script {
 
         bytes memory guardMint =
             abi.encodeWithSelector(Permissions.guard.selector, Permissions.Operation.MINT, onePerAddress);
+
         bytes memory guardTransfer =
             abi.encodeWithSelector(Permissions.guard.selector, Permissions.Operation.TRANSFER, MAX_ADDRESS);
 
@@ -72,15 +78,21 @@ contract EarlyDoors is Script {
             Membership.updatePaymentCollector.selector, paymentCollector
         );
 
-        bytes[] memory setupCalls = new bytes[](4);
+        bytes memory permitFrogUpgradeModuleData =
+            abi.encodeWithSelector(Permissions.permit.selector, frog, operationPermissions(Permissions.Operation.UPGRADE));
+
+        bytes memory permitSymUpgradeModuleData =
+            abi.encodeWithSelector(Permissions.permit.selector, sym, operationPermissions(Permissions.Operation.UPGRADE));
+
+        bytes[] memory setupCalls = new bytes[](6);
         setupCalls[0] = permitModule;
         setupCalls[1] = guardMint;
         setupCalls[2] = guardTransfer;
         setupCalls[3] = addPaymentCollector;
+        setupCalls[4] = permitFrogUpgradeModuleData;
+        setupCalls[5] = permitSymUpgradeModuleData;
 
-        // make atomic batch call, using permission as owner to do anything
         Batch(proxy).batch(true, setupCalls);
-        // transfer ownership to provided argument
         Permissions(proxy).transferOwnership(owner);
         vm.stopBroadcast();
     }
