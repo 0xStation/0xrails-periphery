@@ -16,7 +16,7 @@
 
 ### Example of verifying on etherscan
 
-forge verify-contract 0x139e89fCAb8bBB005358b1362175069F20cCa138 ./src/membership/Membership.sol:Membership $ETHERSCAN_API_KEY --chain-id 5
+forge verify-contract 0x0C461282106C3CD676091ebdAaA723Cd855fC1C2 ./src/membership/Membership.sol:Membership $ETHERSCAN_API_KEY --chain-id 5
 
 ### Current contract addresses
 
