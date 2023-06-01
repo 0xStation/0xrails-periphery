@@ -1,0 +1,9 @@
+{
+  "137": {
+    "Membership": "0x06507c449b1e8ebb8247f44b715f9fe4e51b365a",
+    "PublicFreeMintModule": "0x82baf7980a57a5cc25221f893330d801e2be0308",
+    "partners": {
+      "Polygon d.Camp": "0x83140Ce709401cd069c822Da74C9167335D5cBb8"
+    }
+  }
+}

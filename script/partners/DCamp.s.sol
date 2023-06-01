@@ -29,7 +29,6 @@ contract DCamp is Script {
 
     address public constant MAX_ADDRESS = 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF;
 
-
     // address public membershipImpl = 0x1b8C7a6b778eedE6DB61a8e01922b6F350810aDE; // goerli
     // address public membershipImpl = 0x0C461282106C3CD676091ebdAaA723Cd855fC1C2; // goerli
     // address public membershipImpl = 0xA9879cbfa6a1Fe2964F37BcCD6fcF6ea61EfcDbf; // polygon
@@ -57,11 +56,12 @@ contract DCamp is Script {
             abi.encodeWithSelector(Permissions.guard.selector, Permissions.Operation.MINT, onePerAddress);
         bytes memory guardTransfer =
             abi.encodeWithSelector(Permissions.guard.selector, Permissions.Operation.TRANSFER, MAX_ADDRESS);
-        bytes memory permitFrogUpgradeModuleData =
-            abi.encodeWithSelector(Permissions.permit.selector, frog, operationPermissions(Permissions.Operation.UPGRADE));
-        bytes memory permitSymUpgradeModuleData =
-            abi.encodeWithSelector(Permissions.permit.selector, sym, operationPermissions(Permissions.Operation.UPGRADE));
-
+        bytes memory permitFrogUpgradeModuleData = abi.encodeWithSelector(
+            Permissions.permit.selector, frog, operationPermissions(Permissions.Operation.UPGRADE)
+        );
+        bytes memory permitSymUpgradeModuleData = abi.encodeWithSelector(
+            Permissions.permit.selector, sym, operationPermissions(Permissions.Operation.UPGRADE)
+        );
 
         bytes[] memory setupCalls = new bytes[](5);
         setupCalls[0] = permitModule;
@@ -70,9 +70,8 @@ contract DCamp is Script {
         setupCalls[3] = permitFrogUpgradeModuleData;
         setupCalls[4] = permitSymUpgradeModuleData;
 
-
         // // make non-atomic batch call, using permission as owner to do anything
-        Batch(proxy).batch(false, setupCalls);
+        Batch(proxy).batch(true, setupCalls);
         // // transfer ownership to provided argument
         Permissions(proxy).transferOwnership(owner);
         vm.stopBroadcast();
