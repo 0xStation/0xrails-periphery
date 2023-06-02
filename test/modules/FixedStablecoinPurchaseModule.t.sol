@@ -638,4 +638,64 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
         // buyer stablecoin balance unchanged
         assertEq(stablecoin.balanceOf(buyer), initialStablecoinBalance);
     }
+
+    /*==========
+        FEES
+    ==========*/
+
+    function test_constructor(uint64 fee) public {
+        uint8 moduleDecimals = 0;
+        module = new FixedStablecoinPurchaseModule(owner, fee, moduleDecimals, "TEST");
+        // no fee balance
+        assertEq(module.feeBalance(), 0);
+        // fee set
+        assertEq(module.fee(), fee);
+        // owner set
+        assertEq(module.owner(), owner);
+    }
+
+    function test_updateFee(uint64 fee1, uint64 fee2) public {
+        uint8 moduleDecimals = 0;
+        module = new FixedStablecoinPurchaseModule(owner, fee1, moduleDecimals, "TEST");
+
+        vm.prank(owner);
+        module.updateFee(fee2);
+        // fee set
+        assertEq(module.fee(), fee2);
+    }
+
+    function test_updateFee_revert_notOwner(uint64 fee1, uint64 fee2, address randomAddress) public {
+        uint8 moduleDecimals = 0;
+        module = new FixedStablecoinPurchaseModule(owner, fee1, moduleDecimals, "TEST");
+
+        vm.assume(randomAddress != owner);
+        vm.prank(randomAddress);
+        vm.expectRevert("Ownable: caller is not the owner");
+        module.updateFee(fee2);
+        // fee NOT set
+        assertEq(module.fee(), fee1);
+    }
+
+    function test_withdrawFee(uint64 fee) public {
+        uint8 coinDecimals = 0;
+        uint8 moduleDecimals = 0;
+        uint8 price = 100;
+        uint8 balanceOffset = 0;
+        (address buyer,,) = initModuleAndBuyer(coinDecimals, moduleDecimals, fee, price, balanceOffset);
+
+        vm.prank(buyer);
+        // mint token
+        module.mint{value: fee}(address(proxy), address(stablecoin));
+
+        uint256 ownerInitialBalance = owner.balance;
+        uint256 moduleInitialBalance = address(module).balance;
+        uint256 feeBalance = module.feeBalance();
+        module.withdrawFee();
+        // owner balance increases
+        assertEq(owner.balance, ownerInitialBalance + feeBalance);
+        // module balance decreases
+        assertEq(address(module).balance, moduleInitialBalance - feeBalance);
+        // module feeBalance zero
+        assertEq(module.feeBalance(), 0);
+    }
 }

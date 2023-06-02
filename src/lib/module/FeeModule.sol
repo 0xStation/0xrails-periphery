@@ -7,7 +7,7 @@ contract FeeModule is Ownable {
     uint256 public fee;
     uint256 public feeBalance;
 
-    event FeeUpdated(uint256 fee);
+    event UpdateFee(uint256 fee);
     event WithdrawFee(address indexed recipient, uint256 amount);
 
     constructor(address newOwner, uint256 newFee) {
@@ -21,7 +21,7 @@ contract FeeModule is Ownable {
 
     function _updateFee(uint256 newFee) internal {
         fee = newFee;
-        emit FeeUpdated(newFee);
+        emit UpdateFee(newFee);
     }
 
     function withdrawFee() external {
