@@ -7,14 +7,14 @@ import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
-import {FixedStablecoinPurchaseModule2} from "src/membership/modules/FixedStablecoinPurchaseModule2.sol";
+import {FixedStablecoinPurchaseModule} from "src/membership/modules/FixedStablecoinPurchaseModule.sol";
 // test
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 import {FakeERC20} from "test/utils/FakeERC20.sol";
 
-contract FixedStablecoinPurchaseModule2Test is Test, SetUpMembership {
+contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
     Membership public proxy;
-    FixedStablecoinPurchaseModule2 public module;
+    FixedStablecoinPurchaseModule public module;
     FakeERC20 public stablecoin;
 
     function setUp() public override {
@@ -28,7 +28,7 @@ contract FixedStablecoinPurchaseModule2Test is Test, SetUpMembership {
 
     function initDeploys(uint8 coinDecimals, uint8 moduleDecimals, uint64 fee) public {
         vm.assume(coinDecimals < 50 && moduleDecimals < 50);
-        module = new FixedStablecoinPurchaseModule2(owner, fee, moduleDecimals, "TEST");
+        module = new FixedStablecoinPurchaseModule(owner, fee, moduleDecimals, "TEST");
         stablecoin = new FakeERC20(coinDecimals);
     }
 
@@ -500,7 +500,7 @@ contract FixedStablecoinPurchaseModule2Test is Test, SetUpMembership {
             initModuleAndBuyer(coinDecimals, moduleDecimals, fee, price, balanceOffset);
 
         // change to variant with no reverts
-        stablecoin.updateVariant(FakeERC20.Variant.NO_REVERT);
+        stablecoin.toggleRevert();
 
         // wipe stablecoin's approval for module
         vm.prank(buyer);
@@ -551,7 +551,7 @@ contract FixedStablecoinPurchaseModule2Test is Test, SetUpMembership {
             initModuleAndBuyer(coinDecimals, moduleDecimals, fee, price, balanceOffset);
 
         // change to variant with no reverts
-        stablecoin.updateVariant(FakeERC20.Variant.NO_REVERT);
+        stablecoin.toggleRevert();
 
         vm.prank(buyer);
         vm.expectRevert("ERC721: transfer to non ERC721Receiver implementer");

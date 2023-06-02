@@ -2,127 +2,187 @@
 pragma solidity ^0.8.13;
 
 import {IMembership} from "src/membership/IMembership.sol";
-import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
+import {FeeModule} from "src/lib/module/FeeModule.sol";
+import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
+import {ReentrancyGuard} from "solmate/src/utils/ReentrancyGuard.sol";
+// use SafeERC20: https://soliditydeveloper.com/safe-erc20
+import {SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20 as IERC20Base} from "openzeppelin-contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-contract FixedStablecoinPurchaseModule is Ownable {
-    // collection -> price in currency
-    mapping(address => uint256) public stablecoinPrices;
-    // collection -> bitmap of stables that are enabled
-    mapping(address => bytes32) public enabledCoins;
-    // stablecoin address -> key in bitmap
-    mapping(address => uint8) public stablecoinKey;
-    // station fee
-    uint256 public fee;
-    // current balance of station fee to be withdrawn
-    uint256 public feeBalance;
-    // how many keys currently exist in map
-    uint8 public keyCounter;
+contract FixedStablecoinPurchaseModule is FeeModule, ModuleSetup, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
+    struct Parameters {
+        uint128 price;
+        bytes16 enabledCoins;
+    }
+
+    /*=============
+        STORAGE
+    =============*/
+
     // decimals of percision for currency type
-    uint8 public decimals;
+    uint8 public immutable decimals;
     // currency type for this particular contract. (USD, EUR, etc.)
     string public currency;
+    // how many keys currently exist in map
+    uint8 public keyCounter;
+    // stablecoin address -> key in bitmap
+    mapping(address => uint8) internal _keyOf;
+    // collection => mint parameters
+    mapping(address => Parameters) internal _parameters;
 
+    /*============
+        EVENTS
+    ============*/
+
+    event Register(address indexed stablecoin, uint8 indexed key);
+    event SetUp(address indexed collection, uint128 price, bytes16 enabledCoins);
     event Purchase(
-        address indexed collection, address indexed buyer, address indexed paymentToken, uint256 price, uint256 fee
+        address indexed collection, address indexed recipient, address indexed paymentCoin, uint256 price, uint256 fee
     );
-    event WithdrawFee(address indexed recipient, uint256 amount);
 
-    constructor(address _owner, uint256 _fee, string memory _currency, uint8 _decimals) {
-        _transferOwnership(_owner);
-        fee = _fee;
-        currency = _currency;
+    /*============
+        CONFIG
+    ============*/
+
+    constructor(address _owner, uint256 _fee, uint8 _decimals, string memory _currency) FeeModule(_owner, _fee) {
         decimals = _decimals;
+        currency = _currency;
     }
 
-    function setup(address collection, uint256 price, bytes32 enabled) external {
-        require(msg.sender == Ownable(collection).owner(), "NOT_ALLOWED");
-        _setup(collection, price, enabled);
-    }
-
-    function setup(uint256 price, bytes32 enabled) external {
-        _setup(msg.sender, price, enabled);
-    }
-
-    function _setup(address collection, uint256 price, bytes32 enabled) internal {
-        stablecoinPrices[collection] = price;
-        enabledCoins[collection] = enabled;
-    }
-
-    function append(address token) external onlyOwner {
-        uint8 newKey = ++keyCounter;
-        stablecoinKey[token] = newKey;
-    }
-
-    function updateFee(uint256 newFee) external onlyOwner {
-        fee = newFee;
-    }
-
-    function mint(address collection, address token) external payable {
-        _mint(collection, token, msg.sender);
-    }
-
-    function mintTo(address collection, address token, address to) external payable {
-        _mint(collection, token, to);
-    }
-
-    function _mint(address collection, address token, address to) internal {
-        require(stablecoinEnabled(collection, token), "TOKEN NOT ENABLED BY COLLECTION");
-        uint256 price = stablecoinPrices[collection];
-        uint256 totalCost = getMintPrice(token, price);
-        require(msg.value == fee, "MISSING_FEE");
-        feeBalance += fee;
-        address recipient = IMembership(collection).paymentCollector();
-        IERC20(token).transferFrom(msg.sender, recipient, totalCost);
-        (uint256 tokenId) = IMembership(collection).mintTo(to);
-        require(tokenId > 0, "MINT_FAILED");
-        emit Purchase(collection, to, token, price, fee);
-    }
-
-    function withdrawFee() external {
-        address recipient = owner();
-        uint256 balance = feeBalance;
-        feeBalance = 0;
-        payable(recipient).transfer(balance);
-        emit WithdrawFee(recipient, balance);
+    function register(address stablecoin) external onlyOwner returns (uint8 newKey) {
+        require(_keyOf[stablecoin] == 0, "STABLECOIN_ALREADY_REGISTERED");
+        newKey = ++keyCounter;
+        _keyOf[stablecoin] = newKey;
+        emit Register(stablecoin, newKey);
     }
 
     function keyOf(address token) public view returns (uint8 key) {
-        key = stablecoinKey[token];
-        require(key != 0, "STABLECOIN_NOT_SUPPORTED");
+        key = _keyOf[token];
+        require(key > 0, "STABLECOIN_NOT_SUPPORTED");
     }
 
-    function stablecoinEnabled(address collection, address token) public view returns (bool) {
-        bytes32 _bitmap = enabledCoins[collection];
-        return (_bitmap & _tokenBit(token)) != 0;
+    /*============
+        SET UP
+    ============*/
+
+    function setUp(address collection, uint128 price, bytes16 enabledCoins) external {
+        _canSetUp(collection, msg.sender); // checks UPGRADE permission
+        _setUp(collection, price, enabledCoins);
     }
 
-    function enabledTokensValue(address[] memory enabledTokens) external view returns (bytes32 value) {
-        for (uint256 i; i < enabledTokens.length; i++) {
-            value |= _tokenBit(enabledTokens[i]);
+    function setUp(uint128 price, bytes16 enabledCoins) external {
+        _setUp(msg.sender, price, enabledCoins);
+    }
+
+    function _setUp(address collection, uint128 price, bytes16 enabledCoins) internal {
+        require(price > 0, "ZERO_PRICE");
+        _parameters[collection] = Parameters(price, enabledCoins);
+        emit SetUp(collection, price, enabledCoins);
+    }
+
+    /*===================
+        ENABLED COINS
+    ===================*/
+
+    function enabledCoinsOf(address collection) external view returns (bytes16) {
+        return _parameters[collection].enabledCoins;
+    }
+
+    function stablecoinEnabled(address collection, address stablecoin) external view returns (bool) {
+        return _stablecoinEnabled(_parameters[collection].enabledCoins, stablecoin);
+    }
+
+    function _stablecoinEnabled(bytes32 enabledCoins, address stablecoin) internal view returns (bool) {
+        return (enabledCoins & _keyBitOf(stablecoin)) != 0;
+    }
+
+    function enabledCoinsValue(address[] memory stablecoins) external view returns (bytes16 value) {
+        for (uint256 i; i < stablecoins.length; i++) {
+            value |= _keyBitOf(stablecoins[i]);
         }
     }
 
-    function _tokenBit(address token) internal view returns (bytes32) {
-        return bytes32(1 << uint8(keyOf(token)));
+    function _keyBitOf(address stablecoin) internal view returns (bytes16) {
+        return bytes16(uint128(1 << keyOf(stablecoin)));
     }
 
-    function getMintPrice(address token, uint256 mintPrice) public view returns (uint256) {
-        uint256 tokenDecimals = IERC20(token).decimals();
-        if (decimals < tokenDecimals) {
-            // need to pad zeros to input amount
-            return mintPrice * 10 ** (tokenDecimals - decimals);
-        } else if (decimals > tokenDecimals) {
-            // need to remove zeros from mintPrice
-            return mintPrice / 10 ** (decimals - tokenDecimals);
+    /*====================
+        PURCHASE PRICE
+    ====================*/
+
+    function priceOf(address collection) external view returns (uint128 price) {
+        price = _parameters[collection].price;
+        require(price > 0, "NO_PRICE");
+    }
+
+    function mintPriceToStablecoinAmount(uint256 price, address stablecoin) public view returns (uint256) {
+        uint256 stablecoinDecimals = IERC20(stablecoin).decimals();
+        if (stablecoinDecimals == decimals) {
+            return price;
+        } else if (stablecoinDecimals > decimals) {
+            // pad zeros to input amount
+            return price * 10 ** (stablecoinDecimals - decimals);
         } else {
-            // chosen token (stablecoin) and contract currency have same decimals, no need to do anything.
-            return mintPrice;
+            // reduce price precision
+            uint256 precisionLoss = 10 ** (decimals - stablecoinDecimals);
+            uint256 trimmedPrice = price / precisionLoss;
+            if (price % precisionLoss > 0) {
+                // if remainder, round up as seller protection
+                return trimmedPrice + 1;
+            } else {
+                // no remainder value lost, return trimmed price as is
+                return trimmedPrice;
+            }
         }
+    }
+
+    /*==========
+        MINT
+    ==========*/
+
+    function mint(address collection, address paymentCoin) external payable returns (uint256 tokenId) {
+        return _mint(collection, paymentCoin, msg.sender);
+    }
+
+    function mintTo(address collection, address paymentCoin, address recipient)
+        external
+        payable
+        returns (uint256 tokenId)
+    {
+        return _mint(collection, paymentCoin, recipient);
+    }
+
+    function _mint(address collection, address paymentCoin, address recipient)
+        internal
+        nonReentrant
+        returns (uint256 tokenId)
+    {
+        Parameters memory params = _parameters[collection];
+        require(_stablecoinEnabled(params.enabledCoins, paymentCoin), "STABLECOIN_NOT_ENABLED");
+        uint256 totalCost = mintPriceToStablecoinAmount(params.price, paymentCoin);
+
+        // take fee
+        uint256 paidFee = _registerFee();
+
+        // transfer payment
+        address paymentCollector = IMembership(collection).paymentCollector();
+        // prevent accidentally unset payment collector
+        require(paymentCollector != address(0), "MISSING_PAYMENT_COLLECTOR");
+        // use SafeERC20 for covering USDT no-return and other transfer issues
+        IERC20(paymentCoin).safeTransferFrom(msg.sender, paymentCollector, totalCost);
+
+        // mint token
+        (tokenId) = IMembership(collection).mintTo(recipient);
+        // prevent unsuccessful mint
+        require(tokenId > 0, "MINT_FAILED");
+
+        emit Purchase(collection, recipient, paymentCoin, params.price, paidFee);
     }
 }
 
-interface IERC20 {
-    function transferFrom(address from, address to, uint256 value) external returns (bool success);
-    function decimals() external view returns (uint8);
-    function balanceOf(address owner) external view returns (uint256 balance);
-}
+// need base IERC20 for SafeERC20 to wrap
+// need IERC20Metadata for `decimals()`
+interface IERC20 is IERC20Base, IERC20Metadata {}

@@ -342,12 +342,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
 contract FakeERC20 is ERC20 {
     uint8 internal _decimals;
 
-    enum Variant {
-        NORMAL,
-        NO_REVERT
-    }
-
-    Variant internal _variant;
+    bool internal _useNoRevert;
 
     constructor(uint8 decimals_) ERC20("FAKE", "FAKE") {
         _decimals = decimals_;
@@ -361,15 +356,15 @@ contract FakeERC20 is ERC20 {
         _mint(to, amount);
     }
 
-    function updateVariant(Variant variant) external {
-        _variant = variant;
+    function toggleRevert() external {
+        _useNoRevert = !_useNoRevert;
     }
 
     function transferFrom(address from, address to, uint256 amount) public virtual override returns (bool) {
-        if (_variant == Variant.NORMAL) {
-            return super.transferFrom(from, to, amount);
-        } else if (_variant == Variant.NO_REVERT) {
+        if (_useNoRevert) {
             return _transferFromNoRevert(from, to, amount);
+        } else {
+            return super.transferFrom(from, to, amount);
         }
     }
 
