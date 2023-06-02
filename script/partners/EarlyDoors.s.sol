@@ -24,9 +24,7 @@ contract EarlyDoors is Script {
 
     // address public turnkey = 0xBb942519A1339992630b13c3252F04fCB09D4841;
     FixedStablecoinPurchaseModule public module =
-        FixedStablecoinPurchaseModule(0xDC955e3AEfc125348777D3A12c361678b58Aa434); // v1
-    // FixedStablecoinPurchaseModule public module =
-    //     FixedStablecoinPurchaseModule(0x9c4969e1c585491Ac5382EeeB9BC9668f8a5788c); // v2
+        FixedStablecoinPurchaseModule(0x9c4969e1c585491Ac5382EeeB9BC9668f8a5788c); // v2
 
     address public paymentCollector = 0x7d29e5eba46eeF74B6fC643aEc6300D5FC74F7B5; // early doors safe
     // address public paymentCollector = 0xE7affDB964178261Df49B86BFdBA78E9d768Db6D; // frog
@@ -55,60 +53,54 @@ contract EarlyDoors is Script {
 
         // address membershipImpl = address(new Membership());
 
-        // FixedStablecoinPurchaseModule purchaseModule =
-        //     FixedStablecoinPurchaseModule(0xf21074833502cBb87d69B7e865C19852a63Ca34b); // v1
+        FixedStablecoinPurchaseModule module = new FixedStablecoinPurchaseModule(sym, fee, decimals, currency);
+        module.register(usdcAddress);
 
-        // FixedStablecoinPurchaseModule module = new FixedStablecoinPurchaseModule(sym, fee, decimals, currency);
+        bytes memory initData = abi.encodeWithSelector(Membership.init.selector, msg.sender, renderer, name, symbol);
 
-        // module.register(usdcAddress);
-
-        // bytes memory initData = abi.encodeWithSelector(Membership.init.selector, msg.sender, renderer, name, symbol);
-
-        // address proxy = address(new ERC1967Proxy(membershipImpl, initData));
-        address proxy = 0x155f41e95a9a655F1218A70ABA6622164DdBC50E;
+        address proxy = address(new ERC1967Proxy(membershipImpl, initData));
 
         // config
         address[] memory enabledCoins = new address[](1);
         enabledCoins[0] = usdcAddress;
         bytes memory setupModuleData = abi.encodeWithSelector(
-            bytes4(keccak256("setup(uint256,bytes32)")),
-            uint256(mintPrice),
-            0x0000000000000000000000000000000000000000000000000000000000000002
-        );
-        // bytes memory setupModuleData = abi.encodeWithSelector(
-        //     bytes4(keccak256("setup(uint128,bytes16)")), mintPrice, module.enabledCoinsValue(enabledCoins)
-
-        Membership(proxy).permitAndSetup(
-            address(module), operationPermissions(Permissions.Operation.MINT), setupModuleData
+            bytes4(keccak256("setUp(uint128,bytes16)")), mintPrice, module.enabledCoinsValue(enabledCoins)
         );
 
-        // bytes memory guardMint =
-        //     abi.encodeWithSelector(Permissions.guard.selector, Permissions.Operation.MINT, onePerAddress);
+        bytes memory permitModule = abi.encodeWithSelector(
+            Permissions.permitAndSetup.selector,
+            address(module),
+            operationPermissions(Permissions.Operation.MINT),
+            setupModuleData
+        );
 
-        // bytes memory guardTransfer =
-        //     abi.encodeWithSelector(Permissions.guard.selector, Permissions.Operation.TRANSFER, MAX_ADDRESS);
+        bytes memory guardMint =
+            abi.encodeWithSelector(Permissions.guard.selector, Permissions.Operation.MINT, onePerAddress);
 
-        // bytes memory addPaymentCollector =
-        //     abi.encodeWithSelector(Membership.updatePaymentCollector.selector, paymentCollector);
+        bytes memory guardTransfer =
+            abi.encodeWithSelector(Permissions.guard.selector, Permissions.Operation.TRANSFER, MAX_ADDRESS);
 
-        // bytes memory permitFrogUpgradeModuleData = abi.encodeWithSelector(
-        //     Permissions.permit.selector, frog, operationPermissions(Permissions.Operation.UPGRADE)
-        // );
+        bytes memory addPaymentCollector =
+            abi.encodeWithSelector(Membership.updatePaymentCollector.selector, paymentCollector);
 
-        // bytes memory permitSymUpgradeModuleData = abi.encodeWithSelector(
-        //     Permissions.permit.selector, sym, operationPermissions(Permissions.Operation.UPGRADE)
-        // );
+        bytes memory permitFrogUpgradeModuleData = abi.encodeWithSelector(
+            Permissions.permit.selector, frog, operationPermissions(Permissions.Operation.UPGRADE)
+        );
 
-        // bytes[] memory setupCalls = new bytes[](5);
-        // // setupCalls[0] = permitModule;
-        // setupCalls[0] = guardMint;
-        // setupCalls[1] = guardTransfer;
-        // setupCalls[2] = addPaymentCollector;
-        // setupCalls[3] = permitFrogUpgradeModuleData;
-        // setupCalls[4] = permitSymUpgradeModuleData;
+        bytes memory permitSymUpgradeModuleData = abi.encodeWithSelector(
+            Permissions.permit.selector, sym, operationPermissions(Permissions.Operation.UPGRADE)
+        );
 
-        // Batch(proxy).batch(true, setupCalls);
-        // Permissions(proxy).transferOwnership(owner);
+        bytes[] memory setupCalls = new bytes[](6);
+        setupCalls[0] = permitModule;
+        setupCalls[1] = guardMint;
+        setupCalls[2] = guardTransfer;
+        setupCalls[3] = addPaymentCollector;
+        setupCalls[4] = permitFrogUpgradeModuleData;
+        setupCalls[5] = permitSymUpgradeModuleData;
+
+        Batch(proxy).batch(true, setupCalls);
+        Permissions(proxy).transferOwnership(owner);
 
         vm.stopBroadcast();
     }
