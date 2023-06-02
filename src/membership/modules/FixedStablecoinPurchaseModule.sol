@@ -10,6 +10,14 @@ import {SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol"
 import {IERC20 as IERC20Base} from "openzeppelin-contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
+/// @notice Mint membership tokens when users pay a fixed amount of a stablecoin.
+/// @author symmetry (@symmtry69), frog (@0xmcg)
+/// @notice Mint membership tokens when users pay a fixed amount of a stablecoin
+/// @dev Storage is designed to minimize costs for accepting multiple stablecoins as
+/// payment by packing all data into 1 slot. Updating the price for N stablecoins has
+/// constant G(1) gas complexity. Additionally, it is guaranteed that all stablecoins
+/// will use the same price value and can never get out of sync. Deploy one instance
+/// of this module per currency, per chain (e.g. USD, EUR, BTC).
 contract FixedStablecoinPurchaseModule is FeeModule, ModuleSetup, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -30,6 +38,8 @@ contract FixedStablecoinPurchaseModule is FeeModule, ModuleSetup, ReentrancyGuar
     uint8 public keyCounter;
     // stablecoin address -> key in bitmap
     mapping(address => uint8) internal _keyOf;
+    // bitmap key -> stablecoin address
+    mapping(uint8 => address) internal _stablecoinOf;
     // collection => mint parameters
     mapping(address => Parameters) internal _parameters;
 
@@ -61,6 +71,7 @@ contract FixedStablecoinPurchaseModule is FeeModule, ModuleSetup, ReentrancyGuar
         require(_keyOf[stablecoin] == 0, "STABLECOIN_ALREADY_REGISTERED");
         newKey = ++keyCounter;
         _keyOf[stablecoin] = newKey;
+        _stablecoinOf[newKey] = stablecoin;
         emit Register(stablecoin, newKey);
     }
 
@@ -92,16 +103,37 @@ contract FixedStablecoinPurchaseModule is FeeModule, ModuleSetup, ReentrancyGuar
         ENABLED COINS
     ===================*/
 
-    function enabledCoinsOf(address collection) external view returns (bytes16) {
+    function enabledCoinsValueOf(address collection) external view returns (bytes16) {
         return _parameters[collection].enabledCoins;
+    }
+
+    function enabledCoinsOf(address collection) external view returns (address[] memory stablecoins) {
+        // cache state to save reads
+        uint256 len = keyCounter;
+        bytes16 enabledCoins = _parameters[collection].enabledCoins;
+        // construct array of max length, front-packed
+        address[] memory fullArray = new address[](len);
+        uint8 enabledCount;
+        for (uint256 i; i < len; i++) {
+            uint8 key = uint8(i + 1);
+            if (enabledCoins & bytes16(uint128(1 << key)) > 0) {
+                fullArray[enabledCount] = _stablecoinOf[key];
+                enabledCount++;
+            }
+        }
+        // trim down array size using enabledCount
+        stablecoins = new address[](enabledCount);
+        for (uint256 i; i < enabledCount; i++) {
+            stablecoins[i] = fullArray[i];
+        }
     }
 
     function stablecoinEnabled(address collection, address stablecoin) external view returns (bool) {
         return _stablecoinEnabled(_parameters[collection].enabledCoins, stablecoin);
     }
 
-    function _stablecoinEnabled(bytes32 enabledCoins, address stablecoin) internal view returns (bool) {
-        return (enabledCoins & _keyBitOf(stablecoin)) != 0;
+    function _stablecoinEnabled(bytes16 enabledCoins, address stablecoin) internal view returns (bool) {
+        return (enabledCoins & _keyBitOf(stablecoin)) > 0;
     }
 
     function enabledCoinsValue(address[] memory stablecoins) external view returns (bytes16 value) {

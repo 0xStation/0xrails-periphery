@@ -107,6 +107,10 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // check stablecoin enabled
         assertEq(module.stablecoinEnabled(address(proxy), address(stablecoin)), true);
+        // check all enables coins
+        assertEq(module.enabledCoinsOf(address(proxy)), stablecoins);
+        // check all enables coins value
+        assertEq(module.enabledCoinsValueOf(address(proxy)), bytes16(uint128(2)));
         // check price set
         assertEq(module.priceOf(address(proxy)), price);
     }
@@ -131,6 +135,10 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // check stablecoin enabled
         assertEq(module.stablecoinEnabled(address(proxy), address(stablecoin)), true);
+        // check all enables coins
+        assertEq(module.enabledCoinsOf(address(proxy)), stablecoins);
+        // check all enables coins value
+        assertEq(module.enabledCoinsValueOf(address(proxy)), bytes16(uint128(2)));
         // check price set
         assertEq(module.priceOf(address(proxy)), price);
     }
@@ -157,6 +165,10 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // check stablecoin NOT enabled
         assertEq(module.stablecoinEnabled(address(proxy), address(stablecoin)), false);
+        // check all enables coins
+        assertEq(module.enabledCoinsOf(address(proxy)), new address[](0));
+        // check all enables coins value
+        assertEq(module.enabledCoinsValueOf(address(proxy)), bytes16(uint128(0)));
         // check price NOT set
         vm.expectRevert("NO_PRICE");
         module.priceOf(address(proxy));
@@ -176,6 +188,10 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // check stablecoin NOT enabled
         assertEq(module.stablecoinEnabled(address(proxy), address(stablecoin)), false);
+        // check all enables coins
+        assertEq(module.enabledCoinsOf(address(proxy)), new address[](0));
+        // check all enables coins value
+        assertEq(module.enabledCoinsValueOf(address(proxy)), bytes16(uint128(0)));
         // check price NOT set
         vm.expectRevert("NO_PRICE");
         module.priceOf(address(proxy));
@@ -197,6 +213,10 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // check stablecoin enabled
         assertEq(module.stablecoinEnabled(address(proxy), address(stablecoin)), true);
+        // check all enables coins
+        assertEq(module.enabledCoinsOf(address(proxy)), stablecoins);
+        // check all enables coins value
+        assertEq(module.enabledCoinsValueOf(address(proxy)), bytes16(uint128(2)));
         // check price set
         assertEq(module.priceOf(address(proxy)), price);
     }
