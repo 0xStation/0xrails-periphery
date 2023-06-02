@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "forge-std/Test.sol";
-import "src/lib/renderer/Renderer.sol";
-import {Membership} from "src/membership/Membership.sol";
-import "src/membership/MembershipFactory.sol";
-import "src/membership/modules/FixedStablecoinPurchaseModule.sol";
+import {Test} from "forge-std/Test.sol";
+import {Renderer} from "src/lib/renderer/Renderer.sol";
+import {Membership, Permissions} from "src/membership/Membership.sol";
+import {MembershipFactory} from "src/membership/MembershipFactory.sol";
+import {FixedStablecoinPurchaseModule} from "src/membership/modules/FixedStablecoinPurchaseModule.sol";
 import {FakeERC20} from "./utils/FakeERC20.sol";
+import {Account} from "test/lib/helpers/Account.sol";
 
-contract PaymentModuleTest is Test {
+contract PaymentModuleTest is Test, Account {
     address public owner = address(123);
     address public paymentReciever = address(456);
     address public membershipFactory;
@@ -171,11 +172,11 @@ contract PaymentModuleTest is Test {
         uint8 moduleDecimals = paymentModule.decimals();
         // test mint with DAI
         uint256 mintPriceInDAI = paymentModule.getMintPrice(fakeDAIImpl, price);
-        uint8 daiDecimals = IERC20(fakeDAIImpl).decimals();
+        uint8 daiDecimals = FakeERC20(fakeDAIImpl).decimals();
         assertEq(mintPriceInDAI, price * 10 ** (daiDecimals - moduleDecimals));
         // test mint with USDC
         uint256 mintPriceInUSDC = paymentModule.getMintPrice(fakeUSDCImpl, price);
-        uint8 usdcDecimals = IERC20(fakeUSDCImpl).decimals();
+        uint8 usdcDecimals = FakeERC20(fakeUSDCImpl).decimals();
         assertEq(mintPriceInUSDC, price * 10 ** (usdcDecimals - moduleDecimals));
         vm.stopPrank();
     }
@@ -267,5 +268,29 @@ contract PaymentModuleTest is Test {
         vm.expectRevert("Ownable: caller is not the owner");
         paymentModule.updateFee(newFee);
         vm.stopPrank();
+    }
+
+    function test_insufficientPayment(uint256 price) public {
+        // 2 decimals of precision, so price must be less than BASE_BALANCE with that many decimals
+        // since that is what the wallet has been given. Else, it will throw insufficient balance error
+        vm.assume(price > BASE_BALANCE * 10 ** 2);
+
+        vm.startPrank(owner);
+
+        // setup
+        paymentModule.append(fakeUSDCImpl);
+        paymentModule.append(fakeDAIImpl);
+        address[] memory enabledTokens = new address[](2);
+        enabledTokens[0] = fakeUSDCImpl;
+        enabledTokens[1] = fakeDAIImpl;
+        paymentModule.setup(membershipInstance, price, paymentModule.enabledTokensValue(enabledTokens));
+
+        uint256 initialBalance = membershipContract.balanceOf(owner);
+
+        membershipContract.updatePaymentCollector(address(0));
+        // vm.expectRevert();
+        paymentModule.mint{value: fee}(membershipInstance, fakeDAIImpl);
+
+        assertEq(initialBalance, membershipContract.balanceOf(owner));
     }
 }
