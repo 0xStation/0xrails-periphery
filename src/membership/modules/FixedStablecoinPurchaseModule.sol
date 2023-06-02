@@ -40,7 +40,12 @@ contract FixedStablecoinPurchaseModule is FeeModule, ModuleSetup, ReentrancyGuar
     event Register(address indexed stablecoin, uint8 indexed key);
     event SetUp(address indexed collection, uint128 price, bytes16 enabledCoins);
     event Purchase(
-        address indexed collection, address indexed recipient, address indexed paymentCoin, uint256 price, uint256 fee
+        address indexed collection,
+        address indexed recipient,
+        address indexed paymentCoin,
+        uint256 unitPrice,
+        uint256 unitFee,
+        uint256 amountUnits
     );
 
     /*============
@@ -144,7 +149,7 @@ contract FixedStablecoinPurchaseModule is FeeModule, ModuleSetup, ReentrancyGuar
     ==========*/
 
     function mint(address collection, address paymentCoin) external payable returns (uint256 tokenId) {
-        return _mint(collection, paymentCoin, msg.sender);
+        (tokenId,) = _batchMint(collection, paymentCoin, msg.sender, 1);
     }
 
     function mintTo(address collection, address paymentCoin, address recipient)
@@ -152,20 +157,38 @@ contract FixedStablecoinPurchaseModule is FeeModule, ModuleSetup, ReentrancyGuar
         payable
         returns (uint256 tokenId)
     {
-        return _mint(collection, paymentCoin, recipient);
+        (tokenId,) = _batchMint(collection, paymentCoin, recipient, 1);
     }
 
-    function _mint(address collection, address paymentCoin, address recipient)
+    function batchMint(address collection, address paymentCoin, uint256 amount)
+        external
+        payable
+        returns (uint256 startTokenId, uint256 endTokenId)
+    {
+        return _batchMint(collection, paymentCoin, msg.sender, amount);
+    }
+
+    function batchMintTo(address collection, address paymentCoin, address recipient, uint256 amount)
+        external
+        payable
+        returns (uint256 startTokenId, uint256 endTokenId)
+    {
+        return _batchMint(collection, paymentCoin, recipient, amount);
+    }
+
+    function _batchMint(address collection, address paymentCoin, address recipient, uint256 amount)
         internal
         nonReentrant
-        returns (uint256 tokenId)
+        returns (uint256 startTokenId, uint256 endTokenId)
     {
+        require(amount > 0, "ZERO_AMOUNT");
         Parameters memory params = _parameters[collection];
         require(_stablecoinEnabled(params.enabledCoins, paymentCoin), "STABLECOIN_NOT_ENABLED");
-        uint256 totalCost = mintPriceToStablecoinAmount(params.price, paymentCoin);
+        uint256 subtotalPrice = params.price * amount;
+        uint256 totalCost = mintPriceToStablecoinAmount(subtotalPrice, paymentCoin);
 
         // take fee
-        uint256 paidFee = _registerFee();
+        uint256 paidFee = _registerFeeBatch(amount);
 
         // transfer payment
         address paymentCollector = IMembership(collection).paymentCollector();
@@ -174,12 +197,20 @@ contract FixedStablecoinPurchaseModule is FeeModule, ModuleSetup, ReentrancyGuar
         // use SafeERC20 for covering USDT no-return and other transfer issues
         IERC20(paymentCoin).safeTransferFrom(msg.sender, paymentCollector, totalCost);
 
-        // mint token
-        (tokenId) = IMembership(collection).mintTo(recipient);
-        // prevent unsuccessful mint
-        require(tokenId > 0, "MINT_FAILED");
+        for (uint256 i; i < amount; i++) {
+            // mint token
+            (uint256 tokenId) = IMembership(collection).mintTo(recipient);
+            // prevent unsuccessful mint
+            require(tokenId > 0, "MINT_FAILED");
+            // set startTokenId on first mint
+            if (startTokenId == 0) {
+                startTokenId = tokenId;
+            }
+        }
 
-        emit Purchase(collection, recipient, paymentCoin, params.price, paidFee);
+        emit Purchase(collection, recipient, paymentCoin, params.price, paidFee / amount, amount);
+
+        return (startTokenId, startTokenId + amount - 1); // purely inclusive set
     }
 }
 

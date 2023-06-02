@@ -307,7 +307,8 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
         uint8 moduleDecimals,
         uint64 fee,
         uint128 price,
-        uint64 balanceOffset
+        uint64 balanceOffset,
+        uint8 amount
     ) public returns (address buyer, uint256 initialBalance, uint256 initialStablecoinBalance) {
         initRegister(coinDecimals, moduleDecimals, fee);
 
@@ -327,10 +328,11 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
         // init buyer
         buyer = createAccount();
         // deal ETH for fee
-        initialBalance = uint256(fee) + uint256(balanceOffset); // cast to prevent overflow
+        initialBalance = uint256(fee) * uint256(amount) + uint256(balanceOffset); // cast to prevent overflow
         vm.deal(buyer, initialBalance);
         // deal stablecoin for purchase
-        uint256 purchaseAmount = module.mintPriceToStablecoinAmount(price, address(stablecoin));
+        uint256 purchaseAmount =
+            module.mintPriceToStablecoinAmount(uint256(price) * uint256(amount), address(stablecoin));
         initialStablecoinBalance = purchaseAmount + uint256(balanceOffset); // cast to prevent overflow
         stablecoin.mint(buyer, initialStablecoinBalance);
         // allow module to spend buyer's stablecoin
@@ -338,6 +340,16 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
         stablecoin.increaseAllowance(address(module), purchaseAmount);
 
         return (buyer, initialBalance, initialStablecoinBalance);
+    }
+
+    function initModuleAndBuyer(
+        uint8 coinDecimals,
+        uint8 moduleDecimals,
+        uint64 fee,
+        uint128 price,
+        uint64 balanceOffset
+    ) public returns (address buyer, uint256 initialBalance, uint256 initialStablecoinBalance) {
+        return initModuleAndBuyer(coinDecimals, moduleDecimals, fee, price, balanceOffset, 1);
     }
 
     function test_mint(uint8 coinDecimals, uint8 moduleDecimals, uint64 fee, uint64 price, uint64 balanceOffset)
@@ -631,6 +643,67 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.expectRevert("ERC721: mint to the zero address");
         module.mintTo{value: fee}(address(proxy), address(stablecoin), address(0));
         // no token minted
+        assertEq(proxy.balanceOf(buyer), 0);
+        assertEq(proxy.totalSupply(), 0);
+        // buyer balance unchanged
+        assertEq(buyer.balance, initialBalance);
+        // buyer stablecoin balance unchanged
+        assertEq(stablecoin.balanceOf(buyer), initialStablecoinBalance);
+    }
+
+    /*==========
+        MINT
+    ==========*/
+
+    function test_batchMint(
+        uint8 coinDecimals,
+        uint8 moduleDecimals,
+        uint64 fee,
+        uint64 price,
+        uint64 balanceOffset,
+        uint8 amount
+    ) public {
+        vm.assume(amount > 0);
+
+        (address buyer, uint256 initialBalance, uint256 initialStablecoinBalance) =
+            initModuleAndBuyer(coinDecimals, moduleDecimals, fee, price, balanceOffset, amount);
+
+        vm.prank(buyer);
+        // mint token
+        (uint256 startTokenId, uint256 endTokenId) =
+            module.batchMint{value: uint256(fee) * amount}(address(proxy), address(stablecoin), amount);
+        // **buyer** received token
+        assertEq(proxy.balanceOf(buyer), amount);
+        for (uint256 i; i < amount; i++) {
+            assertEq(proxy.ownerOf(startTokenId + i), buyer);
+        }
+        assertEq(proxy.totalSupply(), amount);
+        assertEq(endTokenId, startTokenId + amount - 1);
+        // buyer balance decreased by fee
+        assertEq(buyer.balance, initialBalance - uint256(fee) * amount);
+        // buyer stablecoin balance decreased by purchaseAmount
+        uint256 purchaseAmount = module.mintPriceToStablecoinAmount(uint256(price) * amount, address(stablecoin));
+        assertEq(stablecoin.balanceOf(buyer), initialStablecoinBalance - purchaseAmount);
+    }
+
+    function test_batchMint_revert_zeroAmount(
+        uint8 coinDecimals,
+        uint8 moduleDecimals,
+        uint64 fee,
+        uint64 price,
+        uint64 balanceOffset
+    ) public {
+        // no tokens
+        uint8 amount = 0;
+
+        (address buyer, uint256 initialBalance, uint256 initialStablecoinBalance) =
+            initModuleAndBuyer(coinDecimals, moduleDecimals, fee, price, balanceOffset, amount);
+
+        vm.prank(buyer);
+        // mint token
+        vm.expectRevert("ZERO_AMOUNT");
+        module.batchMint{value: uint256(fee) * amount}(address(proxy), address(stablecoin), amount);
+        // buyer does NOT received token
         assertEq(proxy.balanceOf(buyer), 0);
         assertEq(proxy.totalSupply(), 0);
         // buyer balance unchanged
