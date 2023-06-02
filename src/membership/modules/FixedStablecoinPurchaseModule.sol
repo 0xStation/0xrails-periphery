@@ -197,6 +197,7 @@ contract FixedStablecoinPurchaseModule is FeeModule, ModuleSetup, ReentrancyGuar
         (tokenId,) = _batchMint(collection, paymentCoin, recipient, 1);
     }
 
+    /// @notice returned tokenId range is inclusive
     function batchMint(address collection, address paymentCoin, uint256 amount)
         external
         payable
@@ -205,6 +206,7 @@ contract FixedStablecoinPurchaseModule is FeeModule, ModuleSetup, ReentrancyGuar
         return _batchMint(collection, paymentCoin, msg.sender, amount);
     }
 
+    /// @notice returned tokenId range is inclusive
     function batchMintTo(address collection, address paymentCoin, address recipient, uint256 amount)
         external
         payable
@@ -213,6 +215,7 @@ contract FixedStablecoinPurchaseModule is FeeModule, ModuleSetup, ReentrancyGuar
         return _batchMint(collection, paymentCoin, recipient, amount);
     }
 
+    /// @notice returned tokenId range is inclusive
     function _batchMint(address collection, address paymentCoin, address recipient, uint256 amount)
         internal
         nonReentrant
