@@ -39,6 +39,8 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
         module.register(address(stablecoin));
         // check key added
         assertEq(module.keyOf(address(stablecoin)), 1);
+        // check stablecoin added
+        assertEq(module.stablecoinOf(1), address(stablecoin));
         // check key counter incremented
         assertEq(module.keyCounter(), 1);
     }
@@ -53,8 +55,12 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.expectRevert("Ownable: caller is not the owner");
         module.register(address(stablecoin));
         // check stablecoin NOT registered
-        vm.expectRevert("STABLECOIN_NOT_SUPPORTED");
+        vm.expectRevert("STABLECOIN_NOT_REGISTERED");
         module.keyOf(address(stablecoin));
+        // check key NOT registered
+        uint8 lastKey = module.keyCounter();
+        vm.expectRevert("KEY_NOT_REGISTERED");
+        module.stablecoinOf(lastKey);
     }
 
     function test_register_revert_alreadyRegistered(uint8 coinDecimals, uint8 moduleDecimals, uint64 fee) public {
@@ -76,11 +82,13 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
         module.register(address(stablecoin));
         // check key 1 added
         assertEq(module.keyOf(address(stablecoin)), 1);
+        assertEq(module.stablecoinOf(1), address(stablecoin));
         assertEq(module.keyCounter(), 1);
         // register randomAddress
         module.register(randomAddress);
         // check key 2 added
         assertEq(module.keyOf(randomAddress), 2);
+        assertEq(module.stablecoinOf(2), randomAddress);
         assertEq(module.keyCounter(), 2);
     }
 

@@ -75,9 +75,14 @@ contract FixedStablecoinPurchaseModule is FeeModule, ModuleSetup, ReentrancyGuar
         emit Register(stablecoin, newKey);
     }
 
-    function keyOf(address token) public view returns (uint8 key) {
-        key = _keyOf[token];
-        require(key > 0, "STABLECOIN_NOT_SUPPORTED");
+    function keyOf(address stablecoin) public view returns (uint8 key) {
+        key = _keyOf[stablecoin];
+        require(key > 0, "STABLECOIN_NOT_REGISTERED");
+    }
+
+    function stablecoinOf(uint8 key) public view returns (address stablecoin) {
+        stablecoin = _stablecoinOf[key];
+        require(stablecoin != address(0), "KEY_NOT_REGISTERED");
     }
 
     /*============
