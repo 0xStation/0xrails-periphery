@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import "openzeppelin-contracts/access/Ownable.sol";
-import "openzeppelin-contracts/security/Pausable.sol";
+import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {PausableUpgradeable} from "openzeppelin-contracts-upgradeable/security/PausableUpgradeable.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import "./IMembership.sol";
@@ -10,13 +10,15 @@ import {Batch} from "src/lib/Batch.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactoryStorageV0} from "./storage/MembershipFactoryStorageV0.sol";
 
-contract MembershipFactory is Ownable, Pausable {
+contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, MembershipFactoryStorageV0 {
 
     event MembershipCreated(address indexed membership);
 
-    constructor(address _template, address _owner) Pausable() {
+    /// @notice initialize owner, the impl the proxies point to, and pausing
+    function initialize(address _template, address _owner) external initializer {
+        __Pausable_init();
+        __Ownable_init();
         template = _template;
-        _transferOwnership(_owner);
     }
 
     /// @notice create a new Membership via ERC1967Proxy
