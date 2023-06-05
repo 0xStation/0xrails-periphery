@@ -8,9 +8,9 @@ import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.so
 import "./IMembership.sol";
 import {Batch} from "src/lib/Batch.sol";
 import {Permissions} from "src/lib/Permissions.sol";
+import {MembershipFactoryStorageV0} from "./storage/MembershipFactoryStorageV0.sol";
 
 contract MembershipFactory is Ownable, Pausable {
-    address public template;
 
     event MembershipCreated(address indexed membership);
 
