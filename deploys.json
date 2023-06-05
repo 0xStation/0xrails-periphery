@@ -1,4 +1,10 @@
 {
+  "1": {
+    "FixedStablecoinPurchaseModule": "0x82baf7980a57a5cc25221f893330d801e2be0308",
+    "partners": {
+      "Early Doors": "0x0c9f8e98994b930f77ecf9b6c1dc1f5d374f04a8"
+    }
+  },
   "137": {
     "Membership": "0x06507c449b1e8ebb8247f44b715f9fe4e51b365a",
     "PublicFreeMintModule": "0x82baf7980a57a5cc25221f893330d801e2be0308",
