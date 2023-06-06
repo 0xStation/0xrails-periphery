@@ -50,36 +50,6 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, Membershi
         Permissions(membership).transferOwnership(owner);
     }
 
-    /// @notice create a new Membership from presets
-    function createFromPresets(
-        address owner,
-        address renderer,
-        string memory name,
-        string memory symbol,
-        uint presetIdx
-    ) external whenNotPaused returns (address membership, Batch.Result[] memory setupResults) {
-        // set factory as owner so it can make calls to protected functions for setup
-        membership = create(address(this), renderer, name, symbol);
-        // get the set of preset calls from storage, revert if does not exist
-        Preset storage p = presets[presetIdx];
-        require(bytes(p.desc).length > 0, "Preset does not exist");
-        // make non-atomic batch call, using permission as owner to do anything
-        setupResults = Batch(membership).batch(false, p.calls);
-        // transfer ownership to provided argument
-        Permissions(membership).transferOwnership(owner);
-    }
-
-    /// @notice create a new Membership preset
-    function addPreset(string calldata desc, bytes[] calldata calls) external onlyOwner {
-        require(bytes(desc).length > 0, "Must have description");
-        presets.push(Preset(desc, calls));
-    }
-
-    /// @notice deletes a Membership preset
-    function deletePreset(uint presetIdx) external onlyOwner {
-        delete presets[presetIdx];
-    }
-
     function pause() external onlyOwner {
         _pause();
     }
