@@ -18,6 +18,7 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, Membershi
     function initialize(address _template, address _owner) external initializer {
         __Pausable_init();
         __Ownable_init();
+        transferOwnership(_owner);
         template = _template;
     }
 
