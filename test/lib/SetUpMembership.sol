@@ -18,7 +18,8 @@ abstract contract SetUpMembership is Helpers {
         paymentCollector = createAccount();
         rendererImpl = address(new Renderer(owner, "https://members.station.express"));
         membershipImpl = new Membership();
-        membershipFactory = new MembershipFactory(address(membershipImpl), owner);
+        membershipFactory = new MembershipFactory();
+        membershipFactory.initialize(address(membershipImpl), owner);
     }
 
     function create() public returns (Membership proxy) {

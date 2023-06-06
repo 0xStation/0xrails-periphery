@@ -15,7 +15,8 @@ contract MembershipFactoryTest is Test {
     function setUp() public {
         rendererImpl = address(new Renderer(msg.sender, "https://tokens.station.express"));
         membershipImpl = address(new Membership());
-        membershipFactory = address(new MembershipFactory(membershipImpl, msg.sender));
+        membershipFactory = address(new MembershipFactory());
+        MembershipFactory(membershipFactory).initialize(membershipImpl, msg.sender);
     }
 
     function test_init() public {
