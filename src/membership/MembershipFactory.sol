@@ -80,6 +80,18 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgra
         presets.push(Preset(desc, calls));
     }
 
+    /// @notice modifies an existing Membership preset
+    function modifyPreset(uint idx, string calldata desc, bytes[] calldata calls) external onlyOwner {
+        require(p.length > idx, "Specified idx is invalid");
+        Preset p = presets[idx];
+        if (bytes(desc).length > 0) {
+            p.desc = desc;
+        }
+        if (calls.length > 0) {
+            p.calls = calls;
+        }
+    }
+
     /// @notice deletes a Membership preset
     function deletePreset(uint presetIdx) external onlyOwner {
         delete presets[presetIdx];
