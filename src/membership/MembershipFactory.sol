@@ -9,8 +9,11 @@ import "./IMembership.sol";
 import {Batch} from "src/lib/Batch.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactoryStorageV0} from "./storage/MembershipFactoryStorageV0.sol";
+import {EnumerableSetUpgradeable} from "openzeppelin-contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 
 contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, MembershipFactoryStorageV0 {
+
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.Bytes32Set;
 
     event MembershipCreated(address indexed membership);
 
@@ -57,12 +60,12 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, Membershi
         address renderer,
         string memory name,
         string memory symbol,
-        uint presetIdx
+        string calldata presetDesc
     ) external whenNotPaused returns (address membership, Batch.Result[] memory setupResults) {
         // set factory as owner so it can make calls to protected functions for setup
         membership = create(address(this), renderer, name, symbol);
         // get the set of preset calls from storage, revert if does not exist
-        Preset storage p = presets[presetIdx];
+        Preset memory p = getPresetByDesc(presetDesc);
         require(bytes(p.desc).length > 0, "Preset does not exist");
         // make non-atomic batch call, using permission as owner to do anything
         setupResults = Batch(membership).batch(false, p.calls);
@@ -70,27 +73,46 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, Membershi
         Permissions(membership).transferOwnership(owner);
     }
 
+    /// @notice get Number of presets available
+    function getNumPresets() public view returns (uint) {
+        return _presetKeys.length();
+    }
+
+    /// @notice get Preset at index
+    function getPresetByIdx(uint idx) public view returns (Preset memory) {
+        return _presetMap[_presetKeys.at(idx)];
+    }
+
+    /// @notice get Preset by description
+    function getPresetByDesc(string calldata desc) public view returns (Preset memory) {
+        return _presetMap[_getKey(desc)];
+}
+
     /// @notice create a new Membership preset
     function addPreset(string calldata desc, bytes[] calldata calls) external onlyOwner {
         require(bytes(desc).length > 0, "Must have description");
-        presets.push(Preset(desc, calls));
+        bytes32 key =_getKey(desc);
+        require(_presetKeys.add(key), "Preset desc already exists");
+        _presetMap[key] = Preset(desc, calls);
     }
 
     /// @notice modifies an existing Membership preset
-    function modifyPreset(uint idx, string calldata desc, bytes[] calldata calls) external onlyOwner {
-        require(p.length > idx, "Specified idx is invalid");
-        Preset p = presets[idx];
-        if (bytes(desc).length > 0) {
-            p.desc = desc;
-        }
-        if (calls.length > 0) {
-            p.calls = calls;
-        }
+    function modifyPreset(string calldata desc, bytes[] calldata calls) external onlyOwner {
+        bytes32 key =_getKey(desc);
+        require(_presetKeys.contains(key), "Preset does not exist");
+        _presetMap[key] = Preset(desc, calls);
     }
 
     /// @notice deletes a Membership preset
-    function deletePreset(uint presetIdx) external onlyOwner {
-        delete presets[presetIdx];
+    function deletePreset(string calldata desc) external onlyOwner {
+        bytes32 key =_getKey(desc);
+        require(_presetKeys.remove(key), "Preset does not exist");
+        delete _presetMap[key];
+    }
+
+    /// @notice convert string to bytes32
+    function _getKey(string calldata desc) internal pure returns (bytes32) {
+        return keccak256(abi.encode(desc));
     }
 
 
