@@ -40,7 +40,7 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgra
     }
 
     /// @notice create a new Membership via ERC1967Proxy and setup other parameters
-    function createAndSetup(
+    function createAndSetUp(
         address owner,
         address renderer,
         string memory name,
