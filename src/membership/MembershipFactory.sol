@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "openzeppelin-contracts-upgradeable/security/PausableUpgradeable.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
 
 import "./IMembership.sol";
 import {Batch} from "src/lib/Batch.sol";
@@ -11,7 +12,7 @@ import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactoryStorageV0} from "./storage/MembershipFactoryStorageV0.sol";
 import {EnumerableSetUpgradeable} from "openzeppelin-contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 
-contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, MembershipFactoryStorageV0 {
+contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgradeable, MembershipFactoryStorageV0 {
 
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.Bytes32Set;
 
@@ -24,6 +25,9 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, Membershi
         transferOwnership(_owner);
         template = _template;
     }
+
+    /// @notice only owner can upgrade
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     /// @notice create a new Membership via ERC1967Proxy
     function create(address owner, address renderer, string memory name, string memory symbol)
@@ -39,7 +43,7 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, Membershi
     }
 
     /// @notice create a new Membership via ERC1967Proxy and setup other parameters
-    function createAndSetup(
+    function createAndSetUp(
         address owner,
         address renderer,
         string memory name,
