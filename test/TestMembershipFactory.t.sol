@@ -87,7 +87,7 @@ contract MembershipFactoryTest is Test {
         vm.expectRevert("NOT_PERMITTED");
         Membership(membership).burnFrom(tokenId);
 
-        // call from minter, expect success
+        // call from burner, expect success
         vm.prank(burner);
         Membership(membership).burnFrom(tokenId);
     }
