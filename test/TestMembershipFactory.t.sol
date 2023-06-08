@@ -82,6 +82,7 @@ contract MembershipFactoryTest is Test {
         // call from minter, expect success
         vm.prank(minter);
         uint tokenId = Membership(membership).mintTo(receiver);
+        assertEq(Membership(membership).ownerOf(tokenId), receiver);
 
         // call from non burner, expect fail
         vm.expectRevert("NOT_PERMITTED");
@@ -90,5 +91,7 @@ contract MembershipFactoryTest is Test {
         // call from burner, expect success
         vm.prank(burner);
         Membership(membership).burnFrom(tokenId);
+        vm.expectRevert("ERC721: invalid token ID");
+        Membership(membership).ownerOf(tokenId);
     }
 }
