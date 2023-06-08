@@ -7,6 +7,9 @@ import {Membership} from "src/membership/Membership.sol";
 import "src/membership/MembershipFactory.sol";
 
 contract MembershipFactoryTest is Test {
+    address public minter = address(1);
+    address public burner = address(2);
+    address public receiver = address(3);
     address public paymentReciever = address(456);
     address public membershipFactory;
     address public rendererImpl;
@@ -15,7 +18,8 @@ contract MembershipFactoryTest is Test {
     function setUp() public {
         rendererImpl = address(new Renderer(msg.sender, "https://tokens.station.express"));
         membershipImpl = address(new Membership());
-        membershipFactory = address(new MembershipFactory(membershipImpl, msg.sender));
+        membershipFactory = address(new MembershipFactory());
+        MembershipFactory(membershipFactory).initialize(membershipImpl, msg.sender);
     }
 
     function test_init() public {
@@ -44,5 +48,50 @@ contract MembershipFactoryTest is Test {
         assertEq(membershipContract2.renderer(), rendererImpl);
         assertEq(membershipContract2.name(), "Enemies of Station");
         assertEq(membershipContract2.symbol(), "ENEMIES");
+    }
+
+    function test_create_and_setup() public {
+
+        bytes[] memory calls = new bytes[](2);
+
+        calls[0] = abi.encodeWithSelector(
+            Permissions.permit.selector,
+            minter,
+            bytes32(1 << uint8(Permissions.Operation.MINT))
+        );
+
+        calls[1] = abi.encodeWithSelector(
+            Permissions.permit.selector,
+            burner,
+            bytes32(1 << uint8(Permissions.Operation.BURN))
+        );
+
+        (address membership, ) =
+            MembershipFactory(membershipFactory).createAndSetUp(
+                msg.sender,
+                rendererImpl,
+                "Friends of Station",
+                "FRIENDS",
+                calls
+            );
+
+        // call from non minter, expect fail
+        vm.expectRevert("NOT_PERMITTED");
+        Membership(membership).mintTo(receiver);
+
+        // call from minter, expect success
+        vm.prank(minter);
+        uint tokenId = Membership(membership).mintTo(receiver);
+        assertEq(Membership(membership).ownerOf(tokenId), receiver);
+
+        // call from non burner, expect fail
+        vm.expectRevert("NOT_PERMITTED");
+        Membership(membership).burnFrom(tokenId);
+
+        // call from burner, expect success
+        vm.prank(burner);
+        Membership(membership).burnFrom(tokenId);
+        vm.expectRevert("ERC721: invalid token ID");
+        Membership(membership).ownerOf(tokenId);
     }
 }

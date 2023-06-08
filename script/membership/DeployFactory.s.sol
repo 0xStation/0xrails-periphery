@@ -18,7 +18,11 @@ contract Deploy is Script {
         vm.startBroadcast();
         // address membershipImpl = address(new Membership());
         address membershipImpl = 0xadBc7EC633B78dc4407215D56Eb0861dD7c51431;
-        new MembershipFactory(membershipImpl, msg.sender);
+        
+        MembershipFactory membershipFactoryImpl = new MembershipFactory();
+        ERC1967Proxy membershipFactoryProxy = new ERC1967Proxy(address(membershipFactoryImpl), "");
+        MembershipFactory(address(membershipFactoryProxy)).initialize(membershipImpl, msg.sender);
+        
         vm.stopBroadcast();
     }
 }

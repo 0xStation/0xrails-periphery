@@ -19,7 +19,8 @@ contract PaymentModuleTest is Test {
         startHoax(address(1));
         rendererImpl = address(new Renderer(address(1), "https://tokens.station.express"));
         membershipImpl = address(new Membership());
-        membershipFactory = address(new MembershipFactory(membershipImpl, address(1)));
+        membershipFactory = address(new MembershipFactory());
+        MembershipFactory(membershipFactory).initialize(membershipImpl, address(1));
         paymentModuleImpl = address(new FixedETHPurchaseModule(address(1), fee));
         vm.stopPrank();
     }

@@ -27,7 +27,8 @@ contract OnePerAddressTest is Test {
         rendererImpl = address(new Renderer(msg.sender, "https://tokens.station.express"));
         // membership
         membershipImpl = address(new Membership());
-        membershipFactory = new MembershipFactory(membershipImpl, msg.sender);
+        membershipFactory = new MembershipFactory();
+        membershipFactory.initialize(membershipImpl, msg.sender);
         // badge
         badgeImpl = address(new Badge());
         badgeFactory = new BadgeFactory(badgeImpl, msg.sender);
