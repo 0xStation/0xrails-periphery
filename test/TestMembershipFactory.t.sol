@@ -57,6 +57,27 @@ contract MembershipFactoryTest is Test {
         assertEq(membershipContract2.symbol(), "ENEMIES");
     }
 
+    function checkGuards(address membership, address[5] memory expectedAddrs) internal {
+        for (uint8 i = 0; i < 5; i++) {
+            assertEq(
+                Membership(membership).guardOf(Permissions.Operation(i)),
+                expectedAddrs[i]
+            );
+        }
+    }
+
+    function checkPermits(address membership, address addr, uint8[5] memory permissions) internal {
+        bytes32 addrPermissions = Membership(membership).permissionsOf(addr);
+
+        for (uint8 i = 0; i < 5; i++) {
+            assertEq(
+                (addrPermissions >> uint8(i)) & bytes32(uint(1)),
+                bytes32(uint(permissions[i]))
+            );
+        }
+    }
+
+
     function test_create_and_setup() public {
 
         bytes[] memory calls = new bytes[](2);
@@ -82,44 +103,12 @@ contract MembershipFactoryTest is Test {
                 calls
             );
 
-        // call from non minter, expect fail
-        vm.expectRevert("NOT_PERMITTED");
-        Membership(membership).mintTo(receiver);
+        // should have no guards
+        checkGuards(membership, [address(0), address(0), address(0), address(0), address(0)]);
 
-        // call from minter, expect success
-        vm.prank(minter);
-        uint tokenId = Membership(membership).mintTo(receiver);
-        assertEq(Membership(membership).ownerOf(tokenId), receiver);
-
-        // call from non burner, expect fail
-        vm.expectRevert("NOT_PERMITTED");
-        Membership(membership).burnFrom(tokenId);
-
-        // call from burner, expect success
-        vm.prank(burner);
-        Membership(membership).burnFrom(tokenId);
-        vm.expectRevert("ERC721: invalid token ID");
-        Membership(membership).ownerOf(tokenId);
-    }
-
-    function checkGuards(address membership, address[5] memory expectedAddrs) internal {
-        for (uint8 i = 0; i < 5; i++) {
-            assertEq(
-                Membership(membership).guardOf(Permissions.Operation(i)),
-                expectedAddrs[i]
-            );
-        }
-    }
-
-    function checkPermits(address membership, address addr, uint8[5] memory permissions) internal {
-        bytes32 addrPermissions = Membership(membership).permissionsOf(addr);
-
-        for (uint8 i = 0; i < 5; i++) {
-            assertEq(
-                (addrPermissions >> uint8(i)) & bytes32(uint(1)),
-                bytes32(uint(permissions[i]))
-            );
-        }
+        // should have permits on minting and burning
+        checkPermits(membership, minter, [0, 1, 0, 0, 0]);
+        checkPermits(membership, burner, [0, 0, 1, 0, 0]);
     }
 
     function _setupPresets() public {
