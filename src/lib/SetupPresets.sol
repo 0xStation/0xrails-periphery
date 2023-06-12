@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Permissions} from "./Permissions.sol";
 import {IMembershipFactory} from "../membership/IMembershipFactory.sol";
 
-library Presets {
+library SetupPresets {
 
     address internal constant MAX_ADDRESS = 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF;
 
