@@ -68,13 +68,49 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgra
     ) external whenNotPaused returns (address membership, Batch.Result[] memory setupResults) {
         // set factory as owner so it can make calls to protected functions for setup
         membership = create(address(this), renderer, name, symbol);
+
+        setupResults = _setupFromPresets(presetDesc, membership);
+
+        // transfer ownership to provided argument
+        Permissions(membership).transferOwnership(owner);
+    }
+
+    /// @notice create a new Membership from presets and custom calls
+    function createFromPresetsAndSetUp(
+        address owner,
+        address renderer,
+        string memory name,
+        string memory symbol,
+        bytes[] calldata setupCalls,
+        string calldata presetDesc
+    ) external whenNotPaused returns (address membership, Batch.Result[] memory setupResults) {
+        // set factory as owner so it can make calls to protected functions for setup
+        membership = create(address(this), renderer, name, symbol);
+
+        Batch.Result[] memory batchSetupResults = Batch(membership).batch(false, setupCalls);
+        Batch.Result[] memory presetSetupResults = _setupFromPresets(presetDesc, membership);
+
+        setupResults = new Batch.Result[](batchSetupResults.length + presetSetupResults.length);
+
+        for (uint i = 0; i < batchSetupResults.length; i++) {
+            setupResults[i] = batchSetupResults[i];
+        }
+
+        for (uint i = 0; i < presetSetupResults.length; i++) {
+            setupResults[i + batchSetupResults.length] = presetSetupResults[i];
+        }
+
+        // transfer ownership to provided argument
+        Permissions(membership).transferOwnership(owner);
+    }
+
+    /// @notice internal helper function for setting up membership from a preset
+    function _setupFromPresets(string calldata presetDesc, address membership) internal returns (Batch.Result[] memory) {
         // get the set of preset calls from storage, revert if does not exist
         Preset memory p = getPresetByDesc(presetDesc);
         require(bytes(p.desc).length > 0, "Preset does not exist");
         // make non-atomic batch call, using permission as owner to do anything
-        setupResults = Batch(membership).batch(false, p.calls);
-        // transfer ownership to provided argument
-        Permissions(membership).transferOwnership(owner);
+        return Batch(membership).batch(false, p.calls);
     }
 
     /// @notice get Number of presets available
