@@ -22,11 +22,15 @@ library SetupPresets {
         );
     }
 
+    function _operationBit(Permissions.Operation operation) internal pure returns (bytes32) {
+        return bytes32(1 << uint8(operation));
+    }
+
     function turnKey(address _turnKey) public pure returns (bytes memory) {
         return abi.encodeWithSelector(
             Permissions.permit.selector,
             _turnKey,
-            Permissions.Operation.MINT
+            _operationBit(Permissions.Operation.MINT) // only mint
         );
     }
 
@@ -34,7 +38,7 @@ library SetupPresets {
         return abi.encodeWithSelector(
             Permissions.permit.selector,
             _publicFreeMintModule,
-            Permissions.Operation.MINT
+            _operationBit(Permissions.Operation.MINT) // only mint
         );
     }
 
