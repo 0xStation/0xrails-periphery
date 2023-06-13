@@ -77,7 +77,6 @@ contract MembershipFactoryTest is Test {
         }
     }
 
-
     function test_create_and_setup() public {
 
         bytes[] memory calls = new bytes[](2);

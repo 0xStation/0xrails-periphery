@@ -30,11 +30,20 @@ View deployments in [deploys.json](./deploys.json).
 
 These are a list of presets available from the membership factory
 
-| description | shorthand label | fn | fn args |
+| description | label | fn | fn args |
 | :--- | :--- | :--- | :--- |
 | `Non-transferable` | `nt` | `guard(Operation, address)` | `Operation.TRANSFER`, `[MAX_ADDRESS]` |
 |  `One token per address` | `opa` | `guard(Operation, address)` | `Operation.MINT`, `[OnePerAddress]` |
 | `Turnkey-powered minting` | `turnkey` | `permit(address, Operation)	` | `0xBb942519A1339992630b13c3252F04fCB09D4841`, `Operation.MINT` |
 | `Public and free minting` | `free` | `permit(address, Operation)` | `[PublicFreeMintModule]`, `Operation.MINT` |
+
+There are also combination presets built from the above calls
+
+| description | label |
+| :--- | :--- |
+| `Simple identity via non-transferability and one-per-address guards` | `nt+opa` |
+|  `Simple identity with turnkey minting` | `nt+opa+turnkey` |
+| `Simple identity with public, free minting` | `nt+opa_free` |
+
 
 To deploy a membership using one of these existing presets, pass in the shorthand label from the table of presets in the `createFromPresets` function for the `presetDesc` arg
