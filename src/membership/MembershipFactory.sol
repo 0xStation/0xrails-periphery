@@ -107,7 +107,7 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgra
     /// @notice internal helper function for setting up membership from a preset
     function _setupFromPresets(string calldata presetLabel, address membership) internal returns (Batch.Result[] memory) {
         // get the set of preset calls from storage, revert if does not exist
-        Preset memory p = getPresetBylabel(presetLabel);
+        Preset memory p = getPresetByLabel(presetLabel);
         require(bytes(p.label).length > 0, "Preset does not exist");
         // make non-atomic batch call, using permission as owner to do anything
         return Batch(membership).batch(false, p.calls);
