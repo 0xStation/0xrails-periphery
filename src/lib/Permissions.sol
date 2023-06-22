@@ -14,7 +14,8 @@ abstract contract Permissions {
         MINT, // mint new tokens
         BURN, // burn existing tokens
         TRANSFER, // transfer existing tokens
-        RENDER // render nft metadata
+        RENDER, // render nft metadata
+        GRANT // sign on behalf of the contract
     }
 
     /*============
