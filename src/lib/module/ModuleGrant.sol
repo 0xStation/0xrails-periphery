@@ -2,10 +2,10 @@
 pragma solidity ^0.8.13;
 
 import {Permissions} from "src/lib/Permissions.sol";
-import {NonceBitmap} from "src/lib/NonceBitmap.sol";
+import {NonceBitMap} from "src/lib/NonceBitMap.sol";
 import {ECDSA} from "openzeppelin-contracts/utils/cryptography/ECDSA.sol";
 
-abstract contract ModuleGrant is NonceBitmap {
+abstract contract ModuleGrant is NonceBitMap {
     struct Grant {
         address sender;
         uint48 expiration;
@@ -19,18 +19,16 @@ abstract contract ModuleGrant is NonceBitmap {
     =============*/
 
     // signatures
-
-    // keccak("Grant(address sender,uint48 expiration,uint256 nonce,bytes data)")
-    bytes32 private constant GRANT_TYPEHASH = 0x19e3b6d0efd75ce8f4d43297a4bfdfcff5ced60bb9955c042552dc6546dfc63d;
-    // keccak("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")
-    bytes32 private constant DOMAIN_TYPEHASH = 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
-    bytes32 private constant NAME = "GroupOS";
-    bytes32 private constant VERSION = "0.0.1";
+    bytes32 private constant GRANT_TYPE_HASH =
+        keccak256(abi.encode("Grant(address sender,uint48 expiration,uint256 nonce,bytes data)"));
+    bytes32 private constant DOMAIN_TYPE_HASH =
+        keccak256(abi.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"));
+    bytes32 private constant NAME_HASH = keccak256(abi.encode("GroupOS"));
+    bytes32 private constant VERSION_HASH = keccak256(abi.encode("0.0.1"));
     bytes32 internal immutable INITIAL_ACTION_DOMAIN_SEPARATOR;
     uint256 internal immutable INITIAL_CHAIN_ID;
 
     // authentication handoff
-
     address private constant UNVERIFIED = address(1);
     uint256 private constant UNLOCKED = 1;
     uint256 private constant LOCKED = 2;
@@ -89,7 +87,7 @@ abstract contract ModuleGrant is NonceBitmap {
         PRIVATE HELPERS
     =====================*/
 
-    function _callWithGrant(Grant calldata grant) private {
+    function _callWithGrant(Grant memory grant) private {
         // extract signer from grant
         grantSigner = _recoverSigner(grant);
         // make authenticated call
@@ -100,7 +98,7 @@ abstract contract ModuleGrant is NonceBitmap {
     }
 
     /// @notice Mint tokens using a signature from a permitted minting address
-    function _recoverSigner(Grant calldata grant) private returns (address signer) {
+    function _recoverSigner(Grant memory grant) private returns (address signer) {
         // hash grant
         bytes32 hash = _hashGrant(grant);
         // recover signer
@@ -109,9 +107,9 @@ abstract contract ModuleGrant is NonceBitmap {
         _useNonce(signer, grant.nonce);
     }
 
-    function _hashGrant(Grant calldata grant) private returns (bytes32 grantHash) {
+    function _hashGrant(Grant memory grant) private returns (bytes32 grantHash) {
         bytes32 valuesHash =
-            keccak256(abi.encode(GRANT_TYPEHASH, grant.sender, grant.expiration, grant.nonce, grant.data));
+            keccak256(abi.encode(GRANT_TYPE_HASH, grant.sender, grant.expiration, grant.nonce, grant.data));
 
         grantHash = ECDSA.toTypedDataHash(
             INITIAL_CHAIN_ID == block.chainid ? INITIAL_ACTION_DOMAIN_SEPARATOR : _getActionDomainSeparator(),
@@ -120,14 +118,6 @@ abstract contract ModuleGrant is NonceBitmap {
     }
 
     function _getActionDomainSeparator() private view returns (bytes32) {
-        return keccak256(
-            abi.encode(
-                DOMAIN_TYPEHASH,
-                keccack256(abi.encode(NAME)),
-                keccak256(abi.encode(VERSION_HASH)),
-                block.chainid,
-                address(this)
-            )
-        );
+        return keccak256(abi.encode(DOMAIN_TYPE_HASH, NAME_HASH, VERSION_HASH, block.chainid, address(this)));
     }
 }

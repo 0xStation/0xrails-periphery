@@ -6,13 +6,13 @@ import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
-import {PublicFreeMintModule} from "src/membership/modules/PublicFreeMintModule.sol";
+import {FreeMintModule} from "src/membership/modules/FreeMintModule.sol";
 
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
-contract PublicFreeMintModuleTest is Test, SetUpMembership {
+contract FreeMintModuleTest is Test, SetUpMembership {
     Membership public proxy;
-    PublicFreeMintModule public module;
+    FreeMintModule public module;
 
     function setUp() public override {
         SetUpMembership.setUp(); // paymentCollector, renderer, implementation, factory
@@ -20,7 +20,7 @@ contract PublicFreeMintModuleTest is Test, SetUpMembership {
     }
 
     function initModule(uint64 fee) public {
-        module = new PublicFreeMintModule(owner, fee);
+        module = new FreeMintModule(owner, fee);
         // give module mint permission on proxy
         vm.prank(owner);
         proxy.permit(address(module), operationPermissions(Permissions.Operation.MINT));
