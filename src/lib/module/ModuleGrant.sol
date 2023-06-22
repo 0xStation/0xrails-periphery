@@ -25,7 +25,7 @@ abstract contract ModuleGrant is NonceBitMap {
         keccak256(abi.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"));
     bytes32 private constant NAME_HASH = keccak256(abi.encode("GroupOS"));
     bytes32 private constant VERSION_HASH = keccak256(abi.encode("0.0.1"));
-    bytes32 internal immutable INITIAL_ACTION_DOMAIN_SEPARATOR;
+    bytes32 internal immutable INITIAL_DOMAIN_SEPARATOR;
     uint256 internal immutable INITIAL_CHAIN_ID;
 
     // authentication handoff
@@ -36,7 +36,7 @@ abstract contract ModuleGrant is NonceBitMap {
     uint256 private lock = UNLOCKED;
 
     constructor() {
-        INITIAL_ACTION_DOMAIN_SEPARATOR = _getActionDomainSeparator();
+        INITIAL_DOMAIN_SEPARATOR = _domainSeparator();
         INITIAL_CHAIN_ID = block.chainid;
     }
 
@@ -112,12 +112,11 @@ abstract contract ModuleGrant is NonceBitMap {
             keccak256(abi.encode(GRANT_TYPE_HASH, grant.sender, grant.expiration, grant.nonce, grant.data));
 
         grantHash = ECDSA.toTypedDataHash(
-            INITIAL_CHAIN_ID == block.chainid ? INITIAL_ACTION_DOMAIN_SEPARATOR : _getActionDomainSeparator(),
-            valuesHash
+            INITIAL_CHAIN_ID == block.chainid ? INITIAL_DOMAIN_SEPARATOR : _domainSeparator(), valuesHash
         );
     }
 
-    function _getActionDomainSeparator() private view returns (bytes32) {
+    function _domainSeparator() private view returns (bytes32) {
         return keccak256(abi.encode(DOMAIN_TYPE_HASH, NAME_HASH, VERSION_HASH, block.chainid, address(this)));
     }
 }
