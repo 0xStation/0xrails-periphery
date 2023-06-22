@@ -68,15 +68,16 @@ abstract contract ModuleGrant is NonceBitmap {
         lock = UNLOCKED;
     }
 
-    /// @notice support calling a function with a grant
-    function callWithGrant(Grant calldata grant) external {
-        // extract signer from grant
-        grantSigner = _recoverSigner(grant);
-        // make authenticated call
-        (bool success,) = address(this).delegatecall(grant.data);
-        require(success, "FAILED");
-        // reset signer
-        grantSigner = UNVERIFIED;
+    /// @notice support calling a function with a grant as the sole permitted sender
+    function callWithGrant(uint48 expiration, uint256 nonce, bytes calldata data, bytes calldata signature) external {
+        _callWithGrant(Grant(msg.sender, expiration, nonce, data, signature));
+    }
+
+    /// @notice support calling a function with a grant with public access
+    function publicCallWithGrant(uint48 expiration, uint256 nonce, bytes calldata data, bytes calldata signature)
+        external
+    {
+        _callWithGrant(Grant(address(0), expiration, nonce, data, signature));
     }
 
     /// @notice virtual to enable modules to customize storage packing of grant ignoring status
@@ -88,10 +89,18 @@ abstract contract ModuleGrant is NonceBitmap {
         PRIVATE HELPERS
     =====================*/
 
+    function _callWithGrant(Grant calldata grant) private {
+        // extract signer from grant
+        grantSigner = _recoverSigner(grant);
+        // make authenticated call
+        (bool success,) = address(this).delegatecall(grant.data);
+        require(success, "FAILED");
+        // reset signer
+        grantSigner = UNVERIFIED;
+    }
+
     /// @notice Mint tokens using a signature from a permitted minting address
     function _recoverSigner(Grant calldata grant) private returns (address signer) {
-        // require empty sender or matches msg.sender
-        require(grant.sender == address(0) || grant.sender == msg.sender, "INVALID_SENDER");
         // hash grant
         bytes32 hash = _hashGrant(grant);
         // recover signer
