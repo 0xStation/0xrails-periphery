@@ -2,12 +2,12 @@
 pragma solidity ^0.8.13;
 
 import {IMembership} from "src/membership/IMembership.sol";
-import {FeeModule} from "src/lib/module/FeeModule.sol";
+import {ModuleFee} from "src/lib/module/ModuleFee.sol";
 
-contract PublicFreeMintModule is FeeModule {
+contract FreeMintModule is ModuleFee {
     event Mint(address indexed collection, address indexed recipient, uint256 fee);
 
-    constructor(address newOwner, uint256 newFee) FeeModule(newOwner, newFee) {}
+    constructor(address newOwner, uint256 newFee) ModuleFee(newOwner, newFee) {}
 
     function mint(address collection) external payable returns (uint256 tokenId) {
         tokenId = _mint(collection, msg.sender);
