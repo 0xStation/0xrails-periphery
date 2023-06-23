@@ -100,4 +100,15 @@ contract MembershipFactoryGasTest is Test {
             permitAndSetupCall
         );
     }
+
+    function test_create_from_presets_and_setup() public {
+        membershipFactory.createFromPresetsAndSetUp(
+            msg.sender,
+            rendererImpl,
+            "Friends of Station",
+            "FRIENDS",
+            permitAndSetupCall,
+            SetupPresets.ntOpaGrantHash
+        );
+    }
 }
