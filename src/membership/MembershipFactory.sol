@@ -64,12 +64,12 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgra
         address renderer,
         string memory name,
         string memory symbol,
-        string calldata presetLabel
+        bytes32 labelHash
     ) external whenNotPaused returns (address membership, Batch.Result[] memory setupResults) {
         // set factory as owner so it can make calls to protected functions for setup
         membership = create(address(this), renderer, name, symbol);
 
-        setupResults = _setupFromPresets(presetLabel, membership);
+        setupResults = _setupFromPresets(labelHash, membership);
 
         // transfer ownership to provided argument
         Permissions(membership).transferOwnership(owner);
@@ -82,13 +82,13 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgra
         string memory name,
         string memory symbol,
         bytes[] calldata setupCalls,
-        string calldata presetLabel
+        bytes32 labelHashHash
     ) external whenNotPaused returns (address membership, Batch.Result[] memory setupResults) {
         // set factory as owner so it can make calls to protected functions for setup
         membership = create(address(this), renderer, name, symbol);
 
         Batch.Result[] memory batchSetupResults = Batch(membership).batch(false, setupCalls);
-        Batch.Result[] memory presetSetupResults = _setupFromPresets(presetLabel, membership);
+        Batch.Result[] memory presetSetupResults = _setupFromPresets(labelHash, membership);
 
         setupResults = new Batch.Result[](batchSetupResults.length + presetSetupResults.length);
 
@@ -105,10 +105,10 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgra
     }
 
     /// @notice internal helper function for setting up membership from a preset
-    function _setupFromPresets(string calldata presetLabel, address membership) internal returns (Batch.Result[] memory) {
+    function _setupFromPresets(bytes32 labelHash, address membership) internal returns (Batch.Result[] memory) {
         // get the set of preset calls from storage, revert if does not exist
-        Preset memory p = getPresetByLabel(presetLabel);
-        require(bytes(p.label).length > 0, "Preset does not exist");
+        Preset memory p = _presetMap[labelHash];
+        require(p.calls.length > 0, "Preset does not exist");
         // make non-atomic batch call, using permission as owner to do anything
         return Batch(membership).batch(false, p.calls);
     }
@@ -123,38 +123,25 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgra
         return _presetMap[_presetKeys.at(idx)];
     }
 
-    /// @notice get Preset by label
-    function getPresetByLabel(string calldata label) public view returns (Preset memory) {
-        return _presetMap[_getKey(label)];
-}
-
     /// @notice create a new Membership preset
-    function addPreset(string calldata label, bytes[] calldata calls) external onlyOwner {
-        require(bytes(label).length > 0, "Must have label");
-        bytes32 key =_getKey(label);
-        require(_presetKeys.add(key), "Preset label already exists");
-        _presetMap[key] = Preset(label, calls);
+    function addPreset(bytes32 labelHash, bytes[] calldata calls) external onlyOwner {
+        require(calls.length > 0, "No calls");
+        require(_presetKeys.add(labelHash), "Preset label already exists");
+        _presetMap[labelHash] = Preset(label, calls);
     }
 
     /// @notice modifies an existing Membership preset
-    function modifyPreset(string calldata label, bytes[] calldata calls) external onlyOwner {
-        bytes32 key =_getKey(label);
-        require(_presetKeys.contains(key), "Preset does not exist");
-        _presetMap[key] = Preset(label, calls);
+    function modifyPreset(bytes32 labelHash, bytes[] calldata calls) external onlyOwner {
+        require(calls.length > 0, "No calls");
+        require(_presetKeys.contains(labelHash), "Preset does not exist");
+        _presetMap[labelHash] = Preset(label, calls);
     }
 
     /// @notice deletes a Membership preset
-    function deletePreset(string calldata label) external onlyOwner {
-        bytes32 key =_getKey(label);
-        require(_presetKeys.remove(key), "Preset does not exist");
-        delete _presetMap[key];
+    function deletePreset(bytes32 labelHash) external onlyOwner {
+        require(_presetKeys.remove(labelHash), "Preset does not exist");
+        delete _presetMap[labelHash];
     }
-
-    /// @notice convert string to bytes32
-    function _getKey(string calldata label) internal pure returns (bytes32) {
-        return keccak256(abi.encode(label));
-    }
-
 
     function pause() external onlyOwner {
         _pause();
