@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {IMembership} from "src/membership/IMembership.sol";
-import {FeeModule} from "src/lib/module/FeeModule.sol";
+import {ModuleFee} from "src/lib/module/ModuleFee.sol";
 import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
 import {ReentrancyGuard} from "solmate/src/utils/ReentrancyGuard.sol";
 // use SafeERC20: https://soliditydeveloper.com/safe-erc20
@@ -18,7 +18,7 @@ import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC
 /// constant G(1) gas complexity. Additionally, it is guaranteed that all stablecoins
 /// will use the same price value and can never get out of sync. Deploy one instance
 /// of this module per currency, per chain (e.g. USD, EUR, BTC).
-contract FixedStablecoinPurchaseModule is FeeModule, ModuleSetup, ReentrancyGuard {
+contract FixedStablecoinPurchaseModule is ModuleFee, ModuleSetup, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     struct Parameters {
@@ -62,7 +62,7 @@ contract FixedStablecoinPurchaseModule is FeeModule, ModuleSetup, ReentrancyGuar
         CONFIG
     ============*/
 
-    constructor(address _owner, uint256 _fee, uint8 _decimals, string memory _currency) FeeModule(_owner, _fee) {
+    constructor(address _owner, uint256 _fee, uint8 _decimals, string memory _currency) ModuleFee(_owner, _fee) {
         decimals = _decimals;
         currency = _currency;
     }

@@ -7,7 +7,7 @@ import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Batch} from "src/lib/Batch.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {Membership} from "src/membership/Membership.sol";
-import {PublicFreeMintModule} from "src/membership/modules//PublicFreeMintModule.sol";
+import {FreeMintModule} from "src/membership/modules//FreeMintModule.sol";
 
 // forge script script/partners/Plurigrid.s.sol:Plurigrid --fork-url $GOERLI_RPC_URL --keystores $ETH_KEYSTORE --password $KEYSTORE_PASSWORD --sender $ETH_FROM --broadcast
 contract Plurigrid is Script {
@@ -42,7 +42,7 @@ contract Plurigrid is Script {
         vm.startBroadcast();
 
         // membershipImpl = address(new Membership());
-        // module = address(new PublicFreeMintModule(owner, 0.001 ether));
+        // module = address(new FreeMintModule(owner, 0.001 ether));
 
         // proxy
 
