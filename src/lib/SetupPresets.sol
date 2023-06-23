@@ -51,12 +51,13 @@ library SetupPresets {
     }
 
     // sets up presets for the membership factory 
-    // 4 presets with single calls - nt, opa, turnkey, free
-    // 1 presets with 2 calls - nt+opa
-    // 2 presets with 3 calls - nt+opa+turnkey, nt+opa+free
+    // 5 presets with single calls - nt, opa, turnkey, free
+    // 1 preset with 2 calls - nt+opa
+    // 2 presets with 3 calls - nt+opa+grant, nt+opa+gsm
+    // 1 preset with 1 calls - nt+opa+grant+free
     function setupPresets(address _membershipFactory, address _onePerAddress, address _turnKey, address _publicFreeMintModule) public {
 
-        // 4 presets with single calls
+        // 5 presets with single calls
         bytes[] memory bytesArr = new bytes[](1);
 
         bytesArr[0] = nt;
@@ -82,14 +83,17 @@ library SetupPresets {
         bytesArr[1] = opa(_onePerAddress);
         IMembershipFactory(_membershipFactory).addPreset("nt+opa", bytesArr);
 
-        // 1 preset with 3 calls
+        // 2 presets with 3 calls
         bytesArr = new bytes[](3);
         bytesArr[0] = nt;
         bytesArr[1] = opa(_onePerAddress);
         bytesArr[2] = grant(_turnKey);
         IMembershipFactory(_membershipFactory).addPreset("nt+opa+grant", bytesArr);
 
-        // 1 preset with 3 calls
+        bytesArr[2] = gsm(_turnKey);
+        IMembershipFactory(_membershipFactory).addPreset("nt+opa+gsm", bytesArr);
+
+        // 1 preset with 4 calls
         bytesArr = new bytes[](4);
         bytesArr[0] = nt;
         bytesArr[1] = opa(_onePerAddress);
