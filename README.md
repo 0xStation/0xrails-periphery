@@ -34,8 +34,9 @@ These are a list of presets available from the membership factory
 | :--- | :--- | :--- | :--- |
 | `Non-transferable` | `nt` | `guard(Operation, address)` | `Operation.TRANSFER`, `[MAX_ADDRESS]` |
 |  `One token per address` | `opa` | `guard(Operation, address)` | `Operation.MINT`, `[OnePerAddress]` |
-| `Turnkey-powered minting` | `turnkey` | `permit(address, Operation)	` | `0xBb942519A1339992630b13c3252F04fCB09D4841`, `Operation.MINT` |
-| `Public and free minting` | `free` | `permit(address, Operation)` | `[PublicFreeMintModule]`, `Operation.MINT` |
+| `Gas-subsidized minting` | `gsm` | `permit(address, Operation)	` | `0xBb942519A1339992630b13c3252F04fCB09D4841`, `Operation.MINT` |
+| `Offchain granting` | `grant` | `permit(address, Operation)	` | `0xBb942519A1339992630b13c3252F04fCB09D4841`, `Operation.GRANT` |
+| `Free minting` | `free` | `permit(address, Operation)` | `[FreeMintModule]`, `Operation.MINT` |
 
 There are also combination presets built from the above calls
 
