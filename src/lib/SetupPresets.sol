@@ -8,12 +8,14 @@ library SetupPresets {
 
     address internal constant MAX_ADDRESS = 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF;
 
+    bytes32 public constant ntHash = keccak256("nt");
     bytes public constant nt = abi.encodeWithSelector(
         Permissions.guard.selector,
         Permissions.Operation.TRANSFER,
         MAX_ADDRESS
     );
 
+    bytes32 public constant opaHash = keccak256("opa");
     function opa(address _onePerAddress) public pure returns (bytes memory) {
         return abi.encodeWithSelector(
             Permissions.guard.selector,
@@ -26,6 +28,7 @@ library SetupPresets {
         return bytes32(1 << uint8(operation));
     }
 
+    bytes32 public constant gsmHash = keccak256("gsm");
     function gsm(address _turnkey) public pure returns (bytes memory) {
         return abi.encodeWithSelector(
             Permissions.permit.selector, 
@@ -33,6 +36,7 @@ library SetupPresets {
             _operationBit(Permissions.Operation.MINT));
     } 
 
+    bytes32 public constant grantHash = keccak256("grant");
     function grant(address _grant) public pure returns (bytes memory) {
         return abi.encodeWithSelector(
             Permissions.permit.selector,
@@ -42,6 +46,7 @@ library SetupPresets {
         );
     }
 
+    bytes32 public constant freeHash = keccak256("free");
     function free(address _publicFreeMintModule) public pure returns (bytes memory) {
         return abi.encodeWithSelector(
             Permissions.permit.selector,
@@ -49,6 +54,11 @@ library SetupPresets {
             _operationBit(Permissions.Operation.MINT) // only mint
         );
     }
+
+    bytes32 public constant ntOpaHash = keccak256("nt+opa");
+    bytes32 public constant ntOpaGrantHash = keccak256("nt+opa+grant");
+    bytes32 public constant ntOpaGsmHash = keccak256("nt+opa+gsm");
+    bytes32 public constant ntOpaGrantFreeHash = keccak256("nt+opa+grant+free");
 
     // sets up presets for the membership factory 
     // 5 presets with single calls - nt, opa, turnkey, free
@@ -61,19 +71,19 @@ library SetupPresets {
         bytes[] memory bytesArr = new bytes[](1);
 
         bytesArr[0] = nt;
-        IMembershipFactory(_membershipFactory).addPreset("nt", bytesArr);
+        IMembershipFactory(_membershipFactory).addPreset(ntHash, bytesArr);
 
         bytesArr[0] = opa(_onePerAddress);
-        IMembershipFactory(_membershipFactory).addPreset("opa", bytesArr);
+        IMembershipFactory(_membershipFactory).addPreset(opaHash, bytesArr);
 
         bytesArr[0] = gsm(_turnKey);
-        IMembershipFactory(_membershipFactory).addPreset("gsm", bytesArr);
+        IMembershipFactory(_membershipFactory).addPreset(gsmHash, bytesArr);
 
         bytesArr[0] = grant(_turnKey);
-        IMembershipFactory(_membershipFactory).addPreset("grant", bytesArr);
+        IMembershipFactory(_membershipFactory).addPreset(grantHash, bytesArr);
 
         bytesArr[0] = free(_publicFreeMintModule);
-        IMembershipFactory(_membershipFactory).addPreset("free", bytesArr);
+        IMembershipFactory(_membershipFactory).addPreset(freeHash, bytesArr);
 
 
         // 1 preset with 2 calls
@@ -81,17 +91,17 @@ library SetupPresets {
 
         bytesArr[0] = nt;
         bytesArr[1] = opa(_onePerAddress);
-        IMembershipFactory(_membershipFactory).addPreset("nt+opa", bytesArr);
+        IMembershipFactory(_membershipFactory).addPreset(ntOpaHash, bytesArr);
 
         // 2 presets with 3 calls
         bytesArr = new bytes[](3);
         bytesArr[0] = nt;
         bytesArr[1] = opa(_onePerAddress);
         bytesArr[2] = grant(_turnKey);
-        IMembershipFactory(_membershipFactory).addPreset("nt+opa+grant", bytesArr);
+        IMembershipFactory(_membershipFactory).addPreset(ntOpaGrantHash, bytesArr);
 
         bytesArr[2] = gsm(_turnKey);
-        IMembershipFactory(_membershipFactory).addPreset("nt+opa+gsm", bytesArr);
+        IMembershipFactory(_membershipFactory).addPreset(ntOpaGsmHash, bytesArr);
 
         // 1 preset with 4 calls
         bytesArr = new bytes[](4);
@@ -99,7 +109,7 @@ library SetupPresets {
         bytesArr[1] = opa(_onePerAddress);
         bytesArr[2] = grant(_turnKey);
         bytesArr[3] = free(_publicFreeMintModule);
-        IMembershipFactory(_membershipFactory).addPreset("nt+opa+grant+free", bytesArr);
+        IMembershipFactory(_membershipFactory).addPreset(ntOpaGrantFreeHash, bytesArr);
 
     }
 }
