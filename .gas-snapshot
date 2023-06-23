@@ -1,0 +1,4 @@
+MembershipFactoryGasTest:test_create_manual_nt_opa_grant() (gas: 464227)
+MembershipFactoryGasTest:test_create_preset_nt_opa_grant() (gas: 464954)
+MembershipFactoryGasTest:test_create_with_permit_and_setup_gas() (gas: 425857)
+MembershipFactoryGasTest:test_simple_create() (gas: 342872)
