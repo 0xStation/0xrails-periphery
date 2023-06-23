@@ -45,17 +45,11 @@ abstract contract ModuleGrant is NonceBitMap {
     ====================*/
 
     /// @notice authenticate module functions for collections with grants and reentrancy protection
-    modifier onlyGranted(address collection) {
-        // grant authentication
+    modifier enableGrants(bytes memory callContext) {
         address signer = grantSigner;
-        require(
-            // grants unenforced or
-            !grantsEnforced(collection)
-            // signer has permission to grant
-            // signer checked as UNVERIFIED first for gas opt and to prevent subtle attack vector of permitting address(1) side effects
-            || (signer != UNVERIFIED && Permissions(collection).hasPermission(signer, Permissions.Operation.GRANT)),
-            "UNAUTHORIZED"
-        );
+        bool grantInProgress = signer != UNVERIFIED;
+        // validate signer can issue grants
+        require(validateGrantSigner(grantInProgress, signer, callContext), "UNAUTHORIZED");
         // reentrancy protection
         require(lock == UNLOCKED, "REENTRANCY");
         // lock
@@ -64,8 +58,10 @@ abstract contract ModuleGrant is NonceBitMap {
         _;
         // unlock
         lock = UNLOCKED;
-        // reset signer
-        grantSigner = UNVERIFIED;
+        // reset grant signer
+        if (grantInProgress) {
+            grantSigner = UNVERIFIED;
+        }
     }
 
     /// @notice support calling a function with a grant as the sole permitted sender
@@ -80,9 +76,9 @@ abstract contract ModuleGrant is NonceBitMap {
         _callWithGrant(Grant(address(0), expiration, nonce, data, signature));
     }
 
-    /// @notice virtual to enable modules to customize storage packing of grant ignoring status
-    function grantsEnforced(address collection) public view virtual returns (bool) {
-        return true; // should override implementation
+    /// @notice virtual to enable modules to customize when signers are allowed
+    function validateGrantSigner(bool, address, bytes memory) public view virtual returns (bool) {
+        return false; // should override implementation
     }
 
     /*=====================
@@ -92,6 +88,7 @@ abstract contract ModuleGrant is NonceBitMap {
     /// @notice authenticate grant and make a self-call
     /// @dev can only be used on functions that are protected with onlyGranted
     function _callWithGrant(Grant memory grant) private {
+        require(grant.expiration > block.timestamp, "EXPIRED");
         // recover signer from grant
         grantSigner = _recoverSigner(grant);
         // use nonce
@@ -104,7 +101,7 @@ abstract contract ModuleGrant is NonceBitMap {
     }
 
     /// @notice Mint tokens using a signature from a permitted minting address
-    function _recoverSigner(Grant memory grant) private returns (address signer) {
+    function _recoverSigner(Grant memory grant) private view returns (address signer) {
         // hash grant values
         bytes32 valuesHash =
             keccak256(abi.encode(GRANT_TYPE_HASH, grant.sender, grant.expiration, grant.nonce, grant.data));
