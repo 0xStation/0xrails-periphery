@@ -64,6 +64,8 @@ abstract contract ModuleGrant is NonceBitMap {
         _;
         // unlock
         lock = UNLOCKED;
+        // reset signer
+        grantSigner = UNVERIFIED;
     }
 
     /// @notice support calling a function with a grant as the sole permitted sender
@@ -87,33 +89,31 @@ abstract contract ModuleGrant is NonceBitMap {
         PRIVATE HELPERS
     =====================*/
 
+    /// @notice authenticate grant and make a self-call
+    /// @dev can only be used on functions that are protected with onlyGranted
     function _callWithGrant(Grant memory grant) private {
-        // extract signer from grant
+        // recover signer from grant
         grantSigner = _recoverSigner(grant);
+        // use nonce
+        _useNonce(grantSigner, grant.nonce);
         // make authenticated call
         (bool success,) = address(this).delegatecall(grant.data);
         require(success, "FAILED");
-        // reset signer
-        grantSigner = UNVERIFIED;
+        // enforce signer reset to guarantee modifier usage and limit side effects of calling unprotected functions
+        require(grantSigner == UNVERIFIED, "CALL_NOT_PROTECTED");
     }
 
     /// @notice Mint tokens using a signature from a permitted minting address
     function _recoverSigner(Grant memory grant) private returns (address signer) {
-        // hash grant
-        bytes32 hash = _hashGrant(grant);
-        // recover signer
-        signer = ECDSA.recover(hash, grant.signature);
-        // use nonce
-        _useNonce(signer, grant.nonce);
-    }
-
-    function _hashGrant(Grant memory grant) private returns (bytes32 grantHash) {
+        // hash grant values
         bytes32 valuesHash =
             keccak256(abi.encode(GRANT_TYPE_HASH, grant.sender, grant.expiration, grant.nonce, grant.data));
-
-        grantHash = ECDSA.toTypedDataHash(
+        // hash domain with grant values
+        bytes32 grantHash = ECDSA.toTypedDataHash(
             INITIAL_CHAIN_ID == block.chainid ? INITIAL_DOMAIN_SEPARATOR : _domainSeparator(), valuesHash
         );
+        // recover signer
+        signer = ECDSA.recover(grantHash, grant.signature);
     }
 
     function _domainSeparator() private view returns (bytes32) {
