@@ -5,7 +5,6 @@ import {EnumerableSetUpgradeable} from "openzeppelin-contracts-upgradeable/utils
 
 abstract contract MembershipFactoryStorageV0 {
     struct Preset {
-        string label;
         bytes[] calls;
     }
 

@@ -82,7 +82,7 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgra
         string memory name,
         string memory symbol,
         bytes[] calldata setupCalls,
-        bytes32 labelHashHash
+        bytes32 labelHash
     ) external whenNotPaused returns (address membership, Batch.Result[] memory setupResults) {
         // set factory as owner so it can make calls to protected functions for setup
         membership = create(address(this), renderer, name, symbol);
@@ -127,14 +127,14 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgra
     function addPreset(bytes32 labelHash, bytes[] calldata calls) external onlyOwner {
         require(calls.length > 0, "No calls");
         require(_presetKeys.add(labelHash), "Preset label already exists");
-        _presetMap[labelHash] = Preset(label, calls);
+        _presetMap[labelHash] = Preset(calls);
     }
 
     /// @notice modifies an existing Membership preset
     function modifyPreset(bytes32 labelHash, bytes[] calldata calls) external onlyOwner {
         require(calls.length > 0, "No calls");
         require(_presetKeys.contains(labelHash), "Preset does not exist");
-        _presetMap[labelHash] = Preset(label, calls);
+        _presetMap[labelHash] = Preset(calls);
     }
 
     /// @notice deletes a Membership preset

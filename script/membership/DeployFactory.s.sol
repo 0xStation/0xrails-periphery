@@ -26,20 +26,20 @@ contract Deploy is Script {
         address membershipImpl = 0xadBc7EC633B78dc4407215D56Eb0861dD7c51431;
         
         MembershipFactory membershipFactoryImpl = new MembershipFactory();
-        ERC1967Proxy membershipFactoryProxy = new ERC1967Proxy(address(membershipFactoryImpl), "");
+        address membershipFactoryProxy = address(new ERC1967Proxy(address(membershipFactoryImpl), ""));
 
         // safety, for prod
         if (onePerAddress != address(0) && turnkey != address(0) && publicFreeMintModule != address(0)) {
-            MembershipFactory(address(membershipFactoryProxy)).initialize(membershipImpl, address(this));
+            MembershipFactory(membershipFactoryProxy).initialize(membershipImpl, address(this));
             SetupPresets.setupPresets(
                 membershipFactoryProxy,
                 onePerAddress,
-                turnKey,
+                turnkey,
                 publicFreeMintModule
             );
-            MembershipFactory(address(membershipFactoryProxy)).transferOwnership(msg.sender);
+            MembershipFactory(membershipFactoryProxy).transferOwnership(msg.sender);
         } else {
-            MembershipFactory(address(membershipFactoryProxy)).initialize(membershipImpl, msg.sender);
+            MembershipFactory(membershipFactoryProxy).initialize(membershipImpl, msg.sender);
         }
         
         vm.stopBroadcast();
