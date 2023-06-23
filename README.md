@@ -43,8 +43,9 @@ There are also combination presets built from the above calls
 | description | label |
 | :--- | :--- |
 | `Simple identity via non-transferability and one-per-address guards` | `nt+opa` |
-|  `Simple identity with turnkey minting` | `nt+opa+turnkey` |
-| `Simple identity with public, free minting` | `nt+opa_free` |
+|  `Simple identity with gas-subsidized minting` | `nt+opa+gsm` |
+|  `Simple identity with permitted minting` | `nt+opa+grant` |
+| `Simple identity with permitted free minting` | `nt+opa+grant+free` |
 
 
 To deploy a membership using one of these existing presets, pass in the shorthand label from the table of presets in the `createFromPresets` function for the `presetDesc` arg
