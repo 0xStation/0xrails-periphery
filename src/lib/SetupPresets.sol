@@ -33,7 +33,8 @@ library SetupPresets {
         return abi.encodeWithSelector(
             Permissions.permit.selector, 
             _turnkey,
-            _operationBit(Permissions.Operation.MINT));
+            _operationBit(Permissions.Operation.MINT)
+        );
     } 
 
     bytes32 public constant grantHash = keccak256("grant");
@@ -41,8 +42,7 @@ library SetupPresets {
         return abi.encodeWithSelector(
             Permissions.permit.selector,
             _grant,
-            bytes32(uint(3)) 
-            /*_operationBit(Permissions.Operation.GRANT)*/
+            _operationBit(Permissions.Operation.GRANT)
         );
     }
 

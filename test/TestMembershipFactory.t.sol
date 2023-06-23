@@ -57,8 +57,8 @@ contract MembershipFactoryTest is Test {
         assertEq(membershipContract2.symbol(), "ENEMIES");
     }
 
-    function checkGuards(address membership, address[5] memory expectedAddrs) internal {
-        for (uint8 i = 0; i < 5; i++) {
+    function checkGuards(address membership, address[6] memory expectedAddrs) internal {
+        for (uint8 i = 0; i < 6; i++) {
             assertEq(
                 Membership(membership).guardOf(Permissions.Operation(i)),
                 expectedAddrs[i]
@@ -66,10 +66,10 @@ contract MembershipFactoryTest is Test {
         }
     }
 
-    function checkPermits(address membership, address addr, uint8[5] memory permissions) internal {
+    function checkPermits(address membership, address addr, uint8[6] memory permissions) internal {
         bytes32 addrPermissions = Membership(membership).permissionsOf(addr);
 
-        for (uint8 i = 0; i < 5; i++) {
+        for (uint8 i = 0; i < 6; i++) {
             assertEq(
                 (addrPermissions >> uint8(i)) & bytes32(uint(1)),
                 bytes32(uint(permissions[i]))
@@ -103,11 +103,11 @@ contract MembershipFactoryTest is Test {
             );
 
         // should have no guards
-        checkGuards(membership, [address(0), address(0), address(0), address(0), address(0)]);
+        checkGuards(membership, [address(0), address(0), address(0), address(0), address(0), address(0)]);
 
         // should have permits on minting and burning
-        checkPermits(membership, minter, [0, 1, 0, 0, 0]);
-        checkPermits(membership, burner, [0, 0, 1, 0, 0]);
+        checkPermits(membership, minter, [0, 1, 0, 0, 0, 0]);
+        checkPermits(membership, burner, [0, 0, 1, 0, 0, 0]);
     }
 
     function _setupPresets() public {
@@ -126,14 +126,14 @@ contract MembershipFactoryTest is Test {
             rendererImpl,
             "Friends of Station",
             "FRIENDS",
-            "turnkey"
+            SetupPresets.gsmHash
         );
 
         // should have no guards
-        checkGuards(membership, [address(0), address(0), address(0), address(0), address(0)]);
+        checkGuards(membership, [address(0), address(0), address(0), address(0), address(0), address(0)]);
 
         // should have permit on mint
-        checkPermits(membership, turnkey, [0, 1, 0, 0, 0]);
+        checkPermits(membership, turnkey, [0, 1, 0, 0, 0, 0]);
     }
 
     function test_create_from_preset_2() public {
@@ -143,11 +143,11 @@ contract MembershipFactoryTest is Test {
             rendererImpl,
             "Friends of Station",
             "FRIENDS",
-            "nt+opa"
+            SetupPresets.ntOpaHash
         );
 
         // should have guards on transfer and mint
-        checkGuards(membership, [address(0), onePerAddress, address(0), MAX_ADDRESS, address(0)]);
+        checkGuards(membership, [address(0), onePerAddress, address(0), MAX_ADDRESS, address(0), address(0)]);
     }
 
     function test_create_from_preset_3() public {
@@ -157,18 +157,18 @@ contract MembershipFactoryTest is Test {
             rendererImpl,
             "Friends of Station",
             "FRIENDS",
-            "nt+opa+free"
+            SetupPresets.ntOpaGsmHash
         );
 
         // should have guards on transfer and mint
-        checkGuards(membership, [address(0), onePerAddress, address(0), MAX_ADDRESS, address(0)]);
+        checkGuards(membership, [address(0), onePerAddress, address(0), MAX_ADDRESS, address(0), address(0)]);
 
         // should have permit on mint
-        checkPermits(membership, publicFreeMintModule, [0, 1, 0, 0, 0]);
+        checkPermits(membership, turnkey, [0, 1, 0, 0, 0, 0]);
     }
 
     function test_combination_create() public {
-                _setupPresets();
+        _setupPresets();
 
         bytes[] memory calls = new bytes[](2);
 
@@ -190,16 +190,16 @@ contract MembershipFactoryTest is Test {
             "Friends of Station",
             "FRIENDS",
             calls,
-            "nt+opa+free"
+            SetupPresets.ntOpaGsmHash
         );
 
 
         // should have guards on transfer, mint and upgrade
-        checkGuards(membership, [MAX_ADDRESS, onePerAddress, address(0), MAX_ADDRESS, address(0)]);
+        checkGuards(membership, [MAX_ADDRESS, onePerAddress, address(0), MAX_ADDRESS, address(0), address(0)]);
 
         // should have permit on mint and guard
-        checkPermits(membership, publicFreeMintModule, [0, 1, 0, 0, 0]);
-        checkPermits(membership, burner, [0, 0, 1, 0, 0]);
+        checkPermits(membership, turnkey, [0, 1, 0, 0, 0, 0]);
+        checkPermits(membership, burner, [0, 0, 1, 0, 0, 0]);
     }
 
     function test_combination_create_overwrite() public {
@@ -225,16 +225,16 @@ contract MembershipFactoryTest is Test {
             "Friends of Station",
             "FRIENDS",
             calls,
-            "nt+opa+free"
+            SetupPresets.ntOpaGsmHash
         );
 
         // expect calls to be redundant since presets are applied after calls in arg
 
         // should still have guards on transfer and mint
-        checkGuards(membership, [address(0), onePerAddress, address(0), MAX_ADDRESS, address(0)]);
+        checkGuards(membership, [address(0), onePerAddress, address(0), MAX_ADDRESS, address(0), address(0)]);
 
         // should still have permit on mint 
-        checkPermits(membership, publicFreeMintModule, [0, 1, 0, 0, 0]);
+        checkPermits(membership, turnkey, [0, 1, 0, 0, 0, 0]);
     }
 
 }
