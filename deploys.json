@@ -17,6 +17,9 @@
     "Membership": "0xfc6eea2467f921c66063c8e2adb193c44299e869",
     "PublicFreeMintModule": "0x3B8f78cBFb54eB71DE88a17227E188BEbeA0BcE7",
     "FixedStablecoinPurchaseModule": "0x9c4969e1c585491ac5382eeeb9bc9668f8a5788c",
+    "modules": {
+      "FreeMintModule": "0xD429e7618fda0B681D0037938EbD4Bf24BfCe9eD"
+    },
     "partners": {
       "Polygon d.Camp (TEST)": "0xca577A1Ae910B0020c5923d8B30560C509c1Ff07",
       "Early Doors": "0x155f41e95a9a655f1218a70aba6622164ddbc50e"

@@ -20,11 +20,11 @@ abstract contract ModuleGrant is NonceBitMap {
 
     // signatures
     bytes32 private constant GRANT_TYPE_HASH =
-        keccak256(abi.encode("Grant(address sender,uint48 expiration,uint256 nonce,bytes data)"));
+        keccak256("Grant(address sender,uint48 expiration,uint256 nonce,bytes data)");
     bytes32 private constant DOMAIN_TYPE_HASH =
-        keccak256(abi.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"));
-    bytes32 private constant NAME_HASH = keccak256(abi.encode("GroupOS"));
-    bytes32 private constant VERSION_HASH = keccak256(abi.encode("0.0.1"));
+        keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
+    bytes32 private constant NAME_HASH = keccak256("GroupOS");
+    bytes32 private constant VERSION_HASH = keccak256("0.0.1");
     bytes32 internal immutable INITIAL_DOMAIN_SEPARATOR;
     uint256 internal immutable INITIAL_CHAIN_ID;
 
@@ -65,13 +65,17 @@ abstract contract ModuleGrant is NonceBitMap {
     }
 
     /// @notice support calling a function with a grant as the sole permitted sender
-    function callWithGrant(uint48 expiration, uint256 nonce, bytes calldata data, bytes calldata signature) external {
+    function callWithGrant(uint48 expiration, uint256 nonce, bytes calldata data, bytes calldata signature)
+        external
+        payable
+    {
         _callWithGrant(Grant(msg.sender, expiration, nonce, data, signature));
     }
 
     /// @notice support calling a function with a grant with public access
     function publicCallWithGrant(uint48 expiration, uint256 nonce, bytes calldata data, bytes calldata signature)
         external
+        payable
     {
         _callWithGrant(Grant(address(0), expiration, nonce, data, signature));
     }
@@ -103,8 +107,16 @@ abstract contract ModuleGrant is NonceBitMap {
     /// @notice Mint tokens using a signature from a permitted minting address
     function _recoverSigner(Grant memory grant) private view returns (address signer) {
         // hash grant values
-        bytes32 valuesHash =
-            keccak256(abi.encode(GRANT_TYPE_HASH, grant.sender, grant.expiration, grant.nonce, grant.data));
+        bytes32 valuesHash = keccak256(
+            abi.encode(
+                GRANT_TYPE_HASH,
+                grant.sender,
+                grant.expiration,
+                grant.nonce,
+                // per EIP712 spec, need to hash variable length data to 32-bytes value first
+                keccak256(grant.data)
+            )
+        );
         // hash domain with grant values
         bytes32 grantHash = ECDSA.toTypedDataHash(
             INITIAL_CHAIN_ID == block.chainid ? INITIAL_DOMAIN_SEPARATOR : _domainSeparator(), valuesHash
