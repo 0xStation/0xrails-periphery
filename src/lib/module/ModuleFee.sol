@@ -7,6 +7,8 @@ contract ModuleFee is Ownable {
     uint256 public fee;
     uint256 public feeBalance;
 
+    error InvalidFee(uint256 expected, uint256 received);
+
     event UpdateFee(uint256 fee);
     event WithdrawFee(address indexed recipient, uint256 amount);
 
@@ -38,7 +40,7 @@ contract ModuleFee is Ownable {
 
     function _registerFeeBatch(uint256 n) internal returns (uint256 paidFee) {
         paidFee = fee * n; // read from state once, gas optimization
-        require(msg.value == paidFee, "INVALID_FEE");
+        if (paidFee != msg.value) revert InvalidFee(paidFee, msg.value);
         feeBalance += paidFee;
     }
 }

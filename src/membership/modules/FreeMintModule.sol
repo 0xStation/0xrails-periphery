@@ -62,7 +62,6 @@ contract FreeMintModule is ModuleSetup, ModuleGrant, ModuleFee {
     {
         uint256 paidFee = _registerFee(); // reverts on invalid fee
         (tokenId) = IMembership(collection).mintTo(recipient);
-        require(tokenId > 0, "MINT_FAILED");
         emit Mint(collection, recipient, paidFee);
     }
 
@@ -77,8 +76,8 @@ contract FreeMintModule is ModuleSetup, ModuleGrant, ModuleFee {
         returns (bool)
     {
         address collection = abi.decode(callContext, (address));
-        return (!grantInProgress && !grantsEnforced(collection))
-            || (grantInProgress && Permissions(collection).hasPermission(signer, Permissions.Operation.GRANT));
+        return (grantInProgress && Permissions(collection).hasPermission(signer, Permissions.Operation.GRANT))
+            || (!grantsEnforced(collection));
     }
 
     function grantsEnforced(address collection) public view returns (bool) {
