@@ -66,8 +66,8 @@ contract Plurigrid is Script {
         setupCalls[1] = guardMint;
         setupCalls[2] = guardTransfer;
 
-        // make non-atomic batch call, using permission as owner to do anything
-        Batch(proxy).batch(false, setupCalls);
+        // make batch call, using permission as owner to do anything
+        Batch(proxy).batch(setupCalls);
         // transfer ownership to provided argument
         Permissions(proxy).transferOwnership(owner);
 

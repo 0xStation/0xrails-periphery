@@ -70,8 +70,8 @@ contract DCamp is Script {
         setupCalls[3] = permitFrogUpgradeModuleData;
         setupCalls[4] = permitSymUpgradeModuleData;
 
-        // // make non-atomic batch call, using permission as owner to do anything
-        Batch(proxy).batch(true, setupCalls);
+        // // make batch call, using permission as owner to do anything
+        Batch(proxy).batch(setupCalls);
         // // transfer ownership to provided argument
         Permissions(proxy).transferOwnership(owner);
         vm.stopBroadcast();

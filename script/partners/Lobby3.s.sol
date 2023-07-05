@@ -77,8 +77,8 @@ contract Lobby3 is Script {
         setupCalls[4] = permitFrogUpgradeModuleData;
         setupCalls[5] = permitSymUpgradeModuleData;
 
-        // make atomic batch call, using permission as owner to do anything
-        Batch(proxy).batch(true, setupCalls);
+        // make batch call, using permission as owner to do anything
+        Batch(proxy).batch(setupCalls);
         // transfer ownership to provided argument
         // Permissions(proxy).transferOwnership(owner);
         vm.stopBroadcast();

@@ -40,8 +40,8 @@ contract BadgeFactory is Ownable, Pausable {
     ) external whenNotPaused returns (address badge, Batch.Result[] memory setupResults) {
         // set factory as owner so it can make calls to protected functions for setup
         badge = create(address(this), renderer, name, symbol);
-        // make non-atomic batch call, using permission as owner to do anything
-        setupResults = Batch(badge).batch(false, setupCalls);
+        // make batch call, using permission as owner to do anything
+        setupResults = Batch(badge).batch(setupCalls);
         // transfer ownership to provided argument
         Permissions(badge).transferOwnership(owner);
     }

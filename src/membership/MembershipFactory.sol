@@ -12,7 +12,6 @@ import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactoryStorageV0} from "./storage/MembershipFactoryStorageV0.sol";
 
 contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgradeable, MembershipFactoryStorageV0 {
-
     event MembershipCreated(address indexed membership);
 
     /// @notice initialize owner, the impl the proxies point to, and pausing
@@ -49,8 +48,8 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgra
     ) external whenNotPaused returns (address membership, Batch.Result[] memory setupResults) {
         // set factory as owner so it can make calls to protected functions for setup
         membership = create(address(this), renderer, name, symbol);
-        // make non-atomic batch call, using permission as owner to do anything
-        setupResults = Batch(membership).batch(false, setupCalls);
+        // make batch call, using permission as owner to do anything
+        setupResults = Batch(membership).batch(setupCalls);
         // transfer ownership to provided argument
         Permissions(membership).transferOwnership(owner);
     }

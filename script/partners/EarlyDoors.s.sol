@@ -109,7 +109,7 @@ contract EarlyDoors is Script {
         // setupCalls[4] = permitFrogUpgradeModuleData;
         // setupCalls[5] = permitSymUpgradeModuleData;
 
-        Batch(proxy).batch(true, setupCalls);
+        Batch(proxy).batch(setupCalls);
         // Permissions(proxy).transferOwnership(owner);
 
         vm.stopBroadcast();
