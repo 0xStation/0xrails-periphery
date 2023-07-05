@@ -13,16 +13,20 @@ contract BadgeTest is Test, ERC1155ReceiverUpgradeable {
     Badge public badgeImpl;
     Badge public proxy;
     Badge public pwndProxy;
+    
+    // init vars
     address owner;
     address renderer;
     uint256 reenterCount;
+    string name;
+    string symbol;
 
     function setUp() public {
         badgeImpl = new Badge();
         owner = address(0xdeadbeef);
         renderer = address(0xbadbeef);
-        string memory name = "Example";
-        string memory symbol = "EX";
+        name = "Example";
+        symbol = "EX";
 
         bytes memory initData = abi.encodeWithSelector(badgeImpl.init.selector, owner, renderer, name, symbol);
         proxy = Badge(address(new ERC1967Proxy(address(badgeImpl), initData)));
@@ -30,9 +34,6 @@ contract BadgeTest is Test, ERC1155ReceiverUpgradeable {
 
     // see malicious onERC1155Received() implementation below
     function test_ownerMintReentrancy() public {
-
-        string memory name = "Example";
-        string memory symbol = "EX";
         // configure victim proxy using this test contract as owner
         bytes memory initData = abi.encodeWithSelector(badgeImpl.init.selector, address(this), renderer, name, symbol);
         pwndProxy = Badge(address(new ERC1967Proxy(address(badgeImpl), initData)));
