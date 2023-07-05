@@ -8,7 +8,6 @@ import {Membership} from "src/membership/Membership.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
 import {FreeMintModule} from "src/membership/modules/FreeMintModule.sol";
-
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
 contract FreeMintModuleTest is Test, SetUpMembership {
