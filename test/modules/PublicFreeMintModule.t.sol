@@ -2,12 +2,12 @@
 pragma solidity ^0.8.13;
 
 import {Test} from "forge-std/Test.sol";
+import {console} from "forge-std/console.sol";
 import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
 import {FreeMintModule} from "src/membership/modules/FreeMintModule.sol";
-
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
 contract FreeMintModuleTest is Test, SetUpMembership {
@@ -19,10 +19,13 @@ contract FreeMintModuleTest is Test, SetUpMembership {
         proxy = SetUpMembership.create();
     }
 
+    // helper function to initialize Modules for each test function
+    // @note Not invoked as a standalone test
     function initModule(uint64 fee) public {
         module = new FreeMintModule(owner, fee);
-        // give module mint permission on proxy
-        vm.prank(owner);
+        // enable grants in module config setup and give module mint permission on proxy
+        vm.startPrank(owner);
+        module.setUp(address(proxy), false);
         proxy.permit(address(module), operationPermissions(Permissions.Operation.MINT));
     }
 
