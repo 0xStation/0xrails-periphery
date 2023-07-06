@@ -40,6 +40,17 @@ abstract contract ModuleGrant is NonceBitMap {
         INITIAL_CHAIN_ID = block.chainid;
     }
 
+    /*============
+        ERRORS
+    ============*/
+
+    error InvalidGrantSigner(address signer);
+    error Reentrancy();
+    error GrantExpired(uint48 expiration, uint48 current);
+    error GrantSenderMismatch(address argument, address sender);
+    error GrantCallFailed(bytes data);
+    error GrantCallUnprotected();
+
     /*====================
         CORE UTILITIES
     ====================*/
@@ -49,35 +60,26 @@ abstract contract ModuleGrant is NonceBitMap {
         address signer = grantSigner;
         bool grantInProgress = signer != UNVERIFIED;
         // validate signer can issue grants
-        require(validateGrantSigner(grantInProgress, signer, callContext), "UNAUTHORIZED");
+        if (!validateGrantSigner(grantInProgress, signer, callContext)) revert InvalidGrantSigner(signer);
         // reentrancy protection
-        require(lock == UNLOCKED, "REENTRANCY");
+        if (lock != UNLOCKED) revert Reentrancy();
         // lock
         lock = LOCKED;
         // function execution
         _;
         // unlock
         lock = UNLOCKED;
-        // reset grant signer
-        if (grantInProgress) {
-            grantSigner = UNVERIFIED;
-        }
     }
 
     /// @notice support calling a function with a grant as the sole permitted sender
-    function callWithGrant(uint48 expiration, uint256 nonce, bytes calldata data, bytes calldata signature)
-        external
-        payable
-    {
-        _callWithGrant(Grant(msg.sender, expiration, nonce, data, signature));
-    }
-
-    /// @notice support calling a function with a grant with public access
-    function publicCallWithGrant(uint48 expiration, uint256 nonce, bytes calldata data, bytes calldata signature)
-        external
-        payable
-    {
-        _callWithGrant(Grant(address(0), expiration, nonce, data, signature));
+    function callWithGrant(
+        address sender,
+        uint48 expiration,
+        uint256 nonce,
+        bytes calldata data,
+        bytes calldata signature
+    ) external payable {
+        _callWithGrant(Grant(sender, expiration, nonce, data, signature));
     }
 
     /// @notice virtual to enable modules to customize when signers are allowed
@@ -92,16 +94,19 @@ abstract contract ModuleGrant is NonceBitMap {
     /// @notice authenticate grant and make a self-call
     /// @dev can only be used on functions that are protected with onlyGranted
     function _callWithGrant(Grant memory grant) private {
-        require(grant.expiration > block.timestamp, "EXPIRED");
+        if (grant.expiration < block.timestamp) revert GrantExpired(grant.expiration, uint48(block.timestamp));
+        if (grant.sender != address(0) && grant.sender != msg.sender) {
+            revert GrantSenderMismatch(grant.sender, msg.sender);
+        }
         // recover signer from grant
         grantSigner = _recoverSigner(grant);
         // use nonce
         _useNonce(grantSigner, grant.nonce);
         // make authenticated call
-        (bool success,) = address(this).delegatecall(grant.data);
-        require(success, "FAILED");
-        // enforce signer reset to guarantee modifier usage and limit side effects of calling unprotected functions
-        require(grantSigner == UNVERIFIED, "CALL_NOT_PROTECTED");
+        (bool success, bytes memory data) = address(this).delegatecall(grant.data);
+        if (!success) revert GrantCallFailed(data);
+        // reset grant signer
+        grantSigner = UNVERIFIED;
     }
 
     /// @notice Mint tokens using a signature from a permitted minting address
