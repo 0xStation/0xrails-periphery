@@ -9,7 +9,7 @@ abstract contract Batch {
         bytes returnData;
     }
 
-    function batch(bool atomic, bytes[] calldata calls) public payable returns (Result[] memory results) {
+    function batch(bool atomic, bytes[] calldata calls) public returns (Result[] memory results) {
         uint256 len = calls.length;
         results = new Result[](len);
         for (uint256 i = 0; i < len; i++) {

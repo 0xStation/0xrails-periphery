@@ -50,8 +50,4 @@ contract PaymentModuleInitTest is Test, SetUpMembership {
         paymentModule.updateFee(newFee);
         assertEq(paymentModule.fee(), newFee);
     }
-
-    function test_mint() public {
-        //TODO
-    }
 }
