@@ -18,7 +18,7 @@ import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC
 /// constant G(1) gas complexity. Additionally, it is guaranteed that all stablecoins
 /// will use the same price value and can never get out of sync. Deploy one instance
 /// of this module per currency, per chain (e.g. USD, EUR, BTC).
-contract FixedStablecoinPurchaseModule is ModuleFee, ModuleSetup, ReentrancyGuard {
+contract StablecoinPurchaseModule is ModuleFee, ModuleSetup, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     struct Parameters {

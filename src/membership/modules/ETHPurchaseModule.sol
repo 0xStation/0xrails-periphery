@@ -5,7 +5,7 @@ import {IMembership} from "src/membership/IMembership.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 
-contract FixedETHPurchaseModule is Ownable {
+contract ETHPurchaseModule is Ownable {
     mapping(address => uint256) public prices;
     mapping(address => uint256) public balances;
     uint256 public fee;

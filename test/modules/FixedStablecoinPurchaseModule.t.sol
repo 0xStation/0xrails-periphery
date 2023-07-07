@@ -7,14 +7,14 @@ import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
-import {FixedStablecoinPurchaseModule} from "src/membership/modules/FixedStablecoinPurchaseModule.sol";
+import {StablecoinPurchaseModule} from "src/membership/modules/StablecoinPurchaseModule.sol";
 // test
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 import {FakeERC20} from "test/utils/FakeERC20.sol";
 
-contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
+contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     Membership public proxy;
-    FixedStablecoinPurchaseModule public module;
+    StablecoinPurchaseModule public module;
     FakeERC20 public stablecoin;
 
     function setUp() public override {
@@ -28,7 +28,7 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
 
     function initDeploys(uint8 coinDecimals, uint8 moduleDecimals, uint64 fee) public {
         vm.assume(coinDecimals < 50 && moduleDecimals < 50);
-        module = new FixedStablecoinPurchaseModule(owner, fee, moduleDecimals, "TEST");
+        module = new StablecoinPurchaseModule(owner, fee, moduleDecimals, "TEST");
         stablecoin = new FakeERC20(coinDecimals);
     }
 
@@ -847,7 +847,7 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
 
     function test_constructor(uint64 fee) public {
         uint8 moduleDecimals = 0;
-        module = new FixedStablecoinPurchaseModule(owner, fee, moduleDecimals, "TEST");
+        module = new StablecoinPurchaseModule(owner, fee, moduleDecimals, "TEST");
         // no fee balance
         assertEq(module.feeBalance(), 0);
         // fee set
@@ -858,7 +858,7 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
 
     function test_updateFee(uint64 fee1, uint64 fee2) public {
         uint8 moduleDecimals = 0;
-        module = new FixedStablecoinPurchaseModule(owner, fee1, moduleDecimals, "TEST");
+        module = new StablecoinPurchaseModule(owner, fee1, moduleDecimals, "TEST");
 
         vm.prank(owner);
         module.updateFee(fee2);
@@ -868,7 +868,7 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
 
     function test_updateFee_revert_notOwner(uint64 fee1, uint64 fee2, address randomAddress) public {
         uint8 moduleDecimals = 0;
-        module = new FixedStablecoinPurchaseModule(owner, fee1, moduleDecimals, "TEST");
+        module = new StablecoinPurchaseModule(owner, fee1, moduleDecimals, "TEST");
 
         vm.assume(randomAddress != owner);
         vm.prank(randomAddress);

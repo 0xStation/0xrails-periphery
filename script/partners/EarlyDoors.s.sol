@@ -6,7 +6,7 @@ import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Batch} from "src/lib/Batch.sol";
 import {Permissions} from "src/lib/Permissions.sol";
-import {FixedStablecoinPurchaseModule} from "src/membership/modules/FixedStablecoinPurchaseModule.sol";
+import {StablecoinPurchaseModule} from "src/membership/modules/StablecoinPurchaseModule.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 // forge script script/partners/EarlyDoors.s.sol:EarlyDoors --fork-url $MAINNET_RPC_URL --keystores $ETH_KEYSTORE --password $KEYSTORE_PASSWORD --sender $ETH_FROM --broadcast
@@ -23,8 +23,8 @@ contract EarlyDoors is Script {
     // address public usdcAddress = 0xD478219fDca296699A6511f28BA93a265E3E9a1b; // goerli, custom faucet token
 
     // address public turnkey = 0xBb942519A1339992630b13c3252F04fCB09D4841;
-    // FixedStablecoinPurchaseModule public module =
-    //     FixedStablecoinPurchaseModule(0x9c4969e1c585491Ac5382EeeB9BC9668f8a5788c); // goerli
+    // StablecoinPurchaseModule public module =
+    //     StablecoinPurchaseModule(0x9c4969e1c585491Ac5382EeeB9BC9668f8a5788c); // goerli
 
     address public paymentCollector = 0x7d29e5eba46eeF74B6fC643aEc6300D5FC74F7B5; // early doors safe
 
@@ -52,8 +52,8 @@ contract EarlyDoors is Script {
 
         // address membershipImpl = address(new Membership());
 
-        // FixedStablecoinPurchaseModule module = new FixedStablecoinPurchaseModule(msg.sender, fee, decimals, currency);
-        FixedStablecoinPurchaseModule module = FixedStablecoinPurchaseModule(0x82BAf7980a57A5cc25221f893330D801E2bE0308);
+        // StablecoinPurchaseModule module = new StablecoinPurchaseModule(msg.sender, fee, decimals, currency);
+        StablecoinPurchaseModule module = StablecoinPurchaseModule(0x82BAf7980a57A5cc25221f893330D801E2bE0308);
         // module.register(usdcAddress);
 
         // bytes memory initData = abi.encodeWithSelector(Membership.init.selector, msg.sender, renderer, name, symbol);

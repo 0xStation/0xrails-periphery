@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import "src/membership/MembershipFactory.sol";
-import "src/membership/modules/FixedETHPurchaseModule.sol";
+import "src/membership/modules/ETHPurchaseModule.sol";
 
 contract PaymentModuleTest is Test {
     address public paymentReciever = address(456);
@@ -21,7 +21,7 @@ contract PaymentModuleTest is Test {
         membershipImpl = address(new Membership());
         membershipFactory = address(new MembershipFactory());
         MembershipFactory(membershipFactory).initialize(membershipImpl, address(1));
-        paymentModuleImpl = address(new FixedETHPurchaseModule(address(1), fee));
+        paymentModuleImpl = address(new ETHPurchaseModule(address(1), fee));
         vm.stopPrank();
     }
 
@@ -44,7 +44,7 @@ contract PaymentModuleTest is Test {
         address membership =
             MembershipFactory(membershipFactory).create(address(1), rendererImpl, "Friends of Station", "FRIENDS");
         Membership membershipContract = Membership(membership);
-        FixedETHPurchaseModule paymentModule = FixedETHPurchaseModule(paymentModuleImpl);
+        ETHPurchaseModule paymentModule = ETHPurchaseModule(paymentModuleImpl);
         paymentModule.setup(membership, price);
 
         Permissions.Operation[] memory operations = new Permissions.Operation[](1);
