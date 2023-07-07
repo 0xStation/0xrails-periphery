@@ -3,57 +3,105 @@ pragma solidity ^0.8.13;
 
 import {IMembership} from "src/membership/IMembership.sol";
 import {Membership} from "src/membership/Membership.sol";
-import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
+import {Permissions} from "src/lib/Permissions.sol";
+// module utils
+import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
+import {ModuleGrant} from "src/lib/module/ModuleGrant.sol";
+import {ModuleFee} from "src/lib/module/ModuleFee.sol";
 
-contract ETHPurchaseModule is Ownable {
+contract ETHPurchaseModule is ModuleGrant, ModuleFee, ModuleSetup {
+    /*=============
+        STORAGE
+    =============*/
+
+    // TODO: pack collection config storage to one slot
+    mapping(address => bool) internal _repealGrants;
     mapping(address => uint256) public prices;
-    mapping(address => uint256) public balances;
-    uint256 public fee;
-    uint256 public feeBalance;
 
+    /*============
+        EVENTS
+    ============*/
+
+    event SetUp(address indexed collection, uint256 price, bool indexed enforceGrants);
     event Purchase(address indexed collection, address indexed buyer, uint256 price, uint256 fee);
-    event Withdraw(address indexed collection, address indexed recipient, uint256 amount);
-    event WithdrawFee(address indexed recipient, uint256 amount);
 
-    constructor(address _owner, uint256 _fee) {
-        _transferOwnership(_owner);
-        fee = _fee;
+    /*============
+        CONFIG
+    ============*/
+
+    constructor(address newOwner, uint256 newFee) ModuleGrant() ModuleFee(newOwner, newFee) {}
+
+    function setUp(uint256 price, bool enforceGrants) external {
+        _setUp(msg.sender, price, enforceGrants);
     }
 
-    function setup(address collection, uint256 price) external {
-        require(msg.sender == collection || msg.sender == Ownable(collection).owner(), "NOT_ALLOWED");
-        prices[collection] = price;
+    function setUp(address collection, uint256 price, bool enforceGrants) external {
+        _canSetUp(collection, msg.sender);
+        _setUp(collection, price, enforceGrants);
     }
 
-    function updateFee(uint256 newFee) external onlyOwner {
-        fee = newFee;
+    function _setUp(address collection, uint256 price, bool enforceGrants) internal {
+        if (prices[collection] != price) {
+            prices[collection] = price;
+        }
+        if (_repealGrants[collection] != !enforceGrants) {
+            _repealGrants[collection] = !enforceGrants;
+        }
+
+        emit SetUp(collection, price, enforceGrants);
     }
 
-    function mint(address collection) external payable {
-        uint256 price = prices[collection];
-        uint256 totalCost = price + fee;
-        require(msg.value >= totalCost, "INSUFFICIENT_ETH");
+    /*==========
+        MINT
+    ==========*/
 
-        feeBalance += fee;
-        balances[collection] += price;
-        (uint256 tokenId) = IMembership(collection).mintTo(msg.sender);
-        require(tokenId > 0, "MINT_FAILED");
-        emit Purchase(collection, msg.sender, price, fee);
+    function priceOf(address collection) public view returns (uint256 price) {
+        price = prices[collection];
+        require(price > 0, "NO_PRICE");
     }
 
-    function withdraw(address collection) external {
-        address recipient = Membership(collection).paymentCollector();
-        uint256 balance = balances[collection];
-        balances[collection] = 0;
-        payable(recipient).transfer(balance);
-        emit Withdraw(collection, recipient, balance);
+    function mint(address collection) external payable returns (uint256 tokenId) {
+        tokenId = _mint(collection, msg.sender);
     }
 
-    function withdrawFee() external {
-        address recipient = owner();
-        uint256 balance = feeBalance;
-        feeBalance = 0;
-        payable(recipient).transfer(balance);
-        emit WithdrawFee(recipient, balance);
+    function mintTo(address collection, address recipient) external payable returns (uint256 tokenId) {
+        tokenId = _mint(collection, recipient);
+    }
+
+    function _mint(address collection, address recipient)
+        internal
+        enableGrants(abi.encodePacked(collection))
+        returns (uint256 tokenId)
+    {
+        uint256 price = priceOf(collection);
+        uint256 paidFee = _registerFee(price);
+
+        // send payment
+        address paymentCollector = collectionPaymentCollector(collection);
+        (bool success,) = paymentCollector.call{value: price}("");
+        require(success, "PAYMENT_FAIL");
+
+        // TODO: should we check that balance after - before = amount minted?
+        tokenId = IMembership(collection).mintTo(recipient);
+        emit Purchase(collection, recipient, price, paidFee);
+    }
+
+    /*============
+        GRANTS
+    ============*/
+
+    function validateGrantSigner(bool grantInProgress, address signer, bytes memory callContext)
+        public
+        view
+        override
+        returns (bool)
+    {
+        address collection = abi.decode(callContext, (address));
+        return (grantInProgress && Permissions(collection).hasPermission(signer, Permissions.Operation.GRANT))
+            || (!grantsEnforced(collection));
+    }
+
+    function grantsEnforced(address collection) public view returns (bool) {
+        return !_repealGrants[collection];
     }
 }

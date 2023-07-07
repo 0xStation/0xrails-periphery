@@ -39,13 +39,15 @@ contract PaymentModuleTest is Test {
     }
 
     function test_add_module_and_mint(uint256 price) public {
-        vm.assume(price < 2 ** 128);
+        vm.assume(price < 2 ** 128 && price > 0);
         startHoax(address(1));
         address membership =
             MembershipFactory(membershipFactory).create(address(1), rendererImpl, "Friends of Station", "FRIENDS");
         Membership membershipContract = Membership(membership);
+        // set payment collector
+        membershipContract.updatePaymentCollector(address(1));
         ETHPurchaseModule paymentModule = ETHPurchaseModule(paymentModuleImpl);
-        paymentModule.setup(membership, price);
+        paymentModule.setUp(membership, price, false);
 
         Permissions.Operation[] memory operations = new Permissions.Operation[](1);
         operations[0] = Permissions.Operation.MINT;

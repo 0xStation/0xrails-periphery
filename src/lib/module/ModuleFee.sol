@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import {IMembership} from "src/membership/IMembership.sol";
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 
 contract ModuleFee is Ownable {
@@ -38,9 +39,23 @@ contract ModuleFee is Ownable {
         return _registerFeeBatch(1);
     }
 
+    function _registerFee(uint256 offset) internal returns (uint256 paidFee) {
+        return _registerFeeBatchOffset(1, offset);
+    }
+
     function _registerFeeBatch(uint256 n) internal returns (uint256 paidFee) {
+        return _registerFeeBatchOffset(n, 0);
+    }
+
+    function _registerFeeBatchOffset(uint256 n, uint256 offset) internal returns (uint256 paidFee) {
         paidFee = fee * n; // read from state once, gas optimization
-        if (paidFee != msg.value) revert InvalidFee(paidFee, msg.value);
+        if (paidFee + offset != msg.value) revert InvalidFee(paidFee + offset, msg.value);
         feeBalance += paidFee;
+    }
+
+    function collectionPaymentCollector(address collection) internal returns (address paymentCollector) {
+        paymentCollector = IMembership(collection).paymentCollector();
+        // prevent accidentally unset payment collector
+        require(paymentCollector != address(0), "MISSING_PAYMENT_COLLECTOR");
     }
 }
