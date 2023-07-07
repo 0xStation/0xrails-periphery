@@ -15,6 +15,8 @@ import {ModuleFee} from "./ModuleFee.sol";
 contract FeeManager is Ownable {
 
     /// @dev Struct of fee data, including both the base and variable fees
+    /// @param baseFee The flat fee charged by Station Network on a per item basis, in ETH
+    /// @param variableFee The variable fee (in BPS) charged by Station Network on volume basis, accounting for each item's cost and total amount of items
     struct Fees {
         uint256 baseFee;
         uint256 variableFee;
@@ -24,6 +26,10 @@ contract FeeManager is Ownable {
         STORAGE
     =============*/
 
+    /// @dev Denominator used to calculate variable fee on a BPS basis
+    /// @param bpsDenominator Not actually in storage as it is marked `constant`, saving gas by putting its value in contract bytecode instead
+    uint256 bpsDenominator constant private = 10_000;
+
     Fees public defaultFees {
         uint256 defaultBaseFee;
         uint256 defaultVariableFee;
@@ -31,8 +37,15 @@ contract FeeManager is Ownable {
 
     /// @dev Mapping that stores override fees associated with specific collections
     /// @dev Since Station supports batch minting, visibility is set to private with a manual getter function implementation
-    /// in order to save substantial gas by using a single getTotalFee() call rather than repeated calls for batch mints
+    /// in order to save gas by using a single getTotalFee() call rather than repeated calls for batch mints
     mapping (address => Fees) internal overrideFees;
+
+    /*============
+        ERRORS
+    ============*/
+
+    /// @dev Throws when supplied fees to be set are lower than the bpsDenominator to prevent Solidity rounding to 0
+    error InsufficientFee();
 
     /*============
         EVENTS
@@ -56,6 +69,10 @@ contract FeeManager is Ownable {
     /// @dev Only callable by contract owner, an address managed by Station
     /// @param newDefaultFees The new Fees struct to set in storage
     function setDefaultFees(Fees calldata newDefaultFees) external onlyOwner {
+        // prevent Solidity rounding to 0 when not intended
+        if (newDefaultFees.baseFee != 0 && newDefaultFees.baseFee < bpsDenominator) revert InsufficientFee();
+        if (newDefaultFees.variableFee != 0 && newDefaultFees.variableFee < bpsDenominator) revert InsufficientFee();
+
         defaultFees.defaultBaseFee = newDefaultFees.baseFee;
         defaultFees.defaultVariableFee = newDefaultFees.variableFee;
     }
@@ -65,6 +82,10 @@ contract FeeManager is Ownable {
     /// @param collection The collection for which to set override fees
     /// @param newOverrideFees The new Fees struct to set in storage
     function setOverrideFees(address collection, Fees calldata newOverrideFees) external onlyOwner {
+        // prevent Solidity rounding to 0 when not intended
+        if (newDefaultFees.baseFee != 0 && newDefaultFees.baseFee < bpsDenominator) revert InsufficientFee();
+        if (newDefaultFees.variableFee != 0 && newDefaultFees.variableFee < bpsDenominator) revert InsufficientFee();
+
         // check if one or more override fees have been set for the provided collection
         if (overrideFees[collection].baseFee != 0 || overrideFees[collection].variableFee != 0) {
             Fees memory processedFees = _checkForDuplicateFees(collection, newOverrideFees.baseFee, newOverrideFees.variableFee);
@@ -77,7 +98,7 @@ contract FeeManager is Ownable {
     }
 
     /// @dev Checks for redundant override fee updates to save 100 gas on an unnecessary warm SSTORE opcode in case only one fee type is altered
-    /// @dev Executes two cold SSTOREs if no duplicates found versus two cold SLOADs + one warm SSTORE if duplicate is found
+    /// @dev Executes two cold SSTOREs if no duplicates found versus two cold SLOADs + one warm SSTORE if duplicate is found (4400 vs 4300)
     function _checkForDuplicateFees(
         address _collection, 
         uint256 _newBaseFee, 
@@ -96,28 +117,49 @@ contract FeeManager is Ownable {
         VIEWS
     ============*/
 
-    // function to get a collection's fees
+    /// @dev Function to get collection fees
     /// @param collection The collection whose fees will be read, including checks for client-specific fee discounts
     /// @param paymentToken The ERC20 token address used to pay fees. Will use base currency (ETH, MATIC, etc) when == address(0)
     /// @param quantity The amount of tokens for which to compute total baseFee
     /// @param unitPrice The price of each token, used to compute subtotal on which to apply variableFee
     /// @param recipient The address checked to apply discounts per user for Station Network incentives
+    /// @param feeTotals The returned fee totals for the given collection. Will be summed together by the ModuleFeesV2 contract
+    /// @notice todo: add support for multiple collections in single call
     function getFeeTotals(
         address collection, 
         address paymentToken, 
         uint256 quantity, 
         uint256 unitPrice, 
         address recipient
-    ) external view returns (Fees feeTotals) {
-        //TODO
-        // check if override fees have been set for provided collection
+    ) external view returns (Fees calldata feeTotals) {
+        // check that collection exists and has been registered
+        //todo
+        // check if override fees have already been set for provided collection
+        Fees memory existingFees;
+        if (overrideFees[collection].baseFee || overrideFees[collection].variableFee) {
+            existingFees = overrideFees[collection];
+        } else {
+            existingFees = defaultFees;
+        }
         // check if paymentToken == address(0) and take _calculateFeesEth() or _ calculateFeesERC20() path accordingly
+        if (paymentToken == address(0)) {
+            feeTotals =  _calculateFeesEth(existingFees, quantity, unitPrice)
+        } else {
+            feeTotals = _calculateFeesERC20(existingFees, quantity, unitPrice);
+        }
+    }
+
+    function _calculateFeesEth(
+        Fees memory existingFees, 
+        uint256 quantity, 
+        uint256 unitPrice
+    ) internal pure returns (Fees memory feeTotals) {
         // calculate baseFee total (quantity * unitPrice), set to feeTotals.baseFee
+        feeTotals.baseFee = quantity * existingFees.baseFee;
         // apply variable fee on baseFee total, set to feeTotals.variableFee
-        // note the above two struct members will need to be added together in the ModuleFeeV2 to get grand total
+        feeTotals.variableFee = unitPrice * quantity * existingFees.variableFee / bpsDenominator;
     }
 
     //todo
-    // function _calculateFeesEth() internal pure returns (uint256 base, uint256 variable) {}
     // function _calculateFeesERC20() internal pure returns (uint256 base, uint256 variable) {}
 }
