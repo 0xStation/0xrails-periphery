@@ -6,9 +6,15 @@ import "openzeppelin-contracts/access/Ownable.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
 import "./IMetadataRouter.sol";
 import {Permissions} from "src/lib/Permissions.sol";
+import {Batch} from "src/lib/Batch.sol";
 
-contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
+contract MetadataRouter is Ownable, UUPSUpgradeable, Batch, IMetadataRouter {
     using Strings for uint256;
+
+    string constant _TOKEN = "token";
+    string constant _COLLECTION = "collection";
+    string constant _MODULE = "module";
+    string constant _GUARD = "guard";
 
     /*=============
         STORAGE
@@ -36,18 +42,18 @@ contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
         CORE UTILITIES
     ====================*/
 
-    function updateDefaultURI(string contractType, string memory uri) external onlyOwner {
+    function updateDefaultURI(string memory contractType, string memory uri) external onlyOwner {
         _defaultURIs[contractType] = uri;
         emit UpdateDefaultBaseURI(contractType, uri);
     }
 
-    function defaultURI(string contractType) public view returns (string memory) {
+    function defaultURI(string memory contractType) public view returns (string memory) {
         return _defaultURIs[contractType];
     }
 
-    function overrideBaseURI(string contractType, string memory uri, address contractAddress) external {
+    function overrideBaseURI(string memory contractType, string memory uri, address contractAddress) external {
         if (
-            contractType != string.TOKEN
+            keccak256(abi.encodePacked(contractType)) != keccak256(abi.encodePacked(_TOKEN))
                 || Permissions(contractAddress).hasPermission(msg.sender, Permissions.Operation.RENDER)
         ) {
             revert UnauthorizedOverride(msg.sender, contractType, contractAddress);
@@ -56,14 +62,18 @@ contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
         emit OverrideBaseURI(contractType, uri, contractAddress);
     }
 
-    function baseURI(string contractType, address contractAddress) public view returns (string memory uri) {
+    function baseURI(string memory contractType, address contractAddress) public view returns (string memory uri) {
         uri = _customURIs[contractType][contractAddress];
         if (bytes(uri).length == 0) {
             uri = _defaultURIs[contractType];
         }
     }
 
-    function _getContractURI(string contractType, address contractAddress) internal view returns (string memory) {
+    function _getContractURI(string memory contractType, address contractAddress)
+        internal
+        view
+        returns (string memory)
+    {
         return string(
             abi.encodePacked(
                 baseURI(contractType, contractAddress),
@@ -80,8 +90,7 @@ contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
     ============*/
 
     function tokenURI(address collection, uint256 tokenId) public view returns (string memory) {
-        return
-            string(abi.encodePacked(_getContractURI(string.TOKEN, collection), "&tokenId=", Strings.toString(tokenId)));
+        return string(abi.encodePacked(_getContractURI(_TOKEN, collection), "&tokenId=", Strings.toString(tokenId)));
     }
 
     function tokenURI(uint256 tokenId) external view returns (string memory) {
@@ -93,7 +102,7 @@ contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
     ================*/
 
     function collectionURI(address collection) public view returns (string memory) {
-        return _getContractURI(string.COLLECTION, collection);
+        return _getContractURI(_COLLECTION, collection);
     }
 
     function collectionURI() external view returns (string memory) {
@@ -105,7 +114,7 @@ contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
     =============*/
 
     function moduleURI(address module) public view returns (string memory) {
-        return _getContractURI(string.MODULE, module);
+        return _getContractURI(_MODULE, module);
     }
 
     function moduleURI() external view returns (string memory) {
@@ -117,7 +126,7 @@ contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
     ============*/
 
     function guardURI(address guard) public view returns (string memory) {
-        return _getContractURI(string.GUARD, guard);
+        return _getContractURI(_GUARD, guard);
     }
 
     function guardURI() external view returns (string memory) {
