@@ -71,7 +71,7 @@ contract BadgeTest is Test, ERC1155ReceiverUpgradeable {
         uint256[] calldata,
         uint256[] calldata,
         bytes calldata
-    ) public override returns (bytes4) {
+    ) public pure override returns (bytes4) {
         return this.onERC1155BatchReceived.selector;
     }
 }

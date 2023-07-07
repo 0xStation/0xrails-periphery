@@ -27,13 +27,10 @@ contract FeeManager is Ownable {
     =============*/
 
     /// @dev Denominator used to calculate variable fee on a BPS basis
-    /// @param bpsDenominator Not actually in storage as it is marked `constant`, saving gas by putting its value in contract bytecode instead
-    uint256 bpsDenominator constant private = 10_000;
+    /// @dev Not actually kept in storage as it is marked `constant`, saving gas by putting its value in contract bytecode instead
+    uint256 constant private bpsDenominator = 10_000;
 
-    Fees public defaultFees {
-        uint256 defaultBaseFee;
-        uint256 defaultVariableFee;
-    }
+    Fees public defaultFees;
 
     /// @dev Mapping that stores override fees associated with specific collections
     /// @dev Since Station supports batch minting, visibility is set to private with a manual getter function implementation
@@ -60,7 +57,7 @@ contract FeeManager is Ownable {
     /// @notice Constructor will be deprecated in favor of an initialize() UUPS proxy call once logic is finalized & approved
     /// @param newOwner The initialization of the contract's owner address, managed by Station
     /// @param initialDefaultFees The initialization data for the default fees for all collections
-    constructor(address newOwner, Fees initialDefaultFees) {
+    constructor(address newOwner, Fees memory initialDefaultFees) {
         _transferOwnership(newOwner);
         defaultFees = initialDefaultFees;
     }
@@ -73,8 +70,8 @@ contract FeeManager is Ownable {
         if (newDefaultFees.baseFee != 0 && newDefaultFees.baseFee < bpsDenominator) revert InsufficientFee();
         if (newDefaultFees.variableFee != 0 && newDefaultFees.variableFee < bpsDenominator) revert InsufficientFee();
 
-        defaultFees.defaultBaseFee = newDefaultFees.baseFee;
-        defaultFees.defaultVariableFee = newDefaultFees.variableFee;
+        defaultFees.baseFee = newDefaultFees.baseFee;
+        defaultFees.variableFee = newDefaultFees.variableFee;
     }
 
     /// @dev Function to set override base and variable fees on a per-collection basis
@@ -83,15 +80,15 @@ contract FeeManager is Ownable {
     /// @param newOverrideFees The new Fees struct to set in storage
     function setOverrideFees(address collection, Fees calldata newOverrideFees) external onlyOwner {
         // prevent Solidity rounding to 0 when not intended
-        if (newDefaultFees.baseFee != 0 && newDefaultFees.baseFee < bpsDenominator) revert InsufficientFee();
-        if (newDefaultFees.variableFee != 0 && newDefaultFees.variableFee < bpsDenominator) revert InsufficientFee();
+        if (newOverrideFees.baseFee != 0 && newOverrideFees.baseFee < bpsDenominator) revert InsufficientFee();
+        if (newOverrideFees.variableFee != 0 && newOverrideFees.variableFee < bpsDenominator) revert InsufficientFee();
 
         // check if one or more override fees have been set for the provided collection
         if (overrideFees[collection].baseFee != 0 || overrideFees[collection].variableFee != 0) {
             Fees memory processedFees = _checkForDuplicateFees(collection, newOverrideFees.baseFee, newOverrideFees.variableFee);
             // write fees to storage only if they have been determined not to be a duplicate
-            if (processedFees.baseFee) overrideFees[collection].baseFee = processedFees.baseFee;
-            if (processedFees.variableFee) overrideFees[collection].variableFee = processedFees.variableFee;
+            if (processedFees.baseFee != 0) overrideFees[collection].baseFee = processedFees.baseFee;
+            if (processedFees.variableFee != 0) overrideFees[collection].variableFee = processedFees.variableFee;
         } else {
             overrideFees[collection] = newOverrideFees;
         }
@@ -103,12 +100,12 @@ contract FeeManager is Ownable {
         address _collection, 
         uint256 _newBaseFee, 
         uint256 _newVariableFee
-    ) internal pure returns (Fees memory processedFees) {
+    ) internal view returns (Fees memory processedFees) {
         // only set return values if not a duplicate
         if (overrideFees[_collection].baseFee != _newBaseFee) {
             processedFees.baseFee = _newBaseFee;
         }
-        if (overrideFees[_collection].variableFee ! = _newVariableFee) {
+        if (overrideFees[_collection].variableFee != _newVariableFee) {
             processedFees.variableFee = _newVariableFee;
         }
     }
@@ -131,19 +128,20 @@ contract FeeManager is Ownable {
         uint256 quantity, 
         uint256 unitPrice, 
         address recipient
-    ) external view returns (Fees calldata feeTotals) {
-        // check that collection exists and has been registered
-        //todo
+    ) external view returns (Fees memory feeTotals) {
+        // todo check that collection exists and has been registered
+        // todo check if collection has existing discount
+        // todo handle recipient discounts for individual users holding a collection NFT
         // check if override fees have already been set for provided collection
         Fees memory existingFees;
-        if (overrideFees[collection].baseFee || overrideFees[collection].variableFee) {
+        if (overrideFees[collection].baseFee != 0 || overrideFees[collection].variableFee != 0) {
             existingFees = overrideFees[collection];
         } else {
             existingFees = defaultFees;
         }
         // check if paymentToken == address(0) and take _calculateFeesEth() or _ calculateFeesERC20() path accordingly
         if (paymentToken == address(0)) {
-            feeTotals =  _calculateFeesEth(existingFees, quantity, unitPrice)
+            feeTotals =  _calculateFeesEth(existingFees, quantity, unitPrice);
         } else {
             feeTotals = _calculateFeesERC20(existingFees, quantity, unitPrice);
         }
@@ -161,5 +159,9 @@ contract FeeManager is Ownable {
     }
 
     //todo
-    // function _calculateFeesERC20() internal pure returns (uint256 base, uint256 variable) {}
+    function _calculateFeesERC20(
+        Fees memory existingFees, 
+        uint256 quantity, 
+        uint256 unitPrice
+    ) internal pure returns (Fees memory feeTotals) {}
 }
