@@ -54,7 +54,9 @@ contract ModuleFeeV2 is Ownable {
         address recipient = owner();
         uint256 balance = feeBalance;
         feeBalance = 0;
-        payable(recipient).transfer(balance);
+        
+        (bool r,) = payable(recipient).call{ value: balance}('');
+        require(r);
         emit WithdrawFee(recipient, balance);
     }
 
