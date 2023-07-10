@@ -10,6 +10,8 @@ import {FeeManager} from "./FeeManager.sol";
 /// @dev This contract enables payment by handling funds when charging base and variable fees on each Membership's mints
 /// @dev This module should be inherited by all Membership collections that intend to accept payment in either ETH or ERC20 tokens
 
+/// @notice todo ModuleFeeV2 differs from ModuleFee in that it is intended to be inherited by _all_ payment modules
+/// as well as abstract all payment logic whatsoever so this module can handle every client's desired Membership scenario.
 /// @notice todo This implementation currently only handles ETH, will need to be mixed with (storage-packed) ERC20 logic from FixedStablecoinPurchaseModule.sol
 contract ModuleFeeV2 is Ownable {
 
@@ -54,7 +56,7 @@ contract ModuleFeeV2 is Ownable {
         address recipient = owner();
         uint256 balance = feeBalance;
         feeBalance = 0;
-        
+
         (bool r,) = payable(recipient).call{ value: balance}('');
         require(r);
         emit WithdrawFee(recipient, balance);
