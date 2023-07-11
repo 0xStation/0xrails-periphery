@@ -35,12 +35,20 @@ contract ModuleFee is Ownable {
     }
 
     function _registerFee() internal returns (uint256 paidFee) {
-        return _registerFeeBatch(1);
+        return _registerFeeBatch(1, 0);
+    }
+
+    function _registerFee(uint256 offset) internal returns (uint256 paidFee) {
+        return _registerFeeBatch(1, offset);
     }
 
     function _registerFeeBatch(uint256 n) internal returns (uint256 paidFee) {
+        return _registerFeeBatch(n, 0);
+    }
+
+    function _registerFeeBatch(uint256 n, uint256 offset) internal returns (uint256 paidFee) {
         paidFee = fee * n; // read from state once, gas optimization
-        if (paidFee != msg.value) revert InvalidFee(paidFee, msg.value);
+        if (paidFee + offset != msg.value) revert InvalidFee(paidFee + offset, msg.value);
         feeBalance += paidFee;
     }
 }
