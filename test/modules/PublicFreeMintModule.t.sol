@@ -7,12 +7,12 @@ import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
-import {FreeMintModule} from "src/membership/modules/FreeMintModule.sol";
+import {FreeMintModuleV2} from "src/membership/modules/FreeMintModuleV2.sol";
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
 contract FreeMintModuleTest is Test, SetUpMembership {
     Membership public proxy;
-    FreeMintModule public module;
+    FreeMintModuleV2 public module;
 
     function setUp() public override {
         SetUpMembership.setUp(); // paymentCollector, renderer, implementation, factory
@@ -22,7 +22,7 @@ contract FreeMintModuleTest is Test, SetUpMembership {
     // helper function to initialize Modules for each test function
     // @note Not invoked as a standalone test
     function initModule(uint64 fee) public {
-        module = new FreeMintModule(owner, fee);
+        module = new FreeMintModuleV2(owner, fee);
         // enable grants in module config setup and give module mint permission on proxy
         vm.startPrank(owner);
         module.setUp(address(proxy), false);

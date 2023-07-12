@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import "src/membership/MembershipFactory.sol";
-import "src/membership/modules/FixedETHPurchaseModule.sol";
+import "src/membership/modules/deprecating/FixedETHPurchaseModule.sol";
 
 contract PaymentModuleTest is Test {
     address public paymentReciever = address(456);
