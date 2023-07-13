@@ -98,7 +98,7 @@ contract StablecoinPurchaseModuleV2 is ModuleFee, ModuleSetup, ModuleGrant {
         require(stablecoin != address(0), "KEY_NOT_REGISTERED");
     }
 
-    function stablecoins() public view returns (address[] memory stablecoins) {
+    function stablecoinOptions() public view returns (address[] memory stablecoins) {
         uint256 len = keyCounter;
         stablecoins = new address[](len);
         for (uint8 i; i < len; i++) {

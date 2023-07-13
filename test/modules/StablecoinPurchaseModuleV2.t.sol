@@ -49,7 +49,7 @@ contract StablecoinPurchaseModuleV2Test is Test, SetUpMembership {
         // check stablecoins list
         address[] memory stablecoins = new address[](1);
         stablecoins[0] = address(stablecoin);
-        assertEq(module.stablecoins(), stablecoins);
+        assertEq(module.stablecoinOptions(), stablecoins);
     }
 
     function test_register_revert_notOwner(uint8 coinDecimals, uint8 moduleDecimals, uint64 fee, address caller)
