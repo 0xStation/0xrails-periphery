@@ -21,8 +21,8 @@ contract DeployModules is Script {
     function run() public {
         vm.startBroadcast();
 
-        new FreeMintModuleV2(owner, fee);
-        new EthPurchaseModuleV2(owner, fee);
+        // new FreeMintModuleV2(owner, fee);
+        // new EthPurchaseModuleV2(owner, fee);
 
         address[] memory stablecoins = new address[](1);
         stablecoins[0] = FAKE;

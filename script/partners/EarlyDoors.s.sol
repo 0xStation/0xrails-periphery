@@ -65,9 +65,8 @@ contract EarlyDoors is Script {
 
         address[] memory enabledCoins = new address[](1);
         enabledCoins[0] = usdcAddress;
-        bytes memory setupModuleData = abi.encodeWithSelector(
-            bytes4(keccak256("setUp(uint128,bytes16)")), mintPrice, module.enabledCoinsValue(enabledCoins)
-        );
+        bytes memory setupModuleData =
+            abi.encodeWithSelector(StablecoinPurchaseModuleV2.setUp.selector, proxy, mintPrice, enabledCoins, true);
 
         // enable new module
         bytes memory permitModule = abi.encodeWithSelector(

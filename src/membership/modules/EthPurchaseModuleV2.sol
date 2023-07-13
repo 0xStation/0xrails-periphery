@@ -61,7 +61,7 @@ contract EthPurchaseModuleV2 is ModuleGrant, ModuleFee, ModuleSetup {
 
     function _mint(address collection, address recipient)
         internal
-        enableGrants(abi.encodePacked(collection))
+        enableGrants(abi.encode(collection))
         returns (uint256 tokenId)
     {
         uint256 price = priceOf(collection);

@@ -52,7 +52,7 @@ contract StablecoinPurchaseModuleV2 is ModuleFee, ModuleSetup, ModuleGrant {
     ============*/
 
     event Register(address indexed stablecoin, uint8 indexed key);
-    event SetUp(address indexed collection, uint128 price, bytes16 enabledCoins, bool indexed enforceGrants);
+    event SetUp(address indexed collection, uint128 price, address[] enabledCoins, bool indexed enforceGrants);
     event Purchase(
         address indexed collection,
         address indexed recipient,
@@ -82,7 +82,7 @@ contract StablecoinPurchaseModuleV2 is ModuleFee, ModuleSetup, ModuleGrant {
 
     function _register(address stablecoin) internal returns (uint8 newKey) {
         require(_keyOf[stablecoin] == 0, "STABLECOIN_ALREADY_REGISTERED");
-        newKey = ++keyCounter;
+        newKey = ++keyCounter; // increment then set, first key starts at 1 to leave 0 empty for null value
         _keyOf[stablecoin] = newKey;
         _stablecoinOf[newKey] = stablecoin;
         emit Register(stablecoin, newKey);
@@ -98,16 +98,24 @@ contract StablecoinPurchaseModuleV2 is ModuleFee, ModuleSetup, ModuleGrant {
         require(stablecoin != address(0), "KEY_NOT_REGISTERED");
     }
 
+    function stablecoinOptions() public view returns (address[] memory stablecoins) {
+        uint256 len = keyCounter;
+        stablecoins = new address[](len);
+        for (uint8 i; i < len; i++) {
+            stablecoins[i] = _stablecoinOf[i + 1]; // key index starts at 1
+        }
+    }
+
     /*============
         SET UP
     ============*/
 
-    function setUp(address collection, uint128 price, bytes16 enabledCoins, bool enforceGrants)
+    function setUp(address collection, uint128 price, address[] memory enabledCoins, bool enforceGrants)
         external
         canSetUp(collection)
     {
         require(price > 0, "ZERO_PRICE");
-        _parameters[collection] = Parameters(price, enabledCoins);
+        _parameters[collection] = Parameters(price, _enabledCoinsValue(enabledCoins));
         if (_repealGrants[collection] != !enforceGrants) {
             _repealGrants[collection] = !enforceGrants;
         }
@@ -117,10 +125,6 @@ contract StablecoinPurchaseModuleV2 is ModuleFee, ModuleSetup, ModuleGrant {
     /*===================
         ENABLED COINS
     ===================*/
-
-    function enabledCoinsValueOf(address collection) external view returns (bytes16) {
-        return _parameters[collection].enabledCoins;
-    }
 
     function enabledCoinsOf(address collection) external view returns (address[] memory stablecoins) {
         // cache state to save reads
@@ -151,7 +155,7 @@ contract StablecoinPurchaseModuleV2 is ModuleFee, ModuleSetup, ModuleGrant {
         return (enabledCoins & _keyBitOf(stablecoin)) > 0;
     }
 
-    function enabledCoinsValue(address[] memory stablecoins) external view returns (bytes16 value) {
+    function _enabledCoinsValue(address[] memory stablecoins) internal view returns (bytes16 value) {
         for (uint256 i; i < stablecoins.length; i++) {
             value |= _keyBitOf(stablecoins[i]);
         }
@@ -228,7 +232,7 @@ contract StablecoinPurchaseModuleV2 is ModuleFee, ModuleSetup, ModuleGrant {
     /// @notice returned tokenId range is inclusive
     function _batchMint(address collection, address paymentCoin, address recipient, uint256 amount)
         internal
-        enableGrants(abi.encodePacked(collection))
+        enableGrants(abi.encode(collection))
         returns (uint256 startTokenId, uint256 endTokenId)
     {
         require(amount > 0, "ZERO_AMOUNT");
