@@ -28,7 +28,8 @@ contract OnePerAddressTest is Test {
         // membership
         membershipImpl = address(new Membership());
         membershipFactory = new MembershipFactory();
-        membershipFactory.initialize(membershipImpl, msg.sender);
+        // NOTE: dummy beacon for testing
+        membershipFactory.initialize(msg.sender, address(0));
         // badge
         badgeImpl = address(new Badge());
         badgeFactory = new BadgeFactory(badgeImpl, msg.sender);
@@ -43,7 +44,7 @@ contract OnePerAddressTest is Test {
         address owner = createAccount();
         address account = createAccount();
 
-        address proxy = membershipFactory.create(owner, rendererImpl, "Test", "TEST");
+        address proxy = membershipFactory.createWithoutBeacon(membershipImpl, owner, rendererImpl, "Test", "TEST");
         vm.startPrank(owner);
         // set guard
         Permissions(proxy).guard(Permissions.Operation.MINT, onePerAddress);
@@ -63,7 +64,7 @@ contract OnePerAddressTest is Test {
         address account1 = createAccount();
         address account2 = createAccount();
 
-        address proxy = membershipFactory.create(owner, rendererImpl, "Test", "TEST");
+        address proxy = membershipFactory.createWithoutBeacon(membershipImpl, owner, rendererImpl, "Test", "TEST");
         vm.startPrank(owner);
         // set guard
         Permissions(proxy).guard(Permissions.Operation.TRANSFER, onePerAddress);

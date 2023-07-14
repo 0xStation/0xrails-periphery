@@ -5,14 +5,14 @@ pragma solidity ^0.8.13;
 import {IMembership} from "./IMembership.sol";
 import {ITokenGuard} from "src/lib/guard/ITokenGuard.sol";
 import {IRenderer} from "src/lib/renderer/IRenderer.sol";
+
 // contracts
-import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
 import {ERC721Upgradeable} from "openzeppelin-contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {Batch} from "src/lib/Batch.sol";
 import {MembershipStorageV0} from "./storage/MembershipStorageV0.sol";
 
-contract Membership is IMembership, UUPSUpgradeable, ERC721Upgradeable, Permissions, Batch, MembershipStorageV0 {
+contract Membership is IMembership, ERC721Upgradeable, Permissions, Batch, MembershipStorageV0 {
     constructor() {}
 
     /// @notice Initializes the ERC721 token.
@@ -29,7 +29,7 @@ contract Membership is IMembership, UUPSUpgradeable, ERC721Upgradeable, Permissi
         __ERC721_init(newName, newSymbol);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override permitted(Operation.UPGRADE) {}
+    function _authorizeUpgrade(address newImplementation) internal permitted(Operation.UPGRADE) {}
 
     function updateRenderer(address newRenderer) external permitted(Operation.RENDER) returns (bool success) {
         _updateRenderer(newRenderer);

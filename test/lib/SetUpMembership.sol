@@ -19,10 +19,11 @@ abstract contract SetUpMembership is Helpers {
         rendererImpl = address(new Renderer(owner, "https://members.station.express"));
         membershipImpl = new Membership();
         membershipFactory = new MembershipFactory();
-        membershipFactory.initialize(address(membershipImpl), owner);
+        // Uses dummy Beacon for testing purposes
+        membershipFactory.initialize(owner, address(0));
     }
 
     function create() public returns (Membership proxy) {
-        proxy = Membership(membershipFactory.create(owner, rendererImpl, "Test", "TEST"));
+        proxy = Membership(membershipFactory.createWithoutBeacon(address(membershipImpl), owner, rendererImpl, "Test", "TEST"));
     }
 }

@@ -19,12 +19,13 @@ contract MembershipFactoryTest is Test {
         rendererImpl = address(new Renderer(msg.sender, "https://tokens.station.express"));
         membershipImpl = address(new Membership());
         membershipFactory = address(new MembershipFactory());
-        MembershipFactory(membershipFactory).initialize(membershipImpl, msg.sender);
+        // Dummy beacon for testing
+        MembershipFactory(membershipFactory).initialize(msg.sender, address(0));
     }
 
     function test_init() public {
         address membership =
-            MembershipFactory(membershipFactory).create(msg.sender, rendererImpl, "Friends of Station", "FRIENDS");
+            MembershipFactory(membershipFactory).createWithoutBeacon(membershipImpl, msg.sender, rendererImpl, "Friends of Station", "FRIENDS");
         Membership membershipContract = Membership(membership);
         assertEq(membershipContract.owner(), msg.sender);
         assertEq(membershipContract.renderer(), rendererImpl);
@@ -35,10 +36,10 @@ contract MembershipFactoryTest is Test {
     // testing that minting multiple memberships does not overwrite state in either one of them
     function test_multiple_memberships() public {
         address membership =
-            MembershipFactory(membershipFactory).create(msg.sender, rendererImpl, "Friends of Station", "FRIENDS");
+            MembershipFactory(membershipFactory).createWithoutBeacon(membershipImpl, msg.sender, rendererImpl, "Friends of Station", "FRIENDS");
         Membership membershipContract = Membership(membership);
         address membership2 =
-            MembershipFactory(membershipFactory).create(msg.sender, rendererImpl, "Enemies of Station", "ENEMIES");
+            MembershipFactory(membershipFactory).createWithoutBeacon(membershipImpl, msg.sender, rendererImpl, "Enemies of Station", "ENEMIES");
         Membership membershipContract2 = Membership(membership2);
         assertEq(membershipContract.owner(), msg.sender);
         assertEq(membershipContract.renderer(), rendererImpl);
@@ -72,7 +73,9 @@ contract MembershipFactoryTest is Test {
                 rendererImpl,
                 "Friends of Station",
                 "FRIENDS",
-                calls
+                calls,
+                false,
+                membershipImpl
             );
 
         // call from non minter, expect fail

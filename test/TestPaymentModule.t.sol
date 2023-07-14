@@ -20,7 +20,8 @@ contract PaymentModuleTest is Test {
         rendererImpl = address(new Renderer(address(1), "https://tokens.station.express"));
         membershipImpl = address(new Membership());
         membershipFactory = address(new MembershipFactory());
-        MembershipFactory(membershipFactory).initialize(membershipImpl, address(1));
+        // Dummy beacon for testing
+        MembershipFactory(membershipFactory).initialize(address(1), address(0));
         paymentModuleImpl = address(new FixedETHPurchaseModule(address(1), fee));
         vm.stopPrank();
     }
@@ -30,7 +31,7 @@ contract PaymentModuleTest is Test {
     function test_mint_without_adding_payment_module_should_fail() public {
         startHoax(address(2));
         address membership =
-            MembershipFactory(membershipFactory).create(address(1), rendererImpl, "Friends of Station", "FRIENDS");
+            MembershipFactory(membershipFactory).createWithoutBeacon(membershipImpl, address(1), rendererImpl, "Friends of Station", "FRIENDS");
         Membership membershipContract = Membership(membership);
 
         vm.expectRevert("NOT_PERMITTED");
@@ -42,7 +43,7 @@ contract PaymentModuleTest is Test {
         vm.assume(price < 2 ** 128);
         startHoax(address(1));
         address membership =
-            MembershipFactory(membershipFactory).create(address(1), rendererImpl, "Friends of Station", "FRIENDS");
+            MembershipFactory(membershipFactory).createWithoutBeacon(membershipImpl, address(1), rendererImpl, "Friends of Station", "FRIENDS");
         Membership membershipContract = Membership(membership);
         FixedETHPurchaseModule paymentModule = FixedETHPurchaseModule(paymentModuleImpl);
         paymentModule.setup(membership, price);
