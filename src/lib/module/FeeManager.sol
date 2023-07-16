@@ -58,17 +58,16 @@ contract FeeManager is Ownable {
     /// @param newOwner The initialization of the contract's owner address, managed by Station
     /// @param initialDefaultFees The initialization data for the default fees for all collections
     constructor(address newOwner, Fees memory initialDefaultFees) {
-        _transferOwnership(newOwner);
+        _isSufficientFee(initialDefaultFees);
         defaultFees = initialDefaultFees;
+        _transferOwnership(newOwner);
     }
 
     /// @dev Function to set default base and variable fees across all collections without specified overrides
     /// @dev Only callable by contract owner, an address managed by Station
     /// @param newDefaultFees The new Fees struct to set in storage
     function setDefaultFees(Fees calldata newDefaultFees) external onlyOwner {
-        // prevent Solidity rounding to 0 when not intended
-        if (newDefaultFees.baseFee != 0 && newDefaultFees.baseFee < bpsDenominator) revert InsufficientFee();
-        if (newDefaultFees.variableFee != 0 && newDefaultFees.variableFee < bpsDenominator) revert InsufficientFee();
+        _isSufficientFee(newDefaultFees);
 
         defaultFees.baseFee = newDefaultFees.baseFee;
         defaultFees.variableFee = newDefaultFees.variableFee;
@@ -79,9 +78,7 @@ contract FeeManager is Ownable {
     /// @param collection The collection for which to set override fees
     /// @param newOverrideFees The new Fees struct to set in storage
     function setOverrideFees(address collection, Fees calldata newOverrideFees) external onlyOwner {
-        // prevent Solidity rounding to 0 when not intended
-        if (newOverrideFees.baseFee != 0 && newOverrideFees.baseFee < bpsDenominator) revert InsufficientFee();
-        if (newOverrideFees.variableFee != 0 && newOverrideFees.variableFee < bpsDenominator) revert InsufficientFee();
+        _isSufficientFee(newOverrideFees);
 
         // check if one or more override fees have been set for the provided collection
         if (overrideFees[collection].baseFee != 0 || overrideFees[collection].variableFee != 0) {
@@ -107,6 +104,15 @@ contract FeeManager is Ownable {
         }
         if (overrideFees[_collection].variableFee != _newVariableFee) {
             processedFees.variableFee = _newVariableFee;
+        }
+    }
+
+    /// @dev Reverts fee updates when baseFee and variableFees are nonzero but less than the bpsDenominator constant.
+    /// @dev Prevents Solidity's arithmetic functionality from rounding a nonzero fee value to zero when not desired
+    function _isSufficientFee(Fees memory newFees) internal view {
+        // prevent Solidity arithmetic rounding to 0 when not intended
+        if (newFees.baseFee != 0 && newFees.baseFee < bpsDenominator) || (newFees.variableFee != 0 && newFees.variableFee < bpsDenominator) {
+            revert InsufficientFee();
         }
     }
 
