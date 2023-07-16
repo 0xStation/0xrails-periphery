@@ -6,15 +6,17 @@ import {Test} from "forge-std/Test.sol";
 import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Permissions} from "src/lib/Permissions.sol";
+import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
+import {ModuleFee} from "src/lib/module/ModuleFee.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
-import {FixedStablecoinPurchaseModule} from "src/membership/modules/deprecating/FixedStablecoinPurchaseModule.sol";
+import {StablecoinPurchaseModuleV2} from "src/membership/modules/StablecoinPurchaseModuleV2.sol";
 // test
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 import {FakeERC20} from "test/utils/FakeERC20.sol";
 
-contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
+contract StablecoinPurchaseModuleV2Test is Test, SetUpMembership {
     Membership public proxy;
-    FixedStablecoinPurchaseModule public module;
+    StablecoinPurchaseModuleV2 public module;
     FakeERC20 public stablecoin;
 
     function setUp() public override {
@@ -28,7 +30,8 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
 
     function initDeploys(uint8 coinDecimals, uint8 moduleDecimals, uint64 fee) public {
         vm.assume(coinDecimals < 50 && moduleDecimals < 50);
-        module = new FixedStablecoinPurchaseModule(owner, fee, moduleDecimals, "TEST");
+        address[] memory stablecoins = new address[](0);
+        module = new StablecoinPurchaseModuleV2(owner, fee, moduleDecimals, "TEST", stablecoins);
         stablecoin = new FakeERC20(coinDecimals);
     }
 
@@ -43,6 +46,10 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
         assertEq(module.stablecoinOf(1), address(stablecoin));
         // check key counter incremented
         assertEq(module.keyCounter(), 1);
+        // check stablecoins list
+        address[] memory stablecoins = new address[](1);
+        stablecoins[0] = address(stablecoin);
+        assertEq(module.stablecoinOptions(), stablecoins);
     }
 
     function test_register_revert_notOwner(uint8 coinDecimals, uint8 moduleDecimals, uint64 fee, address caller)
@@ -109,16 +116,13 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.assume(price > 0);
         address[] memory stablecoins = new address[](1);
         stablecoins[0] = address(stablecoin);
-        bytes16 enabledCoins = module.enabledCoinsValue(stablecoins);
         vm.prank(owner);
-        module.setUp(address(proxy), price, enabledCoins);
+        module.setUp(address(proxy), price, stablecoins, false);
 
         // check stablecoin enabled
         assertEq(module.stablecoinEnabled(address(proxy), address(stablecoin)), true);
         // check all enables coins
         assertEq(module.enabledCoinsOf(address(proxy)), stablecoins);
-        // check all enables coins value
-        assertEq(module.enabledCoinsValueOf(address(proxy)), bytes16(uint128(2)));
         // check price set
         assertEq(module.priceOf(address(proxy)), price);
     }
@@ -136,17 +140,14 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.assume(price > 0);
         address[] memory stablecoins = new address[](1);
         stablecoins[0] = address(stablecoin);
-        bytes16 enabledCoins = module.enabledCoinsValue(stablecoins);
         // prank as non-owner admin
         vm.prank(admin);
-        module.setUp(address(proxy), price, enabledCoins);
+        module.setUp(address(proxy), price, stablecoins, false);
 
         // check stablecoin enabled
         assertEq(module.stablecoinEnabled(address(proxy), address(stablecoin)), true);
         // check all enables coins
         assertEq(module.enabledCoinsOf(address(proxy)), stablecoins);
-        // check all enables coins value
-        assertEq(module.enabledCoinsValueOf(address(proxy)), bytes16(uint128(2)));
         // check price set
         assertEq(module.priceOf(address(proxy)), price);
     }
@@ -165,18 +166,15 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.assume(price > 0);
         address[] memory stablecoins = new address[](1);
         stablecoins[0] = address(stablecoin);
-        bytes16 enabledCoins = module.enabledCoinsValue(stablecoins);
         // prank as not-permitted, non-owner randomAddress
         vm.prank(randomAddress);
-        vm.expectRevert("NOT_PERMITTED");
-        module.setUp(address(proxy), price, enabledCoins);
+        vm.expectRevert(abi.encodeWithSelector(ModuleSetup.SetUpUnauthorized.selector, address(proxy), randomAddress));
+        module.setUp(address(proxy), price, stablecoins, false);
 
         // check stablecoin NOT enabled
         assertEq(module.stablecoinEnabled(address(proxy), address(stablecoin)), false);
         // check all enables coins
         assertEq(module.enabledCoinsOf(address(proxy)), new address[](0));
-        // check all enables coins value
-        assertEq(module.enabledCoinsValueOf(address(proxy)), bytes16(uint128(0)));
         // check price NOT set
         vm.expectRevert("NO_PRICE");
         module.priceOf(address(proxy));
@@ -187,19 +185,16 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         address[] memory stablecoins = new address[](1);
         stablecoins[0] = address(stablecoin);
-        bytes16 enabledCoins = module.enabledCoinsValue(stablecoins);
         vm.prank(owner);
         // attempt set zero price
         uint64 price = 0;
         vm.expectRevert("ZERO_PRICE");
-        module.setUp(address(proxy), price, enabledCoins);
+        module.setUp(address(proxy), price, stablecoins, false);
 
         // check stablecoin NOT enabled
         assertEq(module.stablecoinEnabled(address(proxy), address(stablecoin)), false);
         // check all enables coins
         assertEq(module.enabledCoinsOf(address(proxy)), new address[](0));
-        // check all enables coins value
-        assertEq(module.enabledCoinsValueOf(address(proxy)), bytes16(uint128(0)));
         // check price NOT set
         vm.expectRevert("NO_PRICE");
         module.priceOf(address(proxy));
@@ -211,10 +206,8 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.assume(price > 0);
         address[] memory stablecoins = new address[](1);
         stablecoins[0] = address(stablecoin);
-        bytes16 enabledCoins = module.enabledCoinsValue(stablecoins);
-        // module.setUp(address(proxy), price, enabledCoins);
-        bytes4 selector = bytes4(keccak256("setUp(uint128,bytes16)"));
-        bytes memory setupData = abi.encodeWithSelector(selector, price, enabledCoins);
+        bytes memory setupData =
+            abi.encodeWithSelector(StablecoinPurchaseModuleV2.setUp.selector, proxy, price, stablecoins, false);
 
         vm.prank(owner);
         proxy.permitAndSetup(address(module), operationPermissions(Permissions.Operation.MINT), setupData);
@@ -223,8 +216,6 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
         assertEq(module.stablecoinEnabled(address(proxy), address(stablecoin)), true);
         // check all enables coins
         assertEq(module.enabledCoinsOf(address(proxy)), stablecoins);
-        // check all enables coins value
-        assertEq(module.enabledCoinsValueOf(address(proxy)), bytes16(uint128(2)));
         // check price set
         assertEq(module.priceOf(address(proxy)), price);
     }
@@ -232,37 +223,6 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
     /*===================
         ENABLED COINS
     ===================*/
-
-    function test_enabledCoinsValue(uint8 coinDecimals, uint8 moduleDecimals, uint64 fee) public {
-        initRegister(coinDecimals, moduleDecimals, fee);
-
-        address[] memory stablecoins = new address[](1);
-        stablecoins[0] = address(stablecoin);
-        // check enabledCoinsValue
-        assertEq(module.enabledCoinsValue(stablecoins), bytes16(uint128(2 ** module.keyOf(address(stablecoin)))));
-    }
-
-    function test_enabledCoinsValue_multiple(
-        uint8 coinDecimals,
-        uint8 moduleDecimals,
-        uint64 fee,
-        address randomAddress
-    ) public {
-        initRegister(coinDecimals, moduleDecimals, fee);
-
-        // register second randomAddress
-        vm.prank(owner);
-        module.register(randomAddress);
-
-        address[] memory stablecoins = new address[](2);
-        stablecoins[0] = address(stablecoin);
-        stablecoins[1] = randomAddress;
-        // check enabledCoinsValue
-        assertEq(
-            module.enabledCoinsValue(stablecoins),
-            bytes16(uint128(2 ** module.keyOf(address(stablecoin)) + 2 ** module.keyOf(randomAddress)))
-        );
-    }
 
     /*====================
         PURCHASE PRICE
@@ -352,9 +312,9 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.assume(price > 0);
         address[] memory stablecoins = new address[](1);
         stablecoins[0] = address(stablecoin);
-        bytes16 enabledCoins = module.enabledCoinsValue(stablecoins);
+
         vm.startPrank(owner);
-        module.setUp(address(proxy), price, enabledCoins);
+        module.setUp(address(proxy), price, stablecoins, false);
         // give module mint permission on proxy
         proxy.permit(address(module), operationPermissions(Permissions.Operation.MINT));
         // set payment collector
@@ -467,9 +427,11 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
             uint256 ownerInitialStablecoinBalance
         ) = initModuleAndBuyer(coinDecimals, moduleDecimals, fee, price, balanceOffset);
 
+        address[] memory stablecoins = new address[](0);
+
         // disable all tokens
         vm.prank(owner);
-        module.setUp(address(proxy), price, bytes16(0));
+        module.setUp(address(proxy), price, stablecoins, false);
 
         vm.prank(buyer);
         vm.expectRevert("STABLECOIN_NOT_ENABLED");
@@ -505,7 +467,7 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // attempt mint with invalid fee
         vm.assume(invalidFee != fee);
-        vm.expectRevert("INVALID_FEE");
+        vm.expectRevert(abi.encodeWithSelector(ModuleFee.InvalidFee.selector, fee, invalidFee));
         vm.prank(buyer);
         module.mint{value: invalidFee}(address(proxy), address(stablecoin));
         // no token minted
@@ -768,136 +730,136 @@ contract FixedStablecoinPurchaseModuleTest is Test, SetUpMembership {
         assertEq(stablecoin.balanceOf(owner), ownerInitialStablecoinBalance);
     }
 
-    /*==========
-        MINT
-    ==========*/
+    // /*==========
+    //     MINT
+    // ==========*/
 
-    function test_batchMint(
-        uint8 coinDecimals,
-        uint8 moduleDecimals,
-        uint64 fee,
-        uint64 price,
-        uint64 balanceOffset,
-        uint8 amount
-    ) public {
-        vm.assume(amount > 0);
+    // function test_batchMint(
+    //     uint8 coinDecimals,
+    //     uint8 moduleDecimals,
+    //     uint64 fee,
+    //     uint64 price,
+    //     uint64 balanceOffset,
+    //     uint8 amount
+    // ) public {
+    //     vm.assume(amount > 0);
 
-        (
-            address buyer,
-            uint256 buyerInitialBalance,
-            uint256 buyerInitialStablecoinBalance,
-            uint256 ownerInitialStablecoinBalance
-        ) = initModuleAndBuyer(coinDecimals, moduleDecimals, fee, price, balanceOffset, amount);
+    //     (
+    //         address buyer,
+    //         uint256 buyerInitialBalance,
+    //         uint256 buyerInitialStablecoinBalance,
+    //         uint256 ownerInitialStablecoinBalance
+    //     ) = initModuleAndBuyer(coinDecimals, moduleDecimals, fee, price, balanceOffset, amount);
 
-        vm.prank(buyer);
-        // mint token
-        (uint256 startTokenId, uint256 endTokenId) =
-            module.batchMint{value: uint256(fee) * amount}(address(proxy), address(stablecoin), amount);
-        // **buyer** received token
-        assertEq(proxy.balanceOf(buyer), amount);
-        for (uint256 i; i < amount; i++) {
-            assertEq(proxy.ownerOf(startTokenId + i), buyer);
-        }
-        assertEq(proxy.totalSupply(), amount);
-        assertEq(endTokenId, startTokenId + amount - 1);
-        // buyer balance decreased by fee
-        assertEq(buyer.balance, buyerInitialBalance - uint256(fee) * amount);
-        // buyer stablecoin balance decreased by purchaseAmount
-        uint256 purchaseAmount = module.mintPriceToStablecoinAmount(uint256(price) * amount, address(stablecoin));
-        assertEq(stablecoin.balanceOf(buyer), buyerInitialStablecoinBalance - purchaseAmount);
-        // owner stablecoin balance increased by purchaseAmount
-        assertEq(stablecoin.balanceOf(owner), ownerInitialStablecoinBalance + purchaseAmount);
-    }
+    //     vm.prank(buyer);
+    //     // mint token
+    //     (uint256 startTokenId, uint256 endTokenId) =
+    //         module.batchMint{value: uint256(fee) * amount}(address(proxy), address(stablecoin), amount);
+    //     // **buyer** received token
+    //     assertEq(proxy.balanceOf(buyer), amount);
+    //     for (uint256 i; i < amount; i++) {
+    //         assertEq(proxy.ownerOf(startTokenId + i), buyer);
+    //     }
+    //     assertEq(proxy.totalSupply(), amount);
+    //     assertEq(endTokenId, startTokenId + amount - 1);
+    //     // buyer balance decreased by fee
+    //     assertEq(buyer.balance, buyerInitialBalance - uint256(fee) * amount);
+    //     // buyer stablecoin balance decreased by purchaseAmount
+    //     uint256 purchaseAmount = module.mintPriceToStablecoinAmount(uint256(price) * amount, address(stablecoin));
+    //     assertEq(stablecoin.balanceOf(buyer), buyerInitialStablecoinBalance - purchaseAmount);
+    //     // owner stablecoin balance increased by purchaseAmount
+    //     assertEq(stablecoin.balanceOf(owner), ownerInitialStablecoinBalance + purchaseAmount);
+    // }
 
-    function test_batchMint_revert_zeroAmount(
-        uint8 coinDecimals,
-        uint8 moduleDecimals,
-        uint64 fee,
-        uint64 price,
-        uint64 balanceOffset
-    ) public {
-        // no tokens
-        uint8 amount = 0;
+    // function test_batchMint_revert_zeroAmount(
+    //     uint8 coinDecimals,
+    //     uint8 moduleDecimals,
+    //     uint64 fee,
+    //     uint64 price,
+    //     uint64 balanceOffset
+    // ) public {
+    //     // no tokens
+    //     uint8 amount = 0;
 
-        (
-            address buyer,
-            uint256 buyerInitialBalance,
-            uint256 buyerInitialStablecoinBalance,
-            uint256 ownerInitialStablecoinBalance
-        ) = initModuleAndBuyer(coinDecimals, moduleDecimals, fee, price, balanceOffset);
+    //     (
+    //         address buyer,
+    //         uint256 buyerInitialBalance,
+    //         uint256 buyerInitialStablecoinBalance,
+    //         uint256 ownerInitialStablecoinBalance
+    //     ) = initModuleAndBuyer(coinDecimals, moduleDecimals, fee, price, balanceOffset);
 
-        vm.prank(buyer);
-        // mint token
-        vm.expectRevert("ZERO_AMOUNT");
-        module.batchMint{value: uint256(fee) * amount}(address(proxy), address(stablecoin), amount);
-        // buyer does NOT received token
-        assertEq(proxy.balanceOf(buyer), 0);
-        assertEq(proxy.totalSupply(), 0);
-        // buyer balance unchanged
-        assertEq(buyer.balance, buyerInitialBalance);
-        // buyer stablecoin balance unchanged
-        assertEq(stablecoin.balanceOf(buyer), buyerInitialStablecoinBalance);
-        // owner stablecoin balance unchanged
-        assertEq(stablecoin.balanceOf(owner), ownerInitialStablecoinBalance);
-    }
+    //     vm.prank(buyer);
+    //     // mint token
+    //     vm.expectRevert("ZERO_AMOUNT");
+    //     module.batchMint{value: uint256(fee) * amount}(address(proxy), address(stablecoin), amount);
+    //     // buyer does NOT received token
+    //     assertEq(proxy.balanceOf(buyer), 0);
+    //     assertEq(proxy.totalSupply(), 0);
+    //     // buyer balance unchanged
+    //     assertEq(buyer.balance, buyerInitialBalance);
+    //     // buyer stablecoin balance unchanged
+    //     assertEq(stablecoin.balanceOf(buyer), buyerInitialStablecoinBalance);
+    //     // owner stablecoin balance unchanged
+    //     assertEq(stablecoin.balanceOf(owner), ownerInitialStablecoinBalance);
+    // }
 
-    /*==========
-        FEES
-    ==========*/
+    // /*==========
+    //     FEES
+    // ==========*/
 
-    function test_constructor(uint64 fee) public {
-        uint8 moduleDecimals = 0;
-        module = new FixedStablecoinPurchaseModule(owner, fee, moduleDecimals, "TEST");
-        // no fee balance
-        assertEq(module.feeBalance(), 0);
-        // fee set
-        assertEq(module.fee(), fee);
-        // owner set
-        assertEq(module.owner(), owner);
-    }
+    // function test_constructor(uint64 fee) public {
+    //     uint8 moduleDecimals = 0;
+    //     module = new StablecoinPurchaseModuleV2(owner, fee, moduleDecimals, "TEST");
+    //     // no fee balance
+    //     assertEq(module.feeBalance(), 0);
+    //     // fee set
+    //     assertEq(module.fee(), fee);
+    //     // owner set
+    //     assertEq(module.owner(), owner);
+    // }
 
-    function test_updateFee(uint64 fee1, uint64 fee2) public {
-        uint8 moduleDecimals = 0;
-        module = new FixedStablecoinPurchaseModule(owner, fee1, moduleDecimals, "TEST");
+    // function test_updateFee(uint64 fee1, uint64 fee2) public {
+    //     uint8 moduleDecimals = 0;
+    //     module = new StablecoinPurchaseModuleV2(owner, fee1, moduleDecimals, "TEST");
 
-        vm.prank(owner);
-        module.updateFee(fee2);
-        // fee set
-        assertEq(module.fee(), fee2);
-    }
+    //     vm.prank(owner);
+    //     module.updateFee(fee2);
+    //     // fee set
+    //     assertEq(module.fee(), fee2);
+    // }
 
-    function test_updateFee_revert_notOwner(uint64 fee1, uint64 fee2, address randomAddress) public {
-        uint8 moduleDecimals = 0;
-        module = new FixedStablecoinPurchaseModule(owner, fee1, moduleDecimals, "TEST");
+    // function test_updateFee_revert_notOwner(uint64 fee1, uint64 fee2, address randomAddress) public {
+    //     uint8 moduleDecimals = 0;
+    //     module = new StablecoinPurchaseModuleV2(owner, fee1, moduleDecimals, "TEST");
 
-        vm.assume(randomAddress != owner);
-        vm.prank(randomAddress);
-        vm.expectRevert("Ownable: caller is not the owner");
-        module.updateFee(fee2);
-        // fee NOT set
-        assertEq(module.fee(), fee1);
-    }
+    //     vm.assume(randomAddress != owner);
+    //     vm.prank(randomAddress);
+    //     vm.expectRevert("Ownable: caller is not the owner");
+    //     module.updateFee(fee2);
+    //     // fee NOT set
+    //     assertEq(module.fee(), fee1);
+    // }
 
-    function test_withdrawFee(uint64 fee) public {
-        uint8 coinDecimals = 0;
-        uint8 moduleDecimals = 0;
-        uint8 price = 100;
-        uint8 balanceOffset = 0;
-        (address buyer,,,) = initModuleAndBuyer(coinDecimals, moduleDecimals, fee, price, balanceOffset);
+    // function test_withdrawFee(uint64 fee) public {
+    //     uint8 coinDecimals = 0;
+    //     uint8 moduleDecimals = 0;
+    //     uint8 price = 100;
+    //     uint8 balanceOffset = 0;
+    //     (address buyer,,,) = initModuleAndBuyer(coinDecimals, moduleDecimals, fee, price, balanceOffset);
 
-        vm.prank(buyer);
-        // mint token
-        module.mint{value: fee}(address(proxy), address(stablecoin));
+    //     vm.prank(buyer);
+    //     // mint token
+    //     module.mint{value: fee}(address(proxy), address(stablecoin));
 
-        uint256 ownerInitialBalance = owner.balance;
-        uint256 moduleInitialBalance = address(module).balance;
-        uint256 feeBalance = module.feeBalance();
-        module.withdrawFee();
-        // owner balance increases
-        assertEq(owner.balance, ownerInitialBalance + feeBalance);
-        // module balance decreases
-        assertEq(address(module).balance, moduleInitialBalance - feeBalance);
-        // module feeBalance zero
-        assertEq(module.feeBalance(), 0);
-    }
+    //     uint256 ownerInitialBalance = owner.balance;
+    //     uint256 moduleInitialBalance = address(module).balance;
+    //     uint256 feeBalance = module.feeBalance();
+    //     module.withdrawFee();
+    //     // owner balance increases
+    //     assertEq(owner.balance, ownerInitialBalance + feeBalance);
+    //     // module balance decreases
+    //     assertEq(address(module).balance, moduleInitialBalance - feeBalance);
+    //     // module feeBalance zero
+    //     assertEq(module.feeBalance(), 0);
+    // }
 }

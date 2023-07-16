@@ -1,0 +1,11 @@
+forge create --rpc-url $POLYGON_RPC_URL src/badge/Badge.sol:Badge --private-key $PRIVATE_KEY --verify --chain-id 137 --api-key $POLYSCAN_API_KEY
+
+forge create --private-key $PRIVATE_KEY --verify --chain-id 5 --rpc-url $GOERLI_RPC_URL --api-key $ETHERSCAN_API_KEY src/badge/Badge.sol:Badge
+
+forge script --keystores $ETH_KEYSTORE --sender $ETH_FROM --broadcast --fork-url $GOERLI_RPC_URL script/partners/GivePact.s.sol:GivePact
+
+forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY 0xbf4b0f5adac0fc653410b6aaf378665f00f80ecb src/membership/Membership.sol:Membership
+
+forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,uint256)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 1000000000000000) 0xf025fef0226c9c1fc04c11011f57c5e8f2401d18 src/membership/modules/EthPurchaseModuleV2.sol:EthPurchaseModuleV2
+
+forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,uint256,uint8,string,address[])" 0x016562aA41A8697720ce0943F003141f5dEAe006 100000000000000 2 "USD" "[0xD478219fDca296699A6511f28BA93a265E3E9a1b]") 0xbafce0738451666f43dd98bb579d59f64a91db2e src/membership/modules/StablecoinPurchaseModuleV2.sol:StablecoinPurchaseModuleV2

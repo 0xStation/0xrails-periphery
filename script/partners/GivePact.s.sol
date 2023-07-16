@@ -6,7 +6,7 @@ import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Batch} from "src/lib/Batch.sol";
 import {Permissions} from "src/lib/Permissions.sol";
-import {FreeMintModule} from "src/membership/modules/FreeMintModule.sol";
+import {FreeMintModuleV2} from "src/membership/modules/FreeMintModuleV2.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract GivePact is Script {

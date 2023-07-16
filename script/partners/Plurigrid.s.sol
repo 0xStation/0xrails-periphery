@@ -7,7 +7,7 @@ import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Batch} from "src/lib/Batch.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {Membership} from "src/membership/Membership.sol";
-import {FreeMintModule} from "src/membership/modules//FreeMintModule.sol";
+import {FreeMintModuleV2} from "src/membership/modules/FreeMintModuleV2.sol";
 
 // forge script script/partners/Plurigrid.s.sol:Plurigrid --fork-url $GOERLI_RPC_URL --keystores $ETH_KEYSTORE --password $KEYSTORE_PASSWORD --sender $ETH_FROM --broadcast
 contract Plurigrid is Script {
@@ -66,8 +66,8 @@ contract Plurigrid is Script {
         setupCalls[1] = guardMint;
         setupCalls[2] = guardTransfer;
 
-        // make non-atomic batch call, using permission as owner to do anything
-        Batch(proxy).batch(false, setupCalls);
+        // make batch call, using permission as owner to do anything
+        Batch(proxy).batch(true, setupCalls);
         // transfer ownership to provided argument
         Permissions(proxy).transferOwnership(owner);
 

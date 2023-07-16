@@ -6,7 +6,7 @@ import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Batch} from "src/lib/Batch.sol";
 import {Permissions} from "src/lib/Permissions.sol";
-import {FreeMintModule} from "src/membership/modules/FreeMintModule.sol";
+import {FreeMintModuleV2} from "src/membership/modules/FreeMintModuleV2.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 // forge script script/partners/DCamp.s.sol:DCamp --fork-url $POLYGON_RPC_URL --keystores $ETH_KEYSTORE --password $KEYSTORE_PASSWORD --sender $ETH_FROM --broadcast
@@ -40,8 +40,8 @@ contract DCamp is Script {
     function run() public {
         vm.startBroadcast();
         address membershipImpl = address(new Membership());
-        // address module = address(new FreeMintModule(owner, 0.001 ether));
-        address module = address(new FreeMintModule(owner, 1 ether));
+        // address module = address(new FreeMintModuleV2(owner, 0.001 ether));
+        address module = address(new FreeMintModuleV2(owner, 1 ether));
 
         // proxy
         bytes memory initData =

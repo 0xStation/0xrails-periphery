@@ -6,7 +6,7 @@ import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Batch} from "src/lib/Batch.sol";
 import {Permissions} from "src/lib/Permissions.sol";
-import {FixedStablecoinPurchaseModule} from "src/membership/modules/FixedStablecoinPurchaseModule.sol";
+import {StablecoinPurchaseModuleV2} from "src/membership/modules/StablecoinPurchaseModuleV2.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 // forge script script/partners/EarlyDoors.s.sol:EarlyDoors --fork-url $MAINNET_RPC_URL --keystores $ETH_KEYSTORE --password $KEYSTORE_PASSWORD --sender $ETH_FROM --broadcast
@@ -53,7 +53,7 @@ contract EarlyDoors is Script {
         // address membershipImpl = address(new Membership());
 
         // FixedStablecoinPurchaseModule module = new FixedStablecoinPurchaseModule(msg.sender, fee, decimals, currency);
-        FixedStablecoinPurchaseModule module = FixedStablecoinPurchaseModule(0x82BAf7980a57A5cc25221f893330D801E2bE0308);
+        StablecoinPurchaseModuleV2 module = StablecoinPurchaseModuleV2(0x82BAf7980a57A5cc25221f893330D801E2bE0308);
         // module.register(usdcAddress);
 
         // bytes memory initData = abi.encodeWithSelector(Membership.init.selector, msg.sender, renderer, name, symbol);
@@ -65,9 +65,8 @@ contract EarlyDoors is Script {
 
         address[] memory enabledCoins = new address[](1);
         enabledCoins[0] = usdcAddress;
-        bytes memory setupModuleData = abi.encodeWithSelector(
-            bytes4(keccak256("setUp(uint128,bytes16)")), mintPrice, module.enabledCoinsValue(enabledCoins)
-        );
+        bytes memory setupModuleData =
+            abi.encodeWithSelector(StablecoinPurchaseModuleV2.setUp.selector, proxy, mintPrice, enabledCoins, true);
 
         // enable new module
         bytes memory permitModule = abi.encodeWithSelector(

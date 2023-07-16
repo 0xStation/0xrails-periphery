@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
-import {FixedETHPurchaseModule} from "src/membership/modules/FixedETHPurchaseModule.sol";
+import {FixedETHPurchaseModule} from "src/membership/modules/deprecating/FixedETHPurchaseModule.sol";
 
 // designed to make sure the payment module itself is working properly.
 // different than TestPaymentModule which is designed to test if payment module can be added to a membership
