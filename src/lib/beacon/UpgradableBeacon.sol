@@ -8,8 +8,6 @@ import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/access/Owna
 import {Address} from "openzeppelin-contracts/utils/Address.sol";
 
 /**
- * @dev modified version of the openzepplin UpgradeableBeacon contract to itself be upgradable via an UUPSProxy
- *  
  * @dev This contract is used in conjunction with one or more instances of {BeaconProxy} to determine their
  * implementation contract, which is where they will delegate all function calls.
  *

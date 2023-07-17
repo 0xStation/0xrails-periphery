@@ -7,7 +7,6 @@ import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.so
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
 
 import "./IMembership.sol";
-import "./Membership.sol";
 import {Batch} from "src/lib/Batch.sol";
 import {IBeacon} from "openzeppelin-contracts/proxy/beacon/IBeacon.sol";
 import {BeaconProxy} from "src/lib/beacon/BeaconProxy.sol";
@@ -56,7 +55,7 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgra
     {
         bytes memory initData =
             abi.encodeWithSelector(IMembership(customImpl).init.selector, owner, renderer, name, symbol);
-        membership = address(new ERC1967Proxy(beacon, initData));
+        membership = address(new ERC1967Proxy(customImpl, initData));
 
         emit MembershipCreated(membership);
     }

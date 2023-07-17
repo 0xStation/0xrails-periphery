@@ -29,7 +29,8 @@ contract DeployTestCollection is Script {
 
     address public constant MAX_ADDRESS = 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF;
 
-    address public membershipImpl = br; // goerli
+    // address public membershipImpl = br; // goerli
+    address public membershipImpl = 0x7B9e83E1Fc68378a9FA9e4FFE2ff47318f1ECcfb; // goerli
 
     function setUp() public {}
 
