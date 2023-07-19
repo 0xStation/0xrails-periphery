@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 import {FeeManager} from "./FeeManager.sol";
+import {StablecoinRegistry} from "./storage/StablecoinRegistry.sol";
 
 /// @title Station Network Fee Manager Contract
 /// @author 👦🏻👦🏻.eth
@@ -11,7 +12,7 @@ import {FeeManager} from "./FeeManager.sol";
 /// @dev This module should be inherited by all Membership collections that intend to accept payment in either ETH or ERC20 tokens
 
 /// @notice todo ModuleFeeV2 differs from ModuleFee in that it is intended to be inherited by _all_ payment modules
-/// as well as abstract all payment logic whatsoever so this module can handle every client's desired Membership scenario.
+/// The goal is to abstract all payment logic so this module can handle the GroupOS side of every client's desired Membership implementation
 /// @notice todo This implementation currently only handles ETH, will need to be mixed with (storage-packed) ERC20 logic from FixedStablecoinPurchaseModule.sol
 contract ModuleFeeV2 is Ownable {
 
@@ -52,10 +53,11 @@ contract ModuleFeeV2 is Ownable {
 
     /// @dev Function to withdraw the total balances of accrued base and variable fees that have been collected from mints
     /// @dev Sends fees to the module's owner address, which is managed by Station Network
+    /// @dev Access control forgone since only the owner will receive the feeBalance
     function withdrawFee() external {
         address recipient = owner();
-        uint256 balance = feeBalance;
-        feeBalance = 0;
+        uint256 balance = totalFeeBalance;
+        totalFeeBalance = 0;
 
         (bool r,) = payable(recipient).call{ value: balance}('');
         require(r);
@@ -67,14 +69,20 @@ contract ModuleFeeV2 is Ownable {
         return _registerFeeBatch(1);
     }
 
-    /// @dev Function to update the feeBalance in storage when fees are paid to this module
+    /// @dev Function to update the feeBalance in storage when fees are paid to this module in ETH
     /// @param n The number of items being minted, used to calculate the total fee payment required
     function _registerFeeBatch(uint256 n) internal returns (uint256 paidFee) {
-        // formerly: paidFee = fee * n; // read from state once, gas optimization
-        // todo: FeeManager(feeManager).getFeeTotals();
-        // accept funds only if the msg.value sent matches the FeeManager's calculation
-        if (paidFee != msg.value) revert InvalidFee(paidFee, msg.value);
-        // update balances
-        feeBalance += paidFee;
+        //todo WIP handling of fee balance updates by calling FeeManager and checking msg.value sent
+        // FeeManager.Fees({
+        //     uint256 baseFee, 
+        //     uint256 variableFee, 
+        //     bytes16 enabledStables
+        // }) = FeeManager(feeManager).getFeeTotals();
+        
+        // paidFee = baseFee + variableFee;
+        // // accept funds only if the msg.value sent matches the FeeManager's calculation
+        // if (paidFee != msg.value) revert InvalidFee(paidFee, msg.value);
+        // // update balances
+        // totalFeeBalance += paidFee;
     }
 }

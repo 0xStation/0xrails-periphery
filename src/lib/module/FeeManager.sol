@@ -17,9 +17,11 @@ contract FeeManager is Ownable {
     /// @dev Struct of fee data, including both the base and variable fees
     /// @param baseFee The flat fee charged by Station Network on a per item basis, in ETH
     /// @param variableFee The variable fee (in BPS) charged by Station Network on volume basis, accounting for each item's cost and total amount of items
+    /// @param enabledStables A bitmap of single byte keys that correspond to supported stablecoins
     struct Fees {
         uint256 baseFee;
         uint256 variableFee;
+        bytes16 enabledStables;
     }
 
     /*=============
@@ -91,6 +93,11 @@ contract FeeManager is Ownable {
         }
     }
 
+    
+    ///todo
+    /// @dev Function to enable desired stablecoins supported by a collection
+    // function setEnabledStables(bytes16 newStables) external onlyOwner {}
+
     /// @dev Checks for redundant override fee updates to save 100 gas on an unnecessary warm SSTORE opcode in case only one fee type is altered
     /// @dev Executes two cold SSTOREs if no duplicates found versus two cold SLOADs + one warm SSTORE if duplicate is found (4400 vs 4300)
     function _checkForDuplicateFees(
@@ -111,7 +118,7 @@ contract FeeManager is Ownable {
     /// @dev Prevents Solidity's arithmetic functionality from rounding a nonzero fee value to zero when not desired
     function _isSufficientFee(Fees memory newFees) internal view {
         // prevent Solidity arithmetic rounding to 0 when not intended
-        if (newFees.baseFee != 0 && newFees.baseFee < bpsDenominator) || (newFees.variableFee != 0 && newFees.variableFee < bpsDenominator) {
+        if (newFees.baseFee != 0 && newFees.baseFee < bpsDenominator || newFees.variableFee != 0 && newFees.variableFee < bpsDenominator) {
             revert InsufficientFee();
         }
     }
