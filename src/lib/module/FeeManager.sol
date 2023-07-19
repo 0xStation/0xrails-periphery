@@ -116,7 +116,7 @@ contract FeeManager is Ownable {
 
     /// @dev Reverts fee updates when baseFee and variableFees are nonzero but less than the bpsDenominator constant.
     /// @dev Prevents Solidity's arithmetic functionality from rounding a nonzero fee value to zero when not desired
-    function _isSufficientFee(Fees memory newFees) internal view {
+    function _isSufficientFee(Fees memory newFees) internal pure {
         // prevent Solidity arithmetic rounding to 0 when not intended
         if (newFees.baseFee != 0 && newFees.baseFee < bpsDenominator || newFees.variableFee != 0 && newFees.variableFee < bpsDenominator) {
             revert InsufficientFee();
