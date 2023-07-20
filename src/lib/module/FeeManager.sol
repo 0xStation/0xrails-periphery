@@ -95,7 +95,7 @@ contract FeeManager is Ownable {
 
     
     ///todo
-    /// @dev Function to enable desired stablecoins supported by a collection
+    /// @dev Function to enable desired stablecoin fees when supported by a collection
     // function setEnabledStables(bytes16 newStables) external onlyOwner {}
 
     /// @dev Checks for redundant override fee updates to save 100 gas on an unnecessary warm SSTORE opcode in case only one fee type is altered

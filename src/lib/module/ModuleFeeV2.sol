@@ -9,12 +9,13 @@ import {StablecoinRegistry} from "./storage/StablecoinRegistry.sol";
 /// @author 👦🏻👦🏻.eth
 
 /// @dev This contract enables payment by handling funds when charging base and variable fees on each Membership's mints
-/// @dev This module should be inherited by all Membership collections that intend to accept payment in either ETH or ERC20 tokens
 
 /// @notice todo ModuleFeeV2 differs from ModuleFee in that it is intended to be inherited by _all_ payment modules
 /// The goal is to abstract all payment logic so this module can handle the GroupOS side of every client's desired Membership implementation
+
 /// @notice todo This implementation currently only handles ETH, will need to be mixed with (storage-packed) ERC20 logic from FixedStablecoinPurchaseModule.sol
-contract ModuleFeeV2 is Ownable {
+
+abstract contract ModuleFeeV2 is Ownable {
 
     /*=============
         STORAGE
@@ -72,7 +73,7 @@ contract ModuleFeeV2 is Ownable {
     /// @dev Function to update the feeBalance in storage when fees are paid to this module in ETH
     /// @param n The number of items being minted, used to calculate the total fee payment required
     function _registerFeeBatch(uint256 n) internal returns (uint256 paidFee) {
-        //todo WIP handling of fee balance updates by calling FeeManager and checking msg.value sent
+        //todo WIP handling of fee balance updates by calling FeeManager and checking msg.value sent, need to flesh out purchase module first
         // FeeManager.Fees({
         //     uint256 baseFee, 
         //     uint256 variableFee, 

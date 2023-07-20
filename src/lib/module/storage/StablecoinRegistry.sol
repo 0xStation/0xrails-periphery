@@ -6,10 +6,12 @@ import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 /// @title Station Network Stablecoin Registry Contract
 /// @author 👦🏻👦🏻.eth
 
-/// @dev This contract stores contract addresses for all relevant stablecoin tokens supported by Station Network
+/// @dev This contract stores contract addresses to cheaply support the most commonly requested stablecoin tokens
 /// @dev All addresses are stored as constants in runtime bytecode rather than storage to substantially save gas (no SLOADs)
+/// @notice This contract is meant to be inherited as abstract as its purpose is to significantly reduce state storage of ubiquitous stablecoins
+/// Addition of other new or less common stablecoins is handled on a per-collection basis by the PurchaseModule contract
 
-contract StablecoinRegistry is Ownable {
+abstract contract StablecoinRegistry {
 
     uint8 public constant usdcKey = 1;
     uint8 public constant usdtKey = 2;
@@ -48,24 +50,27 @@ contract StablecoinRegistry is Ownable {
     // Obtained from MakerDAO's onchain registry of contract deployments, visible as JSON here: https://chainlog.makerdao.com/api/goerli/active.json
     address public constant dai5 = 0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844;
 
-    function getAddress(uint8 key) public view returns (address stable) {
+    function _getAddress(uint8 key) internal view returns (address stable) {
         uint256 chainId = block.chainid;
         address[] memory stablecoins = new address[](4);
         // stablecoins[0] need not be set since it implicitly == address(0) without initialization
 
         if (chainId == 1) {
+            // mainnet addresses
             stablecoins[1] = usdc1;
             stablecoins[2] = usdt1;
             stablecoins[3] = dai1;
 
             return stablecoins[key];
         } else if (chainId == 137) {
+            // polygon addresses
             stablecoins[1] = usdc137;
             stablecoins[2] = usdt137;
             stablecoins[3] = dai137;
 
             return stablecoins[key];
         } else if (chainId == 5) {
+            // goerli addresses
             stablecoins[1] = usdc5;
             stablecoins[2] = usdt5;
             stablecoins[3] = dai5;
