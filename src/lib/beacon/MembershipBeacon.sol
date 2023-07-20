@@ -14,7 +14,7 @@ import {Address} from "openzeppelin-contracts/utils/Address.sol";
  * An owner is able to change the implementation the beacon points to, 
  * thus upgrading the proxies that use this beacon.
  */
-contract UpgradableBeacon is IBeacon, OwnableUpgradeable {
+contract MembershipBeacon is IBeacon, OwnableUpgradeable {
     address private _implementation;
 
     /**
@@ -26,7 +26,7 @@ contract UpgradableBeacon is IBeacon, OwnableUpgradeable {
      * @dev Sets the address of the initial implementation, and the deployer account as the owner who can upgrade the
      * beacon.
      */
-    function initialize(address implementation_, address _owner) public initializer{
+    function initialize(address _owner, address implementation_) public initializer{
         __Ownable_init();
         transferOwnership(_owner);
         _setImplementation(implementation_);
@@ -62,7 +62,7 @@ contract UpgradableBeacon is IBeacon, OwnableUpgradeable {
      * - `newImplementation` must be a contract.
      */
     function _setImplementation(address newImplementation) private {
-        require(Address.isContract(newImplementation), "UpgradeableBeacon: implementation is not a contract");
+        require(Address.isContract(newImplementation), "MembershipBeacon: default implementation is not a contract");
         _implementation = newImplementation;
     }
 }

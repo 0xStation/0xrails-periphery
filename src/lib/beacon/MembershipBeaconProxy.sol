@@ -7,6 +7,8 @@ import {IBeacon} from "openzeppelin-contracts/proxy/beacon/IBeacon.sol";
 import {ERC1967Upgrade} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Upgrade.sol";
 import {Proxy} from "openzeppelin-contracts/proxy/Proxy.sol";
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
+import {Address} from "openzeppelin-contracts/utils/Address.sol";
+import {Permissions} from "src/lib/Permissions.sol";
 
 /**
  * @dev This contract implements a proxy that gets the implementation address for each call from an {UpgradeableBeacon}.
@@ -16,7 +18,10 @@ import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
  *
  * _Available since v3.4._
  */
-contract BeaconProxy is Proxy, ERC1967Upgrade, Ownable {
+contract MembershipBeaconProxy is Proxy, ERC1967Upgrade, Permissions {
+
+    address private customImpl;
+
     /**
      * @dev Initializes the proxy with `beacon`.
      *
@@ -30,10 +35,13 @@ contract BeaconProxy is Proxy, ERC1967Upgrade, Ownable {
      */
     constructor(address beacon, bytes memory data) payable {
         _upgradeBeaconToAndCall(beacon, data, false);
+        customImpl = address(0);
     }
 
-    function upgradeBeaconToAndCall(address newBeacon, bytes memory data) external onlyOwner {
-        _upgradeBeaconToAndCall(newBeacon, data, false);
+    function addCustomImplementation(address _customImpl) public permitted(Operation.UPGRADE) {
+        require(Address.isContract(_customImpl), "MembershipBeacon: custom implementation is not a contract");
+
+        customImpl = _customImpl;
     }
 
     /**
@@ -46,7 +54,11 @@ contract BeaconProxy is Proxy, ERC1967Upgrade, Ownable {
     /**
      * @dev Returns the current implementation address of the associated beacon.
      */
-    function _implementation() internal view virtual override returns (address) {
-        return IBeacon(_getBeacon()).implementation();
+    function _implementation() internal view virtual override returns (address impl) {
+        if (customImpl == address(0)) {
+            impl = IBeacon(_getBeacon()).implementation();
+        } else {
+            impl = customImpl;
+        }
     }
 }

@@ -6,6 +6,7 @@ import {OnePerAddress} from "src/lib/guard/OnePerAddress.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
+import {MembershipBeacon} from "src/lib/beacon/MembershipBeacon.sol";
 import {Badge} from "src/badge/Badge.sol";
 import {BadgeFactory} from "src/badge/BadgeFactory.sol";
 import {Renderer} from "src/lib/renderer/Renderer.sol";
@@ -15,24 +16,29 @@ import {Account as TBA} from "tokenbound/src/Account.sol";
 // different than TestPaymentModule which is designed to test if payment module can be added to a membership
 // and work correctly with the membership.
 contract OnePerAddressTest is Test {
-    address public onePerAddress;
-    address public rendererImpl;
-    address public membershipImpl;
+    OnePerAddress public onePerAddress;
+    Renderer public rendererImpl;
+    Membership public membershipImpl;
     MembershipFactory public membershipFactory;
-    address public badgeImpl;
+    MembershipBeacon public membershipBeacon;
+    Badge public badgeImpl;
     BadgeFactory public badgeFactory;
 
     function setUp() public {
-        onePerAddress = address(new OnePerAddress());
-        rendererImpl = address(new Renderer(msg.sender, "https://tokens.station.express"));
+        onePerAddress = new OnePerAddress();
+        rendererImpl = new Renderer(msg.sender, "https://tokens.station.express");
+
         // membership
-        membershipImpl = address(new Membership());
+        membershipImpl = new Membership();
         membershipFactory = new MembershipFactory();
-        // NOTE: dummy beacon for testing
-        membershipFactory.initialize(msg.sender, address(0));
+        membershipBeacon = new MembershipBeacon();
+
+        membershipBeacon.initialize(msg.sender, address(membershipImpl));
+        membershipFactory.initialize(msg.sender, address(membershipBeacon));
+
         // badge
-        badgeImpl = address(new Badge());
-        badgeFactory = new BadgeFactory(badgeImpl, msg.sender);
+        badgeImpl = new Badge();
+        badgeFactory = new BadgeFactory(address(badgeImpl), msg.sender);
     }
 
     // create Account that supports NFT receivers to avoid fuzz errors on existing contracts in testing ops
@@ -44,10 +50,10 @@ contract OnePerAddressTest is Test {
         address owner = createAccount();
         address account = createAccount();
 
-        address proxy = membershipFactory.createWithoutBeacon(membershipImpl, owner, rendererImpl, "Test", "TEST");
+        address proxy = membershipFactory.createWithBeacon(owner, address(rendererImpl), "Test", "TEST");
         vm.startPrank(owner);
         // set guard
-        Permissions(proxy).guard(Permissions.Operation.MINT, onePerAddress);
+        Permissions(proxy).guard(Permissions.Operation.MINT, address(onePerAddress));
         // first mint, should pass
         Membership(proxy).mintTo(account);
         assertEq(Membership(proxy).balanceOf(account), 1);
@@ -64,10 +70,10 @@ contract OnePerAddressTest is Test {
         address account1 = createAccount();
         address account2 = createAccount();
 
-        address proxy = membershipFactory.createWithoutBeacon(membershipImpl, owner, rendererImpl, "Test", "TEST");
+        address proxy = membershipFactory.createWithBeacon(owner, address(rendererImpl), "Test", "TEST");
         vm.startPrank(owner);
         // set guard
-        Permissions(proxy).guard(Permissions.Operation.TRANSFER, onePerAddress);
+        Permissions(proxy).guard(Permissions.Operation.TRANSFER, address(onePerAddress));
         // mint to two addresses, should pass
         uint256 token1 = Membership(proxy).mintTo(account1);
         Membership(proxy).mintTo(account2);
@@ -88,10 +94,10 @@ contract OnePerAddressTest is Test {
         address owner = createAccount();
         address account = createAccount();
 
-        address proxy = badgeFactory.create(owner, rendererImpl, "Test", "TEST");
+        address proxy = badgeFactory.create(owner, address(rendererImpl), "Test", "TEST");
         vm.startPrank(owner);
         // set guard
-        Permissions(proxy).guard(Permissions.Operation.MINT, onePerAddress);
+        Permissions(proxy).guard(Permissions.Operation.MINT, address(onePerAddress));
         // first mint, should pass
         Badge(proxy).mintTo(account, tokenId, 1);
         assertEq(Badge(proxy).balanceOf(account, tokenId), 1);
@@ -110,10 +116,10 @@ contract OnePerAddressTest is Test {
         address account3 = createAccount();
         bytes memory data;
 
-        address proxy = badgeFactory.create(owner, rendererImpl, "Test", "TEST");
+        address proxy = badgeFactory.create(owner, address(rendererImpl), "Test", "TEST");
         // set guard
         vm.startPrank(owner);
-        Permissions(proxy).guard(Permissions.Operation.TRANSFER, onePerAddress);
+        Permissions(proxy).guard(Permissions.Operation.TRANSFER, address(onePerAddress));
         // mint to two addresses, should pass
         Badge(proxy).mintTo(account1, tokenId, 1);
         Badge(proxy).mintTo(account2, tokenId, 1);

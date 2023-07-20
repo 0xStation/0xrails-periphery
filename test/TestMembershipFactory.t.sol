@@ -2,33 +2,40 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import "src/lib/renderer/Renderer.sol";
+import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
-import "src/membership/MembershipFactory.sol";
+import {MembershipFactory} from "src/membership/MembershipFactory.sol";
+import {MembershipBeacon} from "src/lib/beacon/MembershipBeacon.sol";
+import {Permissions} from "src/lib/Permissions.sol";
 
 contract MembershipFactoryTest is Test {
     address public minter = address(1);
     address public burner = address(2);
     address public receiver = address(3);
     address public paymentReciever = address(456);
-    address public membershipFactory;
-    address public rendererImpl;
-    address public membershipImpl;
+
+    MembershipFactory public membershipFactory;
+    MembershipBeacon public membershipBeacon;
+    Renderer public rendererImpl;
+    Membership public membershipImpl;
 
     function setUp() public {
-        rendererImpl = address(new Renderer(msg.sender, "https://tokens.station.express"));
-        membershipImpl = address(new Membership());
-        membershipFactory = address(new MembershipFactory());
-        // Dummy beacon for testing
-        MembershipFactory(membershipFactory).initialize(msg.sender, address(0));
+        rendererImpl = new Renderer(msg.sender, "https://tokens.station.express");
+        membershipImpl = new Membership();
+        membershipBeacon = new MembershipBeacon();
+        membershipFactory = new MembershipFactory();
+
+        membershipBeacon.initialize(msg.sender, address(membershipImpl));
+        membershipFactory.initialize(msg.sender, address(membershipBeacon));
     }
 
     function test_init() public {
         address membership =
-            MembershipFactory(membershipFactory).createWithoutBeacon(membershipImpl, msg.sender, rendererImpl, "Friends of Station", "FRIENDS");
+            membershipFactory.createWithBeacon(msg.sender, address(rendererImpl), "Friends of Station", "FRIENDS");
         Membership membershipContract = Membership(membership);
+
         assertEq(membershipContract.owner(), msg.sender);
-        assertEq(membershipContract.renderer(), rendererImpl);
+        assertEq(membershipContract.renderer(), address(rendererImpl));
         assertEq(membershipContract.name(), "Friends of Station");
         assertEq(membershipContract.symbol(), "FRIENDS");
     }
@@ -36,17 +43,18 @@ contract MembershipFactoryTest is Test {
     // testing that minting multiple memberships does not overwrite state in either one of them
     function test_multiple_memberships() public {
         address membership =
-            MembershipFactory(membershipFactory).createWithoutBeacon(membershipImpl, msg.sender, rendererImpl, "Friends of Station", "FRIENDS");
+            membershipFactory.createWithBeacon(msg.sender, address(rendererImpl), "Friends of Station", "FRIENDS");
         Membership membershipContract = Membership(membership);
         address membership2 =
-            MembershipFactory(membershipFactory).createWithoutBeacon(membershipImpl, msg.sender, rendererImpl, "Enemies of Station", "ENEMIES");
+            membershipFactory.createWithBeacon(msg.sender, address(rendererImpl), "Enemies of Station", "ENEMIES");
         Membership membershipContract2 = Membership(membership2);
+
         assertEq(membershipContract.owner(), msg.sender);
-        assertEq(membershipContract.renderer(), rendererImpl);
+        assertEq(membershipContract.renderer(), address(rendererImpl));
         assertEq(membershipContract.name(), "Friends of Station");
         assertEq(membershipContract.symbol(), "FRIENDS");
         assertEq(membershipContract2.owner(), msg.sender);
-        assertEq(membershipContract2.renderer(), rendererImpl);
+        assertEq(membershipContract2.renderer(), address(rendererImpl));
         assertEq(membershipContract2.name(), "Enemies of Station");
         assertEq(membershipContract2.symbol(), "ENEMIES");
     }
@@ -70,12 +78,10 @@ contract MembershipFactoryTest is Test {
         (address membership, ) =
             MembershipFactory(membershipFactory).createAndSetUp(
                 msg.sender,
-                rendererImpl,
+                address(rendererImpl),
                 "Friends of Station",
                 "FRIENDS",
-                calls,
-                false,
-                membershipImpl
+                calls
             );
 
         // call from non minter, expect fail

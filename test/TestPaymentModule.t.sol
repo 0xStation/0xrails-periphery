@@ -2,26 +2,31 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import "src/lib/renderer/Renderer.sol";
+import {Renderer} from "src/lib/renderer/Renderer.sol";
+import {MembershipBeacon} from "src/lib/beacon/MembershipBeacon.sol";
+import {Permissions} from "src/lib/Permissions.sol";
 import {Membership} from "src/membership/Membership.sol";
-import "src/membership/MembershipFactory.sol";
+import {MembershipFactory} from "src/membership/MembershipFactory.sol";
 import "src/membership/modules/deprecating/FixedETHPurchaseModule.sol";
 
 contract PaymentModuleTest is Test {
     address public paymentReciever = address(456);
-    address public membershipFactory;
-    address public rendererImpl;
-    address public membershipImpl;
+    MembershipFactory public membershipFactory;
+    Renderer public rendererImpl;
+    Membership public membershipImpl;
+    MembershipBeacon public membershipBeacon;
     address public paymentModuleImpl;
     uint256 fee = 0.0007 ether;
 
     function setUp() public {
         startHoax(address(1));
-        rendererImpl = address(new Renderer(address(1), "https://tokens.station.express"));
-        membershipImpl = address(new Membership());
-        membershipFactory = address(new MembershipFactory());
-        // Dummy beacon for testing
-        MembershipFactory(membershipFactory).initialize(address(1), address(0));
+        rendererImpl = new Renderer(address(1), "https://tokens.station.express");
+        membershipImpl = new Membership();
+        membershipFactory = new MembershipFactory();
+        membershipBeacon = new MembershipBeacon();
+
+        membershipBeacon.initialize(address(1), address(membershipImpl));
+        membershipFactory.initialize(address(1), address(membershipBeacon));
         paymentModuleImpl = address(new FixedETHPurchaseModule(address(1), fee));
         vm.stopPrank();
     }
@@ -31,7 +36,7 @@ contract PaymentModuleTest is Test {
     function test_mint_without_adding_payment_module_should_fail() public {
         startHoax(address(2));
         address membership =
-            MembershipFactory(membershipFactory).createWithoutBeacon(membershipImpl, address(1), rendererImpl, "Friends of Station", "FRIENDS");
+            membershipFactory.createWithBeacon(address(1), address(rendererImpl), "Friends of Station", "FRIENDS");
         Membership membershipContract = Membership(membership);
 
         vm.expectRevert("NOT_PERMITTED");
@@ -43,8 +48,9 @@ contract PaymentModuleTest is Test {
         vm.assume(price < 2 ** 128);
         startHoax(address(1));
         address membership =
-            MembershipFactory(membershipFactory).createWithoutBeacon(membershipImpl, address(1), rendererImpl, "Friends of Station", "FRIENDS");
+            membershipFactory.createWithBeacon(address(1), address(rendererImpl), "Friends of Station", "FRIENDS");
         Membership membershipContract = Membership(membership);
+
         FixedETHPurchaseModule paymentModule = FixedETHPurchaseModule(paymentModuleImpl);
         paymentModule.setup(membership, price);
 

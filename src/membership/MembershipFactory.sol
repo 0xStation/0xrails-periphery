@@ -9,7 +9,7 @@ import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeabl
 import "./IMembership.sol";
 import {Batch} from "src/lib/Batch.sol";
 import {IBeacon} from "openzeppelin-contracts/proxy/beacon/IBeacon.sol";
-import {BeaconProxy} from "src/lib/beacon/BeaconProxy.sol";
+import {MembershipBeaconProxy} from "src/lib/beacon/MembershipBeaconProxy.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactoryStorageV0} from "./storage/MembershipFactoryStorageV0.sol";
 
@@ -39,44 +39,25 @@ contract MembershipFactory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgra
     {
         bytes memory initData =
             abi.encodeWithSelector(IMembership(IBeacon(beacon).implementation()).init.selector, owner, renderer, name, symbol);
-        membership = address(new BeaconProxy(beacon, initData));
+        membership = address(new MembershipBeaconProxy(beacon, initData));
 
         emit MembershipCreated(membership);
     }
 
-/// @notice create a new Membership via ERC1967Proxy and a custom Implementation
-    function createWithoutBeacon(
-        address customImpl,
-        address owner, 
-        address renderer, 
-        string memory name, 
-        string memory symbol
-    ) public whenNotPaused returns (address membership)
-    {
-        bytes memory initData =
-            abi.encodeWithSelector(IMembership(customImpl).init.selector, owner, renderer, name, symbol);
-        membership = address(new ERC1967Proxy(customImpl, initData));
-
-        emit MembershipCreated(membership);
-    }
     /// @notice create a new Membership via ERC1967Proxy and setup other parameters
     function createAndSetUp(
         address owner,
         address renderer,
         string memory name,
         string memory symbol,
-        bytes[] calldata setupCalls,
-        bool useBeacon,
-        address customImpl
+        bytes[] calldata setupCalls
     ) external whenNotPaused returns (address membership, Batch.Result[] memory setupResults) {
         // set factory as owner so it can make calls to protected functions for setup
-        if (useBeacon) {
-            membership = createWithBeacon(address(this), renderer, name, symbol);
-        } else {
-            membership = createWithoutBeacon(customImpl, address(this), renderer, name, symbol);
-        }
+        membership = createWithBeacon(address(this), renderer, name, symbol);
+        
         // make non-atomic batch call, using permission as owner to do anything
         setupResults = Batch(membership).batch(false, setupCalls);
+       
         // transfer ownership to provided argument
         Permissions(membership).transferOwnership(owner);
     }
