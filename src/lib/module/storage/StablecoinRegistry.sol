@@ -50,7 +50,7 @@ abstract contract StablecoinRegistry {
     // Obtained from MakerDAO's onchain registry of contract deployments, visible as JSON here: https://chainlog.makerdao.com/api/goerli/active.json
     address public constant dai5 = 0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844;
 
-    function _getAddress(uint8 key) internal view returns (address stable) {
+    function _getDefaultAddresses() internal view returns (address[] memory stables) {
         uint256 chainId = block.chainid;
         address[] memory stablecoins = new address[](4);
         // stablecoins[0] need not be set since it implicitly == address(0) without initialization
@@ -61,21 +61,21 @@ abstract contract StablecoinRegistry {
             stablecoins[2] = usdt1;
             stablecoins[3] = dai1;
 
-            return stablecoins[key];
+            return stablecoins;
         } else if (chainId == 137) {
             // polygon addresses
             stablecoins[1] = usdc137;
             stablecoins[2] = usdt137;
             stablecoins[3] = dai137;
 
-            return stablecoins[key];
+            return stablecoins;
         } else if (chainId == 5) {
             // goerli addresses
             stablecoins[1] = usdc5;
             stablecoins[2] = usdt5;
             stablecoins[3] = dai5;
 
-            return stablecoins[key];
+            return stablecoins;
         }
     }
 }
