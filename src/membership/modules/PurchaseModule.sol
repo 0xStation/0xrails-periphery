@@ -47,7 +47,7 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
     =============*/
 
     /// @dev Decimals of precision for most common stablecoins (USDC + USDT), stored in runtime bytecode to save gas
-    uint8 public constant decimals = 6;
+    uint8 public immutable decimals;
     /// @dev The total number of keys currently in bitmap, initialized to the number of default addresses in StablecoinRegistry
     /// @notice This counter may eventually need to exceed 255 stablecoin address keys (and bytes16 enabledCoins map) as Station gains adoption
     uint8 public keyCounter;
@@ -70,9 +70,10 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
     ============*/
     /// @notice Uses preexisting config and setup logic from StablecoinPurchaseModuleV2 and EthPurchaseModuleV2 to ensure backwards compatibility
 
-    constructor(address _owner, address _feeManagerProxy)
+    constructor(address _owner, address _feeManagerProxy, uint8 _decimals)
         ModuleFeeV2(_owner, _feeManagerProxy)
     {
+        decimals = _decimals;
         keyCounter = uint8(_getDefaultAddresses().length);
     }
 
