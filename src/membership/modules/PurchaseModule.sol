@@ -138,12 +138,12 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
     ==========*/
     /// @notice Uses preexisting view functions from StablecoinPurchaseModuleV2 and EthPurchaseModuleV2 to ensure backwards compatibility
     
-    // function priceOf(address collection) external view returns (CollectionConfig prices) {
-        // should check if eth price set
-        // should check if stablecoin price is set
-        // should check which stablecoins are enabled
-        // require(ethPrice > 0 || stablecoinPrice > 0, "NO_PRICE");
-    // }
+    /// @dev Function to get the configuration of a collection, incl ETH price, stablecoin price, and enabled stablecoins
+    /// @param collection The collection to query against _collectionConfig storage mapping
+    /// @notice This function is one of a couple that could not be kept backwards compatible as this monomodule handles more than once kind of price
+    function priceOf(address collection) external view returns (CollectionConfig memory prices) {
+        prices = _collectionConfig[collection];
+    }
 
     /// @dev Function to check the bitmap key for a stablecoin
     /// @param stablecoin The stablecoin address to query against the _keyOf storage mapping
@@ -219,7 +219,7 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
     }
 
     /// @dev Function to handle decimal precision variation between stablecoin implementations
-    /// @param price The desired price to be checked against ERC20 decimals() and formatted if needed
+    /// @param price The desired stablecoin price to be checked against ERC20 decimals() and formatted if needed
     /// @param stablecoin The stablecoin implementation to which to conform
     function mintPriceToStablecoinAmount(uint256 price, address stablecoin) public view returns (uint256) {
         uint256 stablecoinDecimals = IERC20Metadata(stablecoin).decimals();
