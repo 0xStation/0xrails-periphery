@@ -70,11 +70,29 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
     ============*/
     /// @notice Uses preexisting config and setup logic from StablecoinPurchaseModuleV2 and EthPurchaseModuleV2 to ensure backwards compatibility
 
-    constructor(address _owner, address _feeManagerProxy, uint8 _decimals)
+    /// @dev The default stablecoin addresses are registered in _keyOF and _stablecoinOf storage mappings despite not being read outside of view functions
+    /// This is purely for consistency and cleanliness of storage layout, at small increased cost at deployment time
+    /// @param _owner The owner of the ModuleFeeV2, an address managed by Station Network
+    /// @param _feeManagerProxy The FeeManager's proxy address
+    /// @param _decimals The decimals value for supported stablecoin payments, using the most commonly expected value to maximize gas efficiency
+    /// @param stablecoins Additional stablecoin contract addresses beyond the most common defaults which are handled by the StablecoinRegistry contract
+    constructor(address _owner, address _feeManagerProxy, uint8 _decimals, address[] memory stablecoins)
         ModuleFeeV2(_owner, _feeManagerProxy)
     {
         decimals = _decimals;
-        keyCounter = uint8(_getDefaultAddresses().length);
+        // get default stablecoins for this chainId to be registered
+        address[] memory defaultCoins = _getDefaultAddresses();
+        // overflow is impossible due to constrained bitmap member length, nice to save a bit of gas
+        unchecked {
+            for (uint256 i; i < defaultCoins.length; ++i) {
+                _register(defaultCoins[i]);
+            }
+            for (uint256 j; j < stablecoins.length; ++j) {
+                _register(stablecoins[j]);
+            }
+        }
+        // set keyCounter to length of defaults + additional stablecoins array length
+        keyCounter = uint8(defaultCoins.length) + uint8(stablecoins.length);
     }
 
     /// @dev Function to register new stablecoins in addition to the defaults provided by StablecoinRegistry, when requested by clients
@@ -136,7 +154,6 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
     /// @dev Function to get the enabled stablecoins of a collection
     /// @param collection The collection for which stablecoins are enabled
     function enabledCoinsOf(address collection) external view returns (address[] memory stablecoins) {
-        // for loop of keys  { while key < 4 { _getAddress(key);}
         
         // cache state to save reads
         uint256 len = keyCounter;
