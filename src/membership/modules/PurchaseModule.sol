@@ -28,7 +28,7 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
     /// @param ethPrice The price in ETH set for a collection's mint. 
     /// @param stablecoinPrice The price in stablecoins set for a collection's mint
     /// @param enabledCoins A bitmap of single byte keys that correspond to supported stablecoins, managed by the StablecoinRegistry contract
-    struct PurchaseConfig {
+    struct CollectionConfig {
         uint256 ethPrice;
         uint128 stablecoinPrice;
         bytes16 enabledCoins;
@@ -40,7 +40,7 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
 
     /// @notice Uses preexisting events from StablecoinPurchaseModuleV2 and EthPurchaseModuleV2 to ensure backwards compatibility
     event Register(address indexed stablecoin, uint8 indexed key);
-    event SetUp(address indexed collection, uint128 price, address[] enabledCoins, bool indexed enforceGrants);
+    event SetUp(address indexed collection, uint256 ethPrice, uint128 stablecoinPrice, address[] enabledCoins, bool indexed enforceGrants);
 
     /*=============
         STORAGE
@@ -59,7 +59,7 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
     mapping(uint8 => address) internal _stablecoinOf;
 
     /// @dev Mapping of each collection => mint purchase configuration
-    mapping(address => PurchaseConfig) internal _collectionConfig;
+    mapping(address => CollectionConfig) internal _collectionConfig;
 
     /// @dev Mapping to show if a collection prevents or allows minting via signature grants, ie collection address => repealGrants
     /// @notice todo Can improve gas efficiency here by using `uint 1 || 2` as opposed to `bool 0 || 1` due to repeated cold slot (ie 0) initialization costs
@@ -95,6 +95,23 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
         keyCounter = uint8(defaultCoins.length) + uint8(stablecoins.length);
     }
 
+    /// @dev Function to set up and configure a new collection's purchase prices and payment options
+    /// @param collection The new collection to configure
+    /// @param ethPrice The price in ETH for this collection's mints
+    /// @param stablecoinPrice The price in a stablecoin currency for this collection's mints
+    /// @param enabledCoins The stablecoin addresses to be supported for this collection's mints
+    /// @param enforceGrants A boolean to represent whether this collection will repeal or support grant functionality 
+    function setUp(address collection, uint256 ethPrice, uint128 stablecoinPrice, address[] memory enabledCoins, bool enforceGrants)
+        external
+        canSetUp(collection)
+    {
+        _collectionConfig[collection] = CollectionConfig(ethPrice, stablecoinPrice, _enabledCoinsValue(enabledCoins));
+        if (_repealGrants[collection] != !enforceGrants) {
+            _repealGrants[collection] = !enforceGrants;
+        }
+        emit SetUp(collection, ethPrice, stablecoinPrice, enabledCoins, enforceGrants);
+    }
+
     /// @dev Function to register new stablecoins in addition to the defaults provided by StablecoinRegistry, when requested by clients
     /// @param stablecoin The stablecoin token contract to register in the bitmap
     function register(address stablecoin) external onlyOwner returns (uint8 newKey) {
@@ -121,7 +138,7 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
     ==========*/
     /// @notice Uses preexisting view functions from StablecoinPurchaseModuleV2 and EthPurchaseModuleV2 to ensure backwards compatibility
     
-    // function priceOf(address collection) external view returns (PurchaseConfig prices) {
+    // function priceOf(address collection) external view returns (CollectionConfig prices) {
         // should check if eth price set
         // should check if stablecoin price is set
         // should check which stablecoins are enabled
@@ -184,6 +201,17 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
 
     function _stablecoinEnabled(bytes16 enabledCoins, address stablecoin) internal view returns (bool) {
         return (enabledCoins & _keyBitOf(stablecoin)) > 0;
+    }
+
+    /// @dev Internal function to process an array of stablecoin addresses into a packed 16 byte bitmap of their corresponding keys
+    /// @param stablecoins The stablecoin addresses to process
+    function _enabledCoinsValue(address[] memory stablecoins) internal view returns (bytes16 value) {
+        // overflow impossible due to bitmap constraints
+        unchecked {
+            for (uint256 i; i < stablecoins.length; ++i) {
+                value |= _keyBitOf(stablecoins[i]);
+            }
+        }
     }
 
     function _keyBitOf(address stablecoin) internal view returns (bytes16) {
