@@ -25,11 +25,15 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
     using SafeERC20 for IERC20Metadata;
 
     /// @dev Struct of collection price data, including options for both ETH and stablecoins
-    /// @param ethPrice The price in ETH set for a collection's mint. 
+    /// @param freeMint A quasi-Boolean value indicating whether the collection is a free mint. 1 represents `false` and 2 represents `true`
+    /// 8 byte unsigned integers 1 || 2 are utilized instead of 0 || 1 to save gas on initialization costs when setting a cold, ie 0, storage slot
+    /// @param ethPrice The price in Wei set for a collection's mint. 
+    /// Max value of uint128 (~3.4e38) is several orders of magnitude larger than the current total supply of Ethereum (1.2e26 wei) so it suffices for ETH price
     /// @param stablecoinPrice The price in stablecoins set for a collection's mint
     /// @param enabledCoins A bitmap of single byte keys that correspond to supported stablecoins, managed by the StablecoinRegistry contract
     struct CollectionConfig {
-        uint256 ethPrice;
+        uint8 freeMint;
+        uint128 ethPrice;
         uint128 stablecoinPrice;
         bytes16 enabledCoins;
     }
@@ -39,8 +43,25 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
     ============*/
 
     /// @notice Uses preexisting events from StablecoinPurchaseModuleV2 and EthPurchaseModuleV2 to ensure backwards compatibility
+    /// @notice TODO: go over requirements for backwards compatibility of event emissions to offchain API:
+    /// Should there be 3 events: FreePurchase, ETHPurchase, StablecoinPurchase? Or is offchain filtering by address(0) & unitPrice == 0 sufficient
     event Register(address indexed stablecoin, uint8 indexed key);
-    event SetUp(address indexed collection, uint256 ethPrice, uint128 stablecoinPrice, address[] enabledCoins, bool indexed enforceGrants);
+    event SetUp(
+        address indexed collection, 
+        uint8 freeMint,
+        uint128 ethPrice, 
+        uint128 stablecoinPrice, 
+        address[] enabledCoins, 
+        bool indexed enforceGrants
+    );
+    event Purchase(
+        address indexed collection,
+        address indexed recipient,
+        address indexed paymentCoin,
+        uint256 unitPrice,
+        uint256 unitFee,
+        uint256 units
+    );
 
     /*=============
         STORAGE
@@ -101,15 +122,27 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
     /// @param stablecoinPrice The price in a stablecoin currency for this collection's mints
     /// @param enabledCoins The stablecoin addresses to be supported for this collection's mints
     /// @param enforceGrants A boolean to represent whether this collection will repeal or support grant functionality 
-    function setUp(address collection, uint256 ethPrice, uint128 stablecoinPrice, address[] memory enabledCoins, bool enforceGrants)
+    function setUp(
+        address collection, 
+        uint8 freeMint, 
+        uint128 ethPrice, 
+        uint128 stablecoinPrice, 
+        address[] memory enabledCoins, 
+        bool enforceGrants
+    )
         external
         canSetUp(collection)
     {
-        _collectionConfig[collection] = CollectionConfig(ethPrice, stablecoinPrice, _enabledCoinsValue(enabledCoins));
+        // enforce quasi-boolean freeMint input
+        require(freeMint == 1 || freeMint == 2, "INVALID_FREEMINT_BOOLEAN");
+        // enforce correct input data by reverting tautologies
+        if (freeMint == 2) require(ethPrice == 0 && stablecoinPrice == 0 && enabledCoins.length == 0);
+
+        _collectionConfig[collection] = CollectionConfig(freeMint, ethPrice, stablecoinPrice, _enabledCoinsValue(enabledCoins));
         if (_repealGrants[collection] != !enforceGrants) {
             _repealGrants[collection] = !enforceGrants;
         }
-        emit SetUp(collection, ethPrice, stablecoinPrice, enabledCoins, enforceGrants);
+        emit SetUp(collection, freeMint, ethPrice, stablecoinPrice, enabledCoins, enforceGrants);
     }
 
     /// @dev Function to register new stablecoins in addition to the defaults provided by StablecoinRegistry, when requested by clients
@@ -129,8 +162,58 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
     /*==========
         MINT
     ==========*/
-    //todo will use preexisting mint logic from StablecoinPurchaseModuleV2 and EthPurchaseModuleV2 to ensure backwards compatibility
+    /// @notice Uses preexisting mint logic from StablecoinPurchaseModuleV2 and EthPurchaseModuleV2 to ensure backwards compatibility
 
+    /// @dev Function to mint a single collection token to the caller, in this case a user
+    /// @param collection The token collection to mint from
+    /// @param paymentCoin The ERC20 contract address of the coin being used to pay
+    // function mint(address collection, address paymentCoin) external payable returns (uint256 tokenId) {
+    //     (tokenId,) = _batchMint(collection, paymentCoin, msg.sender, 1);
+    // }
+
+    /// @notice returned tokenId range is inclusive
+    function _batchMint(address collection, address paymentCoin, address recipient, uint256 amount)
+        internal
+        enableGrants(abi.encode(collection))
+        returns (uint256 startTokenId, uint256 endTokenId)
+    {
+        require(amount > 0, "ZERO_AMOUNT");
+        CollectionConfig memory collectionConfig = _collectionConfig[collection];
+
+        if (paymentCoin == address(0x0)) { 
+            //todo WIP: eth mint; find way to set or ensure that 0th key of bitmap is true for eth payments enabled and false for eth payments disabled
+        }
+
+
+
+        require(_stablecoinEnabled(collectionConfig.enabledCoins, paymentCoin), "STABLECOIN_NOT_ENABLED");
+        uint256 totalCost = mintPriceToStablecoinAmount(collectionConfig.stablecoinPrice * amount, paymentCoin);
+
+        // take fee
+        uint256 paidFee = _registerFeeBatch(amount);
+
+        // transfer payment
+        address paymentCollector = IMembership(collection).paymentCollector();
+        // prevent accidentally unset payment collector
+        require(paymentCollector != address(0), "MISSING_PAYMENT_COLLECTOR");
+        // use SafeERC20 for covering USDT no-return and other transfer issues
+        IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, paymentCollector, totalCost);
+
+        for (uint256 i; i < amount; i++) {
+            // mint token
+            (uint256 tokenId) = IMembership(collection).mintTo(recipient);
+            // prevent unsuccessful mint
+            require(tokenId > 0, "MINT_FAILED");
+            // set startTokenId on first mint
+            if (startTokenId == 0) {
+                startTokenId = tokenId;
+            }
+        }
+
+        emit Purchase(collection, recipient, paymentCoin, collectionConfig.stablecoinPrice, paidFee / amount, amount);
+
+        return (startTokenId, startTokenId + amount - 1); // purely inclusive set
+    }
     // add checks and post-effect asserts to the preexisting mint logics to ensure that the parent ModuleFeeV2 contract's recordkeeping (of address(this).balance) is unexploitable
 
     /*==========
