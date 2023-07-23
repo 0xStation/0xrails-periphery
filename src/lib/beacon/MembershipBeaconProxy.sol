@@ -18,9 +18,19 @@ import {Permissions} from "src/lib/Permissions.sol";
  *
  * _Available since v3.4._
  */
-contract MembershipBeaconProxy is Proxy, ERC1967Upgrade, Permissions {
+contract MembershipBeaconProxy is Proxy, ERC1967Upgrade {
 
     address private customImpl;
+
+    /**
+     * @dev wrapper around the `permitted` modifier in the Permissions contract 
+     * Need a custom modifier because Permissions is inherited at the implementation level (Membership contract), not at the proxy level
+     * Inheriting Permissions at the proxy level and at the implementation level leads to variable overrides because of memory address collision
+     */
+    modifier proxyCheckPermission(Permissions.Operation operation) {
+        require(Permissions(address(this)).hasPermission(msg.sender, operation), "NOT_PERMITTED");
+        _;
+    }
 
     /**
      * @dev Initializes the proxy with `beacon`.
@@ -38,7 +48,8 @@ contract MembershipBeaconProxy is Proxy, ERC1967Upgrade, Permissions {
         customImpl = address(0);
     }
 
-    function addCustomImplementation(address _customImpl) public permitted(Operation.UPGRADE) {
+    function addCustomImplementation(address _customImpl) public proxyCheckPermission(Permissions.Operation.UPGRADE) 
+    {
         require(Address.isContract(_customImpl), "MembershipBeacon: custom implementation is not a contract");
 
         customImpl = _customImpl;
