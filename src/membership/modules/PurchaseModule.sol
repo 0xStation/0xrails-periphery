@@ -238,7 +238,7 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
             );
 
             // free mint context only supports single token mints
-            tokenId = IMembership(collection).mintTo(recipient);
+            uint256 tokenId = IMembership(collection).mintTo(recipient);
             emit Mint(collection, recipient, paidFee);
             return (tokenId - 1, tokenId); // startTokenId discarded for single mints
         } else {
@@ -297,13 +297,8 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
                     collectionConfig.stablecoinPrice
                 );
 
-                // approval must have been made prior to top-level mint call
-                try {
-                    IERC20Metadata(collection).safeTransferFrom(msg.sender, address(this), paidFee - preFeeTotal);
-                } catch {
-                    revert FeeCollectFailed()
-                }
-
+                // approval must have been made prior to top-level mint call; SafeERC20 reverts on failures and false returns
+                IERC20Metadata(collection).safeTransferFrom(msg.sender, address(this), paidFee - preFeeTotal);
                 // transfer remaining payment to collector using SafeERC20 for covering USDT no-return and other transfer issues
                 IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, paymentCollector, preFeeTotal);
 
