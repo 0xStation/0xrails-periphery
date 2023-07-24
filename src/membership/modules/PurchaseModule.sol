@@ -56,6 +56,7 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
         address[] enabledCoins, 
         bool indexed enforceGrants
     );
+    event Mint(address indexed collection, address indexed recipient, uint256 fee);
     event Purchase(
         address indexed collection,
         address indexed recipient,
@@ -169,9 +170,12 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
     /// @dev Function to mint a single collection token to the caller, in this case a user
     /// @param collection The token collection to mint from
     /// @param paymentCoin The ERC20 contract address of the coin being used to pay
-    // function mint(address collection, address paymentCoin) external payable returns (uint256 tokenId) {
-    //     (tokenId,) = _batchMint(collection, paymentCoin, msg.sender, 1);
-    // }
+    function mint(address collection, address paymentCoin) external payable returns (uint256 tokenId) {
+        (,tokenId) = _batchMint(collection, paymentCoin, msg.sender, 1);
+    }
+
+    //todo
+    //function mintTo
 
     /// @dev Function mint collection tokens in batches to a specified recipient
     /// @dev The check for collectionConfig.freeMint != 0 ensures that a collection has been registered and set up with Station Network
@@ -198,43 +202,62 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
             // get and then registers fees for free mint of single token, reverting on invalid fee
             paidFee = _registerFee(
                 collection,
-                address(0x0),
+                paymentCoin,
                 recipient,
                 0
             );
+
+            tokenId = IMembership(collection).mintTo(recipient);
+            emit Mint(collection, recipient, paidFee);
+            return (tokenId - 1, tokenId);
         } else {
+            if (paymentCoin == address(0x0)) {
+                // handle ETH context fees
+                paidFee = _registerFeeBatch(
+                    collection, 
+                    paymentCoin, 
+                    recipient, 
+                    amount, 
+                    collectionConfig.ethPrice
+                );
+
+                //todo perform mint
+            } else {
+                //todo
+                // handle stablecoin context fees
 
 
-            //TODO
+                // paidFee = _registerFeeBatch(collection, paymentToken, recipient, n, unitPrice);
+
+                // require(_stablecoinEnabled(collectionConfig.enabledCoins, paymentCoin), "STABLECOIN_NOT_ENABLED");
+                // uint256 totalCost = mintPriceToStablecoinAmount(collectionConfig.stablecoinPrice * amount, paymentCoin);
+
+                // // take fee
+                // uint256 paidFee = _registerFeeBatch(amount);
+
+                // // transfer payment
+                // address paymentCollector = IMembership(collection).paymentCollector();
+                // // prevent accidentally unset payment collector
+                // require(paymentCollector != address(0), "MISSING_PAYMENT_COLLECTOR");
+                // // use SafeERC20 for covering USDT no-return and other transfer issues
+                // IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, paymentCollector, totalCost);
+
+                // for (uint256 i; i < amount; i++) {
+                //     // mint token
+                //     (uint256 tokenId) = IMembership(collection).mintTo(recipient);
+                //     // prevent unsuccessful mint
+                //     require(tokenId > 0, "MINT_FAILED");
+                //     // set startTokenId on first mint
+                //     if (startTokenId == 0) {
+                //         startTokenId = tokenId;
+                //     }
+                // }
+
+                // emit Purchase(collection, recipient, paymentCoin, collectionConfig.stablecoinPrice, paidFee / amount, amount);
+
+                // return (startTokenId, startTokenId + amount - 1); // purely inclusive set
+            }
         }
-
-        // require(_stablecoinEnabled(collectionConfig.enabledCoins, paymentCoin), "STABLECOIN_NOT_ENABLED");
-        // uint256 totalCost = mintPriceToStablecoinAmount(collectionConfig.stablecoinPrice * amount, paymentCoin);
-
-        // // take fee
-        // uint256 paidFee = _registerFeeBatch(amount);
-
-        // // transfer payment
-        // address paymentCollector = IMembership(collection).paymentCollector();
-        // // prevent accidentally unset payment collector
-        // require(paymentCollector != address(0), "MISSING_PAYMENT_COLLECTOR");
-        // // use SafeERC20 for covering USDT no-return and other transfer issues
-        // IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, paymentCollector, totalCost);
-
-        // for (uint256 i; i < amount; i++) {
-        //     // mint token
-        //     (uint256 tokenId) = IMembership(collection).mintTo(recipient);
-        //     // prevent unsuccessful mint
-        //     require(tokenId > 0, "MINT_FAILED");
-        //     // set startTokenId on first mint
-        //     if (startTokenId == 0) {
-        //         startTokenId = tokenId;
-        //     }
-        // }
-
-        // emit Purchase(collection, recipient, paymentCoin, collectionConfig.stablecoinPrice, paidFee / amount, amount);
-
-        // return (startTokenId, startTokenId + amount - 1); // purely inclusive set
     }
     // add checks and post-effect asserts to the preexisting mint logics to ensure that the parent ModuleFeeV2 contract's recordkeeping (of address(this).balance) is unexploitable
 
