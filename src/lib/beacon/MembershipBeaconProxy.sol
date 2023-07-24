@@ -7,6 +7,7 @@ import {IBeacon} from "openzeppelin-contracts/proxy/beacon/IBeacon.sol";
 import {ERC1967Upgrade} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Upgrade.sol";
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 import {Address} from "openzeppelin-contracts/utils/Address.sol";
+import {StorageSlot} from "openzeppelin-contracts/utils/StorageSlot.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {AbstractProxy} from "src/lib/beacon/AbstractProxy.sol";
 
@@ -20,7 +21,8 @@ import {AbstractProxy} from "src/lib/beacon/AbstractProxy.sol";
  */
 contract MembershipBeaconProxy is AbstractProxy, ERC1967Upgrade {
 
-    address private customImpl;
+    bytes32 private constant _CUSTOM_IMPL_SLOT = bytes32(uint256(keccak256("station.express.beacon.override.customImpl")) - 1);
+
 
     /**
      * @dev wrapper around the `permitted` modifier in the Permissions contract 
@@ -45,14 +47,13 @@ contract MembershipBeaconProxy is AbstractProxy, ERC1967Upgrade {
      */
     constructor(address beacon, bytes memory data) payable {
         _upgradeBeaconToAndCall(beacon, data, false);
-        customImpl = address(0);
+        _setCustomImpl(address(0));
     }
 
-    function addCustomImplementation(address _customImpl) public proxyCheckPermission(Permissions.Operation.UPGRADE) 
-    {
-        require(Address.isContract(_customImpl), "MembershipBeacon: custom implementation is not a contract");
+    function addCustomImplementation(address customImpl) public proxyCheckPermission(Permissions.Operation.UPGRADE) {
+        require(Address.isContract(customImpl), "MembershipBeacon: custom implementation is not a contract");
+        _setCustomImpl(customImpl);
 
-        customImpl = _customImpl;
     }
 
     /**
@@ -66,14 +67,26 @@ contract MembershipBeaconProxy is AbstractProxy, ERC1967Upgrade {
         return _implementation();
     }
 
+    function _getCustomImpl() internal view returns (address) {
+        return StorageSlot.getAddressSlot(_CUSTOM_IMPL_SLOT).value;
+    }
+
+    function _setCustomImpl(address customImpl) private {
+        StorageSlot.getAddressSlot(_CUSTOM_IMPL_SLOT).value = customImpl;
+    }
+
+    function switchFromCustomToBeacon() public proxyCheckPermission(Permissions.Operation.UPGRADE) {
+        _setCustomImpl(address(0));
+    } 
+
     /**
      * @dev Returns the current implementation address of the associated beacon.
      */
     function _implementation() internal view virtual override returns (address) {
-        if (customImpl == address(0)) {
+        if (_getCustomImpl() == address(0)) {
             return IBeacon(_getBeacon()).implementation();
         } else {
-            return customImpl;
+            return _getCustomImpl();
         }
     }
 }

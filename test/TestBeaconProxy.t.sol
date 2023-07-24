@@ -74,11 +74,23 @@ contract BeaconProxyTest is Test {
         startHoax(owner);
         address membership =
             membershipFactory.createWithBeacon(owner, address(rendererImpl), "Friends of Station", "FRIENDS");
-        Membership membershipContract = Membership(membership);
 
         assertEq(MembershipBeaconProxy(membership).implementation(), address(membershipImpl));
         MembershipBeaconProxy(membership).addCustomImplementation(address(membershipImpl2));
         assertEq(MembershipBeaconProxy(membership).implementation(), address(membershipImpl2));
+        vm.stopPrank();
+    }
+
+    function test_switching_to_beacon_from_custom_impl_by_owner() public {
+        startHoax(owner);
+        address membership =
+            membershipFactory.createWithBeacon(owner, address(rendererImpl), "Friends of Station", "FRIENDS");
+
+        assertEq(MembershipBeaconProxy(membership).implementation(), address(membershipImpl));
+        MembershipBeaconProxy(membership).addCustomImplementation(address(membershipImpl2));
+        assertEq(MembershipBeaconProxy(membership).implementation(), address(membershipImpl2));
+        MembershipBeaconProxy(membership).switchFromCustomToBeacon();
+        assertEq(MembershipBeaconProxy(membership).implementation(), address(membershipImpl));
         vm.stopPrank();
     }
 
@@ -97,6 +109,26 @@ contract BeaconProxyTest is Test {
         assertEq(MembershipBeaconProxy(membership).implementation(), address(membershipImpl));
         MembershipBeaconProxy(membership).addCustomImplementation(address(membershipImpl2));
         assertEq(MembershipBeaconProxy(membership).implementation(), address(membershipImpl2));
+        vm.stopPrank();
+    }
+
+    function test_switching_to_beacon_from_custom_impl_with_upgrade_permissions() public {
+        startHoax(owner);
+        address membership =
+            membershipFactory.createWithBeacon(owner, address(rendererImpl), "Friends of Station", "FRIENDS");
+
+        Permissions.Operation [] memory operations = new Permissions.Operation[](1);
+        operations[0] = Permissions.Operation.UPGRADE; 
+        bytes32 permissions = Membership(membership).permissionsValue(operations);
+        Membership(membership).permit(maintainer, permissions);
+        vm.stopPrank();
+
+        startHoax(maintainer);
+        assertEq(MembershipBeaconProxy(membership).implementation(), address(membershipImpl));
+        MembershipBeaconProxy(membership).addCustomImplementation(address(membershipImpl2));
+        assertEq(MembershipBeaconProxy(membership).implementation(), address(membershipImpl2));
+        MembershipBeaconProxy(membership).switchFromCustomToBeacon();
+        assertEq(MembershipBeaconProxy(membership).implementation(), address(membershipImpl));
         vm.stopPrank();
     }
 
