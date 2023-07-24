@@ -15,13 +15,19 @@ import {ModuleFee} from "./ModuleFee.sol";
 contract FeeManager is Ownable {
 
     /// @dev Struct of fee data, including both the base and variable fees
-    /// @param baseFee The flat fee charged by Station Network on a per item basis, in ETH
-    /// @param variableFee The variable fee (in BPS) charged by Station Network on volume basis, accounting for each item's cost and total amount of items
-    /// @param enabledStables A bitmap of single byte keys that correspond to supported stablecoins
+    /// @param ethBaseFee The flat fee charged by Station Network on a per item basis, in ETH
+    /// @param ethVariableFee The variable fee (in BPS) charged by Station Network on volume basis
+    /// Accounts for each item's cost and total amount of items, in ETH
+    /// @param erc20BaseFee The flat fee charged by Station Network on a per item basis, in ERC20 stablecoins
+    /// @param erc20VariableFee The variable fee (in BPS) charged by Station Network on volume basis, accounting for each item's cost and total amount of items
+    /// Accounts for each item's cost and total amount of items, in ERC20 stablecoins
+
+    /// @notice TODO Do the math on safety & security implications of packing storage struct members as uint128 instead of uint256 
     struct Fees {
-        uint256 baseFee;
-        uint256 variableFee;
-        bytes16 enabledStables;
+        uint256 ethBaseFee;
+        uint256 ethVariableFee;
+        uint256 erc20BaseFee;
+        uint256 erc20VariableFee;
     }
 
     /*=============
@@ -44,7 +50,7 @@ contract FeeManager is Ownable {
     ============*/
 
     /// @dev Throws when supplied fees to be set are lower than the bpsDenominator to prevent Solidity rounding to 0
-    error InsufficientFee();
+    error insufficientVariableFee();
 
     /*============
         EVENTS
@@ -60,7 +66,7 @@ contract FeeManager is Ownable {
     /// @param newOwner The initialization of the contract's owner address, managed by Station
     /// @param initialDefaultFees The initialization data for the default fees for all collections
     constructor(address newOwner, Fees memory initialDefaultFees) {
-        _isSufficientFee(initialDefaultFees);
+        _isSufficientVariableFee(initialDefaultFees);
         defaultFees = initialDefaultFees;
         _transferOwnership(newOwner);
     }
@@ -69,58 +75,25 @@ contract FeeManager is Ownable {
     /// @dev Only callable by contract owner, an address managed by Station
     /// @param newDefaultFees The new Fees struct to set in storage
     function setDefaultFees(Fees calldata newDefaultFees) external onlyOwner {
-        _isSufficientFee(newDefaultFees);
+        _isSufficientVariableFee(newDefaultFees);
 
-        defaultFees.baseFee = newDefaultFees.baseFee;
-        defaultFees.variableFee = newDefaultFees.variableFee;
+        defaultFees = newDefaultFees;
     }
 
     /// @dev Function to set override base and variable fees on a per-collection basis
-    /// @dev Uses _checkForDuplicateFee() to potentially save gas on a redundant SSTORE opcode
     /// @param collection The collection for which to set override fees
     /// @param newOverrideFees The new Fees struct to set in storage
     function setOverrideFees(address collection, Fees calldata newOverrideFees) external onlyOwner {
-        _isSufficientFee(newOverrideFees);
-
-        // check if one or more override fees have been set for the provided collection
-        if (overrideFees[collection].baseFee != 0 || overrideFees[collection].variableFee != 0) {
-            Fees memory processedFees = _checkForDuplicateFees(collection, newOverrideFees.baseFee, newOverrideFees.variableFee);
-            // write fees to storage only if they have been determined not to be a duplicate
-            if (processedFees.baseFee != 0) overrideFees[collection].baseFee = processedFees.baseFee;
-            if (processedFees.variableFee != 0) overrideFees[collection].variableFee = processedFees.variableFee;
-        } else {
-            overrideFees[collection] = newOverrideFees;
-        }
+        _isSufficientVariableFee(newOverrideFees);
+        overrideFees[collection] = newOverrideFees;
     }
 
-    
-    ///todo
-    /// @dev Function to enable desired stablecoin fees when supported by a collection
-    // function setEnabledStables(bytes16 newStables) external onlyOwner {}
-
-    /// @dev Checks for redundant override fee updates to save 100 gas on an unnecessary warm SSTORE opcode in case only one fee type is altered
-    /// @dev Executes two cold SSTOREs if no duplicates found versus two cold SLOADs + one warm SSTORE if duplicate is found (4400 vs 4300)
-    function _checkForDuplicateFees(
-        address _collection, 
-        uint256 _newBaseFee, 
-        uint256 _newVariableFee
-    ) internal view returns (Fees memory processedFees) {
-        // only set return values if not a duplicate
-        if (overrideFees[_collection].baseFee != _newBaseFee) {
-            processedFees.baseFee = _newBaseFee;
-        }
-        if (overrideFees[_collection].variableFee != _newVariableFee) {
-            processedFees.variableFee = _newVariableFee;
-        }
-    }
-
-    /// @dev Reverts fee updates when baseFee and variableFees are nonzero but less than the bpsDenominator constant.
+    /// @dev Reverts fee updates when variableFees are nonzero but less than the bpsDenominator constant.
     /// @dev Prevents Solidity's arithmetic functionality from rounding a nonzero fee value to zero when not desired
-    function _isSufficientFee(Fees memory newFees) internal pure {
+    function _isSufficientVariableFee(Fees memory newFees) internal pure {
         // prevent Solidity arithmetic rounding to 0 when not intended
-        if (newFees.baseFee != 0 && newFees.baseFee < bpsDenominator || newFees.variableFee != 0 && newFees.variableFee < bpsDenominator) {
-            revert InsufficientFee();
-        }
+        if (newFees.ethVariableFee != 0 && newFees.ethVariableFee < bpsDenominator) revert insufficientVariableFee();
+        if (newFees.erc20VariableFee != 0 && newFees.erc20VariableFee < bpsDenominator) revert insufficientVariableFee();
     }
 
     /*============
@@ -130,51 +103,87 @@ contract FeeManager is Ownable {
     /// @dev Function to get collection fees
     /// @param collection The collection whose fees will be read, including checks for client-specific fee discounts
     /// @param paymentToken The ERC20 token address used to pay fees. Will use base currency (ETH, MATIC, etc) when == address(0)
+    /// @param recipient The address to mint to. Checked to apply discounts per user for Station Network incentives
     /// @param quantity The amount of tokens for which to compute total baseFee
     /// @param unitPrice The price of each token, used to compute subtotal on which to apply variableFee
-    /// @param recipient The address checked to apply discounts per user for Station Network incentives
-    /// @param feeTotals The returned fee totals for the given collection. Will be summed together by the ModuleFeesV2 contract
-    /// @notice todo: add support for multiple collections in single call
+    /// @param baseFeeTotal The returned base fee total for the given collection. 
+    /// Will be summed with variableFeeTotal by the ModuleFeesV2 contract
+    /// @param variableFeeTotal The returned variable fee total for the given collection. 
+    /// Will be summed with baseFeeTotal by the ModuleFeesV2 contract
     function getFeeTotals(
         address collection, 
-        address paymentToken, 
+        address paymentToken,
+        address recipient,
         uint256 quantity, 
-        uint256 unitPrice, 
-        address recipient
-    ) external view returns (Fees memory feeTotals) {
-        // todo check that collection exists and has been registered
+        uint256 unitPrice
+    ) external view returns (uint256 baseFeeTotal, uint256 variableFeeTotal) {
         // todo check if collection has existing discount
         // todo handle recipient discounts for individual users holding a collection NFT
-        // check if override fees have already been set for provided collection
-        Fees memory existingFees;
-        if (overrideFees[collection].baseFee != 0 || overrideFees[collection].variableFee != 0) {
-            existingFees = overrideFees[collection];
+        
+        // get override fees if they have already been set for provided collection, else get defaults
+        Fees memory existingFees = _checkOverrideFees(collection);
+
+        // decide whether to collect ETH or ERC20 fees
+        if (paymentToken == address(0)) {
+            // terminate if being called as a free mint, where only ethBaseFee applies
+            if (unitPrice == 0) return (existingFees.ethBaseFee, existingFees.ethVariableFee);
+
+            (baseFeeTotal, variableFeeTotal) =  _calculateFees(
+                existingFees.ethBaseFee, 
+                existingFees.ethVariableFee, 
+                quantity, 
+                unitPrice
+            );
         } else {
+            // terminate if being called as a free mint, where only erc20BaseFee applies
+            if (unitPrice == 0) return (existingFees.erc20BaseFee, existingFees.erc20VariableFee);
+
+            (baseFeeTotal, variableFeeTotal) = _calculateFees(
+                existingFees.erc20BaseFee, 
+                existingFees.erc20VariableFee, 
+                quantity, 
+                unitPrice
+            );
+        }
+    }
+
+    /*============
+        UTILS
+    ============*/
+
+    /// @dev Function to calculate fees using base and variable fee structures, agnostic to whether inputs are ETH or ERC20 values
+    /// @param baseFee The base fee denominated either in ETH or ERC20 tokens
+    /// @param variableFee The variable fee denominated either in ETH or ERC20 tokens
+    /// @param quantity The number of tokens being minted
+    /// @param unitPrice The price per unit of tokens being minted
+    function _calculateFees(
+        uint256 baseFee,
+        uint256 variableFee,
+        uint256 quantity, 
+        uint256 unitPrice
+    ) internal pure returns (uint256 baseFeeTotal, uint256 variableFeeTotal) {
+        // calculate baseFee total (quantity * unitPrice), set to baseFee
+        baseFeeTotal = quantity * baseFee;
+        // apply variable fee on baseFee total, set to variableFee
+        variableFeeTotal = unitPrice * quantity * variableFee / bpsDenominator;
+    }
+
+    /// @dev Function to evaluate whether override fees have been set for ETH or ERC20 struct members depending on context
+    function _checkOverrideFees(
+        address _collection
+    ) internal view returns (Fees memory existingFees) {
+        // cache storage struct in memory to save SLOAD reads
+        Fees memory overrides = overrideFees[_collection];
+        // check for any existing fee overrides, returning defaults if none are set
+        bool overridesExist = overrides.ethBaseFee != 0 
+            || overrides.ethVariableFee != 0
+            || overrides.erc20BaseFee != 0 
+            || overrides.erc20VariableFee != 0;
+        
+        if (overridesExist) {
+            existingFees = overrides;
+        } else { 
             existingFees = defaultFees;
         }
-        // check if paymentToken == address(0) and take _calculateFeesEth() or _ calculateFeesERC20() path accordingly
-        if (paymentToken == address(0)) {
-            feeTotals =  _calculateFeesEth(existingFees, quantity, unitPrice);
-        } else {
-            feeTotals = _calculateFeesERC20(existingFees, quantity, unitPrice);
-        }
     }
-
-    function _calculateFeesEth(
-        Fees memory existingFees, 
-        uint256 quantity, 
-        uint256 unitPrice
-    ) internal pure returns (Fees memory feeTotals) {
-        // calculate baseFee total (quantity * unitPrice), set to feeTotals.baseFee
-        feeTotals.baseFee = quantity * existingFees.baseFee;
-        // apply variable fee on baseFee total, set to feeTotals.variableFee
-        feeTotals.variableFee = unitPrice * quantity * existingFees.variableFee / bpsDenominator;
-    }
-
-    //todo
-    function _calculateFeesERC20(
-        Fees memory existingFees, 
-        uint256 quantity, 
-        uint256 unitPrice
-    ) internal pure returns (Fees memory feeTotals) {}
 }

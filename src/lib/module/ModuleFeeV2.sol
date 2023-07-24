@@ -66,24 +66,44 @@ abstract contract ModuleFeeV2 is Ownable {
     }
 
     /// @dev Function to update the feeBalance in storage when minting a single item
-    function _registerFee() internal returns (uint256 paidFee) {
-        return _registerFeeBatch(1);
+    /// @param collection The token collection to mint from
+    /// @param paymentToken The token address being used for payment
+    /// @param recipient The recipient of successfully minted tokens
+    function _registerFee(
+        address collection, 
+        address paymentToken, 
+        address recipient,
+        uint256 unitPrice
+    ) internal returns (uint256 paidFee) {
+        return _registerFeeBatch(collection, paymentToken, recipient, 1, unitPrice);
     }
 
     /// @dev Function to update the feeBalance in storage when fees are paid to this module in ETH
     /// @param n The number of items being minted, used to calculate the total fee payment required
-    function _registerFeeBatch(uint256 n) internal returns (uint256 paidFee) {
-        //todo WIP handling of fee balance updates by calling FeeManager and checking msg.value sent, need to flesh out purchase module first
-        // FeeManager.Fees({
-        //     uint256 baseFee, 
-        //     uint256 variableFee, 
-        //     bytes16 enabledStables
-        // }) = FeeManager(feeManager).getFeeTotals();
+    function _registerFeeBatch(
+        address collection, 
+        address paymentToken, 
+        address recipient, 
+        uint256 n,
+        uint256 unitPrice
+    ) internal returns (uint256 paidFee) {
+        //todo WIP handling of fee balance updates by calling FeeManager and checking msg.value sent
         
-        // paidFee = baseFee + variableFee;
-        // // accept funds only if the msg.value sent matches the FeeManager's calculation
-        // if (paidFee != msg.value) revert InvalidFee(paidFee, msg.value);
-        // // update balances
-        // totalFeeBalance += paidFee;
+        // baseFee and variableFee are handled as ETH or ERC20 stablecoin payment accordingly by FeeManager
+        // todo Should getFeeTotals() return a boolean value to show whether values are stables or ETH?
+        // todo What is the recordkeeping / payment forwarding logic for eth vs stablecoin returned values?
+        (uint256 baseFee, uint256 variableFee) = FeeManager(feeManager).getFeeTotals(
+            collection, 
+            paymentToken,
+            recipient,
+            n, 
+            unitPrice
+        );
+        
+        paidFee = baseFee + variableFee;
+        // accept funds only if the msg.value sent matches the FeeManager's calculation
+        if (paidFee != msg.value) revert InvalidFee(paidFee, msg.value);
+        // update balances
+        totalFeeBalance += paidFee;
     }
 }
