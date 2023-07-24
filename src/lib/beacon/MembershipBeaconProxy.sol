@@ -5,10 +5,10 @@ pragma solidity ^0.8.0;
 
 import {IBeacon} from "openzeppelin-contracts/proxy/beacon/IBeacon.sol";
 import {ERC1967Upgrade} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Upgrade.sol";
-import {Proxy} from "openzeppelin-contracts/proxy/Proxy.sol";
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 import {Address} from "openzeppelin-contracts/utils/Address.sol";
 import {Permissions} from "src/lib/Permissions.sol";
+import {AbstractProxy} from "src/lib/beacon/AbstractProxy.sol";
 
 /**
  * @dev This contract implements a proxy that gets the implementation address for each call from an {UpgradeableBeacon}.
@@ -18,7 +18,7 @@ import {Permissions} from "src/lib/Permissions.sol";
  *
  * _Available since v3.4._
  */
-contract MembershipBeaconProxy is Proxy, ERC1967Upgrade {
+contract MembershipBeaconProxy is AbstractProxy, ERC1967Upgrade {
 
     address private customImpl;
 
@@ -62,14 +62,18 @@ contract MembershipBeaconProxy is Proxy, ERC1967Upgrade {
         return _getBeacon();
     }
 
+    function implementation() external view returns (address) {
+        return _implementation();
+    }
+
     /**
      * @dev Returns the current implementation address of the associated beacon.
      */
-    function _implementation() internal view virtual override returns (address impl) {
+    function _implementation() internal view virtual override returns (address) {
         if (customImpl == address(0)) {
-            impl = IBeacon(_getBeacon()).implementation();
+            return IBeacon(_getBeacon()).implementation();
         } else {
-            impl = customImpl;
+            return customImpl;
         }
     }
 }

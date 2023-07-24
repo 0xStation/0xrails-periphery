@@ -4,7 +4,7 @@
 pragma solidity ^0.8.0;
 
 import {IBeacon} from "openzeppelin-contracts/proxy/beacon/IBeacon.sol";
-import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Permissions} from "src/lib/Permissions.sol";
 import {Address} from "openzeppelin-contracts/utils/Address.sol";
 
 /**
@@ -14,7 +14,7 @@ import {Address} from "openzeppelin-contracts/utils/Address.sol";
  * An owner is able to change the implementation the beacon points to, 
  * thus upgrading the proxies that use this beacon.
  */
-contract MembershipBeacon is IBeacon, OwnableUpgradeable {
+contract MembershipBeacon is IBeacon, Permissions {
     address private _implementation;
 
     /**
@@ -26,9 +26,8 @@ contract MembershipBeacon is IBeacon, OwnableUpgradeable {
      * @dev Sets the address of the initial implementation, and the deployer account as the owner who can upgrade the
      * beacon.
      */
-    function initialize(address _owner, address implementation_) public initializer{
-        __Ownable_init();
-        transferOwnership(_owner);
+    function initialize(address _owner, address implementation_) public {
+        _transferOwnership(_owner);
         _setImplementation(implementation_);
     }
 
@@ -49,7 +48,7 @@ contract MembershipBeacon is IBeacon, OwnableUpgradeable {
      * - msg.sender must be the owner of the contract.
      * - `newImplementation` must be a contract.
      */
-    function upgradeTo(address newImplementation) public virtual onlyOwner {
+    function upgradeTo(address newImplementation) public virtual permitted(Operation.UPGRADE)  {
         _setImplementation(newImplementation);
         emit Upgraded(newImplementation);
     }
