@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 import {FeeManager} from "./FeeManager.sol";
 import {StablecoinRegistry} from "./storage/StablecoinRegistry.sol";
+import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 /// @title Station Network Fee Manager Contract
 /// @author 👦🏻👦🏻.eth
@@ -14,6 +15,19 @@ import {StablecoinRegistry} from "./storage/StablecoinRegistry.sol";
 /// The goal is to abstract all payment logic so this module can handle the GroupOS side of every client's desired Membership implementation
 
 abstract contract ModuleFeeV2 is Ownable {
+
+    /*============
+        ERRORS
+    ============*/
+
+    error InvalidFee(uint256 expected, uint256 received);
+    error FeeCollectFailed();
+
+    /*============
+        EVENTS
+    ============*/
+
+    event WithdrawFee(address indexed recipient, uint256 amount);
 
     /*=============
         STORAGE
@@ -27,18 +41,6 @@ abstract contract ModuleFeeV2 is Ownable {
     /// @dev Accounts for the sum of both baseFee and variableFee, which are set in the FeeManager
     uint256 public ethTotalFeeBalance;
 
-    /*============
-        ERRORS
-    ============*/
-
-    error InvalidFee(uint256 expected, uint256 received);
-
-    /*============
-        EVENTS
-    ============*/
-
-    event WithdrawFee(address indexed recipient, uint256 amount);
-
     /*=================
         ModuleFeeV2
     =================*/
@@ -50,7 +52,7 @@ abstract contract ModuleFeeV2 is Ownable {
         feeManager = feeManagerProxy;
     }
 
-    /// @dev Function to withdraw the total balances of accrued base and variable fees that have been collected from mints
+    /// @dev Function to withdraw the total balances of accrued base and variable eth fees collected from mints
     /// @dev Sends fees to the module's owner address, which is managed by Station Network
     /// @dev Access control forgone since only the owner will receive the feeBalance
     function withdrawFee() external {
@@ -62,6 +64,8 @@ abstract contract ModuleFeeV2 is Ownable {
         require(r);
         emit WithdrawFee(recipient, balance);
     }
+
+    //todo function to withdraw stablecoin collected fees to owner
 
     /// @dev Function to update the feeBalance in storage when minting a single item
     /// @param collection The token collection to mint from
@@ -102,11 +106,6 @@ abstract contract ModuleFeeV2 is Ownable {
             if (msg.value != paidFee) revert InvalidFee(paidFee, msg.value);
             // update eth fee balances, will revert if interactions fail
             ethTotalFeeBalance += paidFee; 
-        }
-
-        // for stablecoin context
-        if (paymentToken != address(0x0)) {
-            //TODO try {stablecoin.transferFrom} catch {revert TransferFailed()}
         }
     }
 }

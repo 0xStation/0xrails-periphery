@@ -30,6 +30,19 @@ contract FeeManager is Ownable {
         uint256 erc20VariableFee;
     }
 
+    /*============
+        ERRORS
+    ============*/
+
+    /// @dev Throws when supplied fees to be set are lower than the bpsDenominator to prevent Solidity rounding to 0
+    error insufficientVariableFee();
+
+    /*============
+        EVENTS
+    ============*/
+
+    event FeeUpdated(Fees);
+
     /*=============
         STORAGE
     =============*/
@@ -44,19 +57,6 @@ contract FeeManager is Ownable {
     /// @dev Since Station supports batch minting, visibility is set to private with a manual getter function implementation
     /// in order to save gas by using a single getTotalFee() call rather than repeated calls for batch mints
     mapping (address => Fees) internal overrideFees;
-
-    /*============
-        ERRORS
-    ============*/
-
-    /// @dev Throws when supplied fees to be set are lower than the bpsDenominator to prevent Solidity rounding to 0
-    error insufficientVariableFee();
-
-    /*============
-        EVENTS
-    ============*/
-
-    event FeeUpdated(Fees);
 
     /*=================
         FEEMANAGER

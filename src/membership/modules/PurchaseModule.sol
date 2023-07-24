@@ -260,7 +260,7 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
                 // format decimals for preFeeTotal
                 preFeeTotal = mintPriceToStablecoinAmount(collectionConfig.stablecoinPrice * amount, paymentCoin);
 
-                // get total invoice incl fees and register to storage
+                // get total invoice incl fees and collect fee 
                 paidFee = _registerFeeBatch(
                     collection, 
                     paymentCoin, 
@@ -269,7 +269,14 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
                     collectionConfig.stablecoinPrice
                 );
 
-                // transfer payment to collector using SafeERC20 for covering USDT no-return and other transfer issues
+                // approval must have been made prior to top-level mint call
+                try {
+                    IERC20Metadata(collection).safeTransferFrom(msg.sender, address(this), paidFee - preFeeTotal);
+                } catch {
+                    revert FeeCollectFailed()
+                }
+
+                // transfer remaining payment to collector using SafeERC20 for covering USDT no-return and other transfer issues
                 IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, paymentCollector, preFeeTotal);
 
                 // perform batch mint
