@@ -172,7 +172,7 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
 
     /// @dev Function to mint a single collection token to the caller, ie a user
     function mint(address collection, address paymentCoin) external payable returns (uint256 tokenId) {
-        (,tokenId) = _batchMint(collection, paymentCoin, msg.sender, 1);
+        (tokenId,) = _batchMint(collection, paymentCoin, msg.sender, 1);
     }
 
     /// @dev Function to mint a single collection token to a specified recipient
