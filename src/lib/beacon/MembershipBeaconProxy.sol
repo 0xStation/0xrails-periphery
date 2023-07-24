@@ -21,13 +21,18 @@ import {AbstractProxy} from "src/lib/beacon/AbstractProxy.sol";
  */
 contract MembershipBeaconProxy is AbstractProxy, ERC1967Upgrade {
 
+    /**
+     * @dev Use a storage slot that is unlikely to be assigned by solidity because of unique pre-image 
+     */    
     bytes32 private constant _CUSTOM_IMPL_SLOT = bytes32(uint256(keccak256("station.express.beacon.override.customImpl")) - 1);
-
 
     /**
      * @dev wrapper around the `permitted` modifier in the Permissions contract 
      * Need a custom modifier because Permissions is inherited at the implementation level (Membership contract), not at the proxy level
      * Inheriting Permissions at the proxy level and at the implementation level leads to variable overrides because of memory address collision
+     *
+     * Using Permissions for functionality instead of something like Ownable has the added benefit of being essentially free
+     * since it comes with the Membership implementation itself whose complete state we have to store in memory anyway
      */
     modifier proxyCheckPermission(Permissions.Operation operation) {
         require(Permissions(address(this)).hasPermission(msg.sender, operation), "NOT_PERMITTED");
