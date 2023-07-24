@@ -10,10 +10,8 @@ import {StablecoinRegistry} from "./storage/StablecoinRegistry.sol";
 
 /// @dev This contract enables payment by handling funds when charging base and variable fees on each Membership's mints
 
-/// @notice todo ModuleFeeV2 differs from ModuleFee in that it is intended to be inherited by _all_ payment modules
+/// @notice ModuleFeeV2 differs from ModuleFee in that it is intended to be inherited by the PurchaseModule
 /// The goal is to abstract all payment logic so this module can handle the GroupOS side of every client's desired Membership implementation
-
-/// @notice todo This implementation currently only handles ETH, will need to be mixed with (storage-packed) ERC20 logic from FixedStablecoinPurchaseModule.sol
 
 abstract contract ModuleFeeV2 is Ownable {
 
@@ -22,12 +20,12 @@ abstract contract ModuleFeeV2 is Ownable {
     =============*/
 
     /// @dev Address of the deployed FeeManager contract which stores state for all collections' fee information
-    /// @dev The FeeManger serves a Singleton role as central fee ledger for modules to read from
+    /// @dev The FeeManager serves a Singleton role as central fee ledger for modules to read from
     address immutable internal feeManager;
 
     /// @dev The balance recordkeeping for the specific child contract that inherits from this module
     /// @dev Accounts for the sum of both baseFee and variableFee, which are set in the FeeManager
-    uint256 public totalFeeBalance;
+    uint256 public ethTotalFeeBalance;
 
     /*============
         ERRORS
@@ -57,8 +55,8 @@ abstract contract ModuleFeeV2 is Ownable {
     /// @dev Access control forgone since only the owner will receive the feeBalance
     function withdrawFee() external {
         address recipient = owner();
-        uint256 balance = totalFeeBalance;
-        totalFeeBalance = 0;
+        uint256 balance = ethTotalFeeBalance;
+        ethTotalFeeBalance = 0;
 
         (bool r,) = payable(recipient).call{ value: balance}('');
         require(r);
@@ -86,12 +84,8 @@ abstract contract ModuleFeeV2 is Ownable {
         address recipient, 
         uint256 n,
         uint256 unitPrice
-    ) internal returns (uint256 paidFee) {
-        //todo WIP handling of fee balance updates by calling FeeManager and checking msg.value sent
-        
+    ) internal returns (uint256 paidFee) {        
         // baseFee and variableFee are handled as ETH or ERC20 stablecoin payment accordingly by FeeManager
-        // todo Should getFeeTotals() return a boolean value to show whether values are stables or ETH?
-        // todo What is the recordkeeping / payment forwarding logic for eth vs stablecoin returned values?
         (uint256 baseFee, uint256 variableFee) = FeeManager(feeManager).getFeeTotals(
             collection, 
             paymentToken,
@@ -100,10 +94,19 @@ abstract contract ModuleFeeV2 is Ownable {
             unitPrice
         );
         
+        // in free mint context, variableFee will be 0 and baseFee may represent either ETH or ERC20
         paidFee = baseFee + variableFee;
-        // accept funds only if the msg.value sent matches the FeeManager's calculation
-        if (paidFee != msg.value) revert InvalidFee(paidFee, msg.value);
-        // update balances
-        totalFeeBalance += paidFee;
+        
+        // for ETH context, accept funds only if the msg.value sent matches the FeeManager's calculation
+        if (paymentToken == address(0x0)) {
+            if (msg.value != paidFee) revert InvalidFee(paidFee, msg.value);
+            // update eth fee balances, will revert if interactions fail
+            ethTotalFeeBalance += paidFee; 
+        }
+
+        // for stablecoin context
+        if (paymentToken != address(0x0)) {
+            //TODO try {stablecoin.transferFrom} catch {revert TransferFailed()}
+        }
     }
 }
