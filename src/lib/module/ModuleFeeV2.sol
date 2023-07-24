@@ -7,7 +7,7 @@ import {StablecoinRegistry} from "./storage/StablecoinRegistry.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 /// @title Station Network Fee Manager Contract
-/// @author 👦🏻👦🏻.eth
+/// @author symmetry (@symmtry69), frog (@0xmcg), 👦🏻👦🏻.eth
 
 /// @dev This contract enables payment by handling funds when charging base and variable fees on each Membership's mints
 

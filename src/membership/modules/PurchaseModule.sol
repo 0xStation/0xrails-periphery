@@ -14,7 +14,7 @@ import {SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol"
 import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 /// @title Station Network PurchaseModule Contract
-/// @author 👦🏻👦🏻.eth
+/// @author symmetry (@symmtry69), frog (@0xmcg), 👦🏻👦🏻.eth
 
 /// @dev This contract handles payment configurations for all Membership collections in both ETH and Stablecoins, including free mints
 /// The goal is to abstract all client-facing payment logic so this module can be used as a strikingly simple plugin for clients and developers to customize
@@ -168,24 +168,52 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
         MINT
     ==========*/
     /// @notice Uses preexisting mint logic from StablecoinPurchaseModuleV2 and EthPurchaseModuleV2 to ensure backwards compatibility
+    /// TODO For +devX abstraction this contract could narrow its scope to focus on mint logic and inherit stablecoin-specific logic from a parent contract instead
 
-    /// @dev Function to mint a single collection token to the caller, in this case a user
-    /// @param collection The token collection to mint from
-    /// @param paymentCoin The ERC20 contract address of the coin being used to pay
+    /// @dev Function to mint a single collection token to the caller, ie a user
     function mint(address collection, address paymentCoin) external payable returns (uint256 tokenId) {
         (,tokenId) = _batchMint(collection, paymentCoin, msg.sender, 1);
     }
 
-    //todo
-    //function mintTo
+    /// @dev Function to mint a single collection token to a specified recipient
+    function mintTo(address collection, address paymentCoin, address recipient)
+        external
+        payable
+        returns (uint256 tokenId)
+    {
+        (tokenId,) = _batchMint(collection, paymentCoin, recipient, 1);
+    }
+    /// @dev Function to mint collection tokens in batches to the caller, ie a user
+    /// @notice returned tokenId range is inclusive
+    function batchMint(address collection, address paymentCoin, uint256 amount)
+        external
+        payable
+        returns (uint256 startTokenId, uint256 endTokenId)
+    {
+        return _batchMint(collection, paymentCoin, msg.sender, amount);
+    }
 
-    /// @dev Function mint collection tokens in batches to a specified recipient
+    /// @dev Function to mint collection tokens in batches to a specified recipient
+    /// @notice returned tokenId range is inclusive
+    function batchMintTo(
+        address collection, 
+        address paymentCoin, 
+        address recipient, 
+        uint256 amount
+    )
+        external
+        payable
+        returns (uint256 startTokenId, uint256 endTokenId)
+    {
+        return _batchMint(collection, paymentCoin, recipient, amount);
+    }
+
+    /// @dev Internal function to which all external user + client facing mint functions are routed. Handles free / ETH / ERC20 mints.
     /// @dev The check for collectionConfig.freeMint != 0 ensures that a collection has been registered and set up with Station Network
     /// @param collection The token collection to mint from
     /// @param paymentCoin The stablecoin address being used for payment
     /// @param recipient The recipient of successfully minted tokens
     /// @param amount The amount of tokens to mint  
-    /// @notice returned tokenId range is inclusive
     function _batchMint(
         address collection, 
         address paymentCoin, 
@@ -303,6 +331,7 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
         VIEWS
     ==========*/
     /// @notice Uses preexisting view functions from StablecoinPurchaseModuleV2 and EthPurchaseModuleV2 to ensure backwards compatibility
+    /// TODO Discuss moving stablecoin-specific logic into a `StablecoinUtils` parent contract to be inherited since everything below `priceOf()` is erc20 specific
     
     /// @dev Function to get the configuration of a collection, incl free mint boolean, ETH price, stablecoin price, and enabled stablecoins
     /// @param collection The collection to query against _collectionConfig storage mapping
