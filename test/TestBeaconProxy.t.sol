@@ -59,21 +59,38 @@ contract BeaconProxyTest is Test {
     function test_switching_beacon_impl_without_losing_data() public {
         startHoax(owner);
         address membership =
-            membershipFactory.createWithBeacon(msg.sender, address(rendererImpl), "Friends of Station", "FRIENDS");
+            membershipFactory.createWithBeacon(owner, address(rendererImpl), "Friends of Station", "FRIENDS");
         membershipBeacon.upgradeTo(address(membershipImpl2));
         Membership membershipContract = Membership(membership);
 
-        assertEq(membershipContract.owner(), msg.sender);
+        assertEq(membershipContract.owner(), owner);
         assertEq(membershipContract.renderer(), address(rendererImpl));
         assertEq(membershipContract.name(), "Friends of Station");
         assertEq(membershipContract.symbol(), "FRIENDS");
         vm.stopPrank();
     }
 
-    function test_turning_off_beacon_by_maintainer() public {
+    function test_turning_off_beacon_by_owner() public {
         startHoax(owner);
         address membership =
-            membershipFactory.createWithBeacon(maintainer, address(rendererImpl), "Friends of Station", "FRIENDS");
+            membershipFactory.createWithBeacon(owner, address(rendererImpl), "Friends of Station", "FRIENDS");
+        Membership membershipContract = Membership(membership);
+
+        assertEq(MembershipBeaconProxy(membership).implementation(), address(membershipImpl));
+        MembershipBeaconProxy(membership).addCustomImplementation(address(membershipImpl2));
+        assertEq(MembershipBeaconProxy(membership).implementation(), address(membershipImpl2));
+        vm.stopPrank();
+    }
+
+    function test_turning_off_beacon_with_upgrade_permissions() public {
+        startHoax(owner);
+        address membership =
+            membershipFactory.createWithBeacon(owner, address(rendererImpl), "Friends of Station", "FRIENDS");
+
+        Permissions.Operation [] memory operations = new Permissions.Operation[](1);
+        operations[0] = Permissions.Operation.UPGRADE; 
+        bytes32 permissions = Membership(membership).permissionsValue(operations);
+        Membership(membership).permit(maintainer, permissions);
         vm.stopPrank();
 
         startHoax(maintainer);
@@ -81,5 +98,22 @@ contract BeaconProxyTest is Test {
         MembershipBeaconProxy(membership).addCustomImplementation(address(membershipImpl2));
         assertEq(MembershipBeaconProxy(membership).implementation(), address(membershipImpl2));
         vm.stopPrank();
+    }
+
+    function test_turning_off_beacon_without_losing_data() public {
+       startHoax(owner);
+        address membership =
+            membershipFactory.createWithBeacon(owner, address(rendererImpl), "Friends of Station", "FRIENDS");
+        Membership membershipContract = Membership(membership);
+
+        assertEq(MembershipBeaconProxy(membership).implementation(), address(membershipImpl));
+        MembershipBeaconProxy(membership).addCustomImplementation(address(membershipImpl2));
+        assertEq(MembershipBeaconProxy(membership).implementation(), address(membershipImpl2));
+
+        assertEq(membershipContract.owner(), owner);
+        assertEq(membershipContract.renderer(), address(rendererImpl));
+        assertEq(membershipContract.name(), "Friends of Station");
+        assertEq(membershipContract.symbol(), "FRIENDS");
+        vm.stopPrank(); 
     }
 }
