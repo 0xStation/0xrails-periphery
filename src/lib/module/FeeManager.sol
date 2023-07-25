@@ -15,18 +15,13 @@ import {ModuleFee} from "./ModuleFee.sol";
 contract FeeManager is Ownable {
 
     /// @dev Struct of fee data, including both the base and variable fees
-    /// @param ethBaseFee The flat fee charged by Station Network on a per item basis, in ETH
-    /// @param ethVariableFee The variable fee (in BPS) charged by Station Network on volume basis
-    /// Accounts for each item's cost and total amount of items, in ETH
-    /// @param erc20BaseFee The flat fee charged by Station Network on a per item basis, in ERC20 stablecoins
-    /// @param erc20VariableFee The variable fee (in BPS) charged by Station Network on volume basis, accounting for each item's cost and total amount of items
-    /// Accounts for each item's cost and total amount of items, in ERC20 stablecoins
+    /// @param baseFee The flat fee charged by Station Network on a per item basis
+    /// @param variableFee The variable fee (in BPS) charged by Station Network on volume basis
+    /// Accounts for each item's cost and total amount of items
 
     struct Fees {
-        uint128 ethBaseFee;
-        uint128 ethVariableFee;
-        uint128 erc20BaseFee;
-        uint128 erc20VariableFee;
+        uint128 baseFee;
+        uint128 variableFee;
     }
 
     /*============
@@ -51,14 +46,11 @@ contract FeeManager is Ownable {
     /// @dev Not actually kept in storage as it is marked `constant`, saving gas by putting its value in contract bytecode instead
     uint256 constant private bpsDenominator = 10_000;
 
-    Fees public defaultFees;
+    /// @dev Mapping that stores default fees associated with a given token address
+    mapping (address = > Fees) public defaultFees;
 
-    //todo consider implementing erc20 support for non-stables
-
-    /// @dev Mapping that stores override fees associated with specific collections
-    /// @dev Since Station supports batch minting, visibility is set to private with a manual getter function implementation
-    /// in order to save gas by using a single getTotalFee() call rather than repeated calls for batch mints
-    mapping (address => Fees) internal overrideFees;
+    /// @dev Mapping that stores override fees associated with specific collections, ie for discounts
+    mapping (address => mapping (address => Fees)) internal overrideFees;
 
     /*=================
         FEEMANAGER
@@ -66,36 +58,36 @@ contract FeeManager is Ownable {
 
     /// @notice Constructor will be deprecated in favor of an initialize() UUPS proxy call once logic is finalized & approved
     /// @param newOwner The initialization of the contract's owner address, managed by Station
-    /// @param initialDefaultFees The initialization data for the default fees for all collections
-    constructor(address newOwner, Fees memory initialDefaultFees) {
-        _isSufficientVariableFee(initialDefaultFees);
-        defaultFees = initialDefaultFees;
+    /// @param ethDefaultFees The initialization of ETH (or MATIC etc)'s default fees in wei, since most collections will support
+    constructor(address newOwner, Fees memory ethDefaultFees) {
+        _isSufficientVariableFee(ethDefaultFees);
+        defaultFees[address(0x0)] = ethDefaultFees;
         _transferOwnership(newOwner);
     }
 
     /// @dev Function to set default base and variable fees across all collections without specified overrides
     /// @dev Only callable by contract owner, an address managed by Station
+    /// @param token The token for which to set new base and variable fees
     /// @param newDefaultFees The new Fees struct to set in storage
-    function setDefaultFees(Fees calldata newDefaultFees) external onlyOwner {
+    function setDefaultFees(address token, Fees calldata newDefaultFees) external onlyOwner {
         _isSufficientVariableFee(newDefaultFees);
-
-        defaultFees = newDefaultFees;
+        defaultFees[token] = newDefaultFees;
     }
 
     /// @dev Function to set override base and variable fees on a per-collection basis
     /// @param collection The collection for which to set override fees
+    /// @param token The token for which to set new base and variable fees
     /// @param newOverrideFees The new Fees struct to set in storage
-    function setOverrideFees(address collection, Fees calldata newOverrideFees) external onlyOwner {
+    function setOverrideFees(address collection, address token, Fees calldata newOverrideFees) external onlyOwner {
         _isSufficientVariableFee(newOverrideFees);
-        overrideFees[collection] = newOverrideFees;
+        overrideFees[collection][token] = newOverrideFees;
     }
 
     /// @dev Reverts fee updates when variableFees are nonzero but less than the bpsDenominator constant.
     /// @dev Prevents Solidity's arithmetic functionality from rounding a nonzero fee value to zero when not desired
     function _isSufficientVariableFee(Fees memory newFees) internal pure {
         // prevent Solidity arithmetic rounding to 0 when not intended
-        if (newFees.ethVariableFee != 0 && newFees.ethVariableFee < bpsDenominator) revert insufficientVariableFee();
-        if (newFees.erc20VariableFee != 0 && newFees.erc20VariableFee < bpsDenominator) revert insufficientVariableFee();
+        if (newFees.variableFee != 0 && newFees.variableFee < bpsDenominator) revert insufficientVariableFee();
     }
 
     /*============
@@ -116,36 +108,25 @@ contract FeeManager is Ownable {
         uint256 quantity, 
         uint256 unitPrice
     ) external view returns (uint256 feeTotal) {
-        // todo check if collection has existing discount
         // todo handle recipient discounts for individual users holding a collection NFT
         
-        // get override fees if they have already been set for provided collection, else get defaults
-        Fees memory existingFees = _checkOverrideFees(collection);
+        // get existing fees, first checking for override fees or discounts if they have already been set
+        Fees memory existingFees = _checkOverrideFees(paymentToken, collection);
 
         // check if being called in free mint context, which results in only ETH base fee
         if (unitPrice == 0) {
-            (uint256 baseFeeTotal, uint256 variableFeeTotal) = _calculateFees(
-                existingFees.ethBaseFee,
-                existingFees.ethVariableFee,
+            (uint256 baseFeeTotal,) = _calculateFees(
+                existingFees.baseFee,
+                existingFees.variableFee,
                 quantity,
                 0
             );
-            return baseFeeTotal + variableFeeTotal;
-        }
-        // otherwise decide whether to collect ETH or ERC20 fees
-        else if (unitPrice !=0 && paymentToken == address(0)) {
-
+            return baseFeeTotal;
+        } else {
+        // otherwise agnostically calculate fees
             (uint256 baseFeeTotal, uint256 variableFeeTotal) =  _calculateFees(
                 existingFees.ethBaseFee, 
                 existingFees.ethVariableFee, 
-                quantity, 
-                unitPrice
-            );
-            return baseFeeTotal + variableFeeTotal;
-        } else {
-            (uint256 baseFeeTotal, uint256 variableFeeTotal) = _calculateFees(
-                existingFees.erc20BaseFee, 
-                existingFees.erc20VariableFee, 
                 quantity, 
                 unitPrice
             );
@@ -157,7 +138,7 @@ contract FeeManager is Ownable {
         UTILS
     ============*/
 
-    /// @dev Function to calculate fees using base and variable fee structures, agnostic to whether inputs are ETH or ERC20 values
+    /// @dev Function to calculate fees using base and variable fee structures, agnostic to ETH or ERC20 values
     /// @param baseFee The base fee denominated either in ETH or ERC20 tokens
     /// @param variableFee The variable fee denominated either in ETH or ERC20 tokens
     /// @param quantity The number of tokens being minted
@@ -174,22 +155,20 @@ contract FeeManager is Ownable {
         variableFeeTotal = unitPrice * quantity * variableFee / bpsDenominator;
     }
 
-    /// @dev Function to evaluate whether override fees have been set for ETH or ERC20 struct members depending on context
+    /// @dev Function to evaluate whether override fees have been set for a specific collection and token
     function _checkOverrideFees(
-        address _collection
+        address _collection,
+        address _token
     ) internal view returns (Fees memory existingFees) {
         // cache storage struct in memory to save SLOAD reads
-        Fees memory overrides = overrideFees[_collection];
+        Fees memory overrides = overrideFees[_collection][_token];
         // check for any existing fee overrides, returning defaults if none are set
-        bool overridesExist = overrides.ethBaseFee != 0 
-            || overrides.ethVariableFee != 0
-            || overrides.erc20BaseFee != 0 
-            || overrides.erc20VariableFee != 0;
+        bool overridesExist = overrides.baseFee != 0 || overrides.variableFee != 0;
         
         if (overridesExist) {
             existingFees = overrides;
         } else { 
-            existingFees = defaultFees;
+            existingFees = defaultFees[_token];
         }
     }
 }
