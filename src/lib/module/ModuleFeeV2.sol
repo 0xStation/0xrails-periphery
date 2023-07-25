@@ -43,11 +43,11 @@ abstract contract ModuleFeeV2 is Ownable {
         ModuleFeeV2
     =================*/
 
-    /// @param newOwner The initialization of the contract's owner address, managed by Station
-    /// @param feeManagerProxy The UUPS proxy that serves as Station's central fee management ledger for all Memberships
-    constructor(address newOwner, address feeManagerProxy) {
-        _transferOwnership(newOwner);
-        feeManager = feeManagerProxy;
+    /// @param _newOwner The initialization of the contract's owner address, managed by Station
+    /// @param _feeManager This chain's address for the FeeManager, Station's central fee management ledger
+    constructor(address _newOwner, address _feeManager) {
+        _transferOwnership(_newOwner);
+        feeManager = _feeManager;
     }
 
     /// @dev Function to withdraw the total balances of accrued base and variable eth fees collected from mints

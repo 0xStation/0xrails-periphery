@@ -7,14 +7,14 @@ import {Permissions} from "src/lib/Permissions.sol";
 // module utils
 import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
 import {ModuleGrant} from "src/lib/module/ModuleGrant.sol";
-import {ModuleFee} from "src/lib/module/ModuleFee.sol";
+import {ModuleFeeV2} from "src/lib/module/ModuleFeeV2.sol";
 
-contract EthPurchaseModuleV2 is ModuleGrant, ModuleFee, ModuleSetup {
+contract EthPurchaseModuleV2 is ModuleGrant, ModuleFeeV2, ModuleSetup {
+
     /*=============
         STORAGE
     =============*/
 
-    // TODO: pack collection config storage to one slot
     mapping(address => bool) internal _repealGrants;
     mapping(address => uint256) public prices;
 
@@ -24,12 +24,20 @@ contract EthPurchaseModuleV2 is ModuleGrant, ModuleFee, ModuleSetup {
 
     event SetUp(address indexed collection, uint256 price, bool indexed enforceGrants);
     event Purchase(address indexed collection, address indexed buyer, uint256 price, uint256 fee);
+    event BatchPurchase(
+        address indexed collection,
+        address indexed recipient,
+        address indexed paymentCoin,
+        uint256 unitPrice,
+        uint256 unitFee,
+        uint256 units
+    );
 
     /*============
         CONFIG
     ============*/
 
-    constructor(address newOwner, uint256 newFee) ModuleGrant() ModuleFee(newOwner, newFee) {}
+    constructor(address _newOwner, address _feeManager) ModuleGrant() ModuleFeeV2(_newOwner, _feeManager) {}
 
     function setUp(address collection, uint256 price, bool enforceGrants) external canSetUp(collection) {
         if (prices[collection] != price) {
@@ -59,22 +67,94 @@ contract EthPurchaseModuleV2 is ModuleGrant, ModuleFee, ModuleSetup {
         tokenId = _mint(collection, recipient);
     }
 
+    /// @notice returned tokenId range is inclusive
+    function batchMint(address collection, uint256 amount)
+        external
+        payable
+        returns (uint256 startTokenId, uint256 endTokenId)
+    {
+        return _batchMint(collection, msg.sender, amount);
+    }
+
+    /// @notice returned tokenId range is inclusive
+    function batchMintTo(address collection, address recipient, uint256 amount)
+        external
+        payable
+        returns (uint256 startTokenId, uint256 endTokenId)
+    {
+        return _batchMint(collection, recipient, amount);
+    }
+
+
+    /*===============
+        INTERNALS
+    ===============*/
+
     function _mint(address collection, address recipient)
         internal
         enableGrants(abi.encode(collection))
         returns (uint256 tokenId)
     {
+        // reverts if collection has not been setUp()
         uint256 price = priceOf(collection);
-        uint256 paidFee = _registerFee(price);
+
+        // get total invoice incl fees and register to ModuleFeeV2 storage
+        uint256 paidFee = _registerFee(
+            collection, 
+            address(0x0), 
+            recipient, 
+            price
+        );
 
         // send payment
         address paymentCollector = Membership(collection).paymentCollector();
-        (bool success,) = paymentCollector.call{value: price}("");
+        (bool success,) = paymentCollector.call{ value: price }("");
         require(success, "PAYMENT_FAIL");
 
-        // TODO: should we check that balance after - before = amount minted?
         tokenId = IMembership(collection).mintTo(recipient);
         emit Purchase(collection, recipient, price, paidFee);
+    }
+
+    /// @notice returned tokenId range is inclusive
+    function _batchMint(address collection, address recipient, uint256 amount)
+        internal
+        enableGrants(abi.encode(collection))
+        returns (uint256 startTokenId, uint256 endTokenId)
+    {
+        require(amount > 0, "ZERO_AMOUNT");
+
+        // reverts if collection has not been setUp()
+        uint256 price = priceOf(collection);
+
+        // take fee and register to ModuleFeeV2 storage
+        uint256 paidFee = _registerFeeBatch(
+            collection,
+            address(0x0),
+            recipient,
+            amount,
+            price
+        );
+
+        // send payment
+        address paymentCollector = Membership(collection).paymentCollector();
+        (bool success,) = paymentCollector.call{ value: price * amount }("");
+        require(success, "PAYMENT_FAIL");
+
+        // perform mints
+        for (uint256 i; i < amount; i++) {
+            // mint token
+            uint256 tokenId = IMembership(collection).mintTo(recipient);
+            // prevent unsuccessful mint
+            require(tokenId > 0, "MINT_FAILED");
+            // set startTokenId on first mint
+            if (startTokenId == 0) {
+                startTokenId = tokenId;
+            }
+        }
+
+        emit BatchPurchase(collection, recipient, address(0x0), price, paidFee / amount, amount);
+
+        return (startTokenId, startTokenId + amount - 1); // purely inclusive set
     }
 
     /*============

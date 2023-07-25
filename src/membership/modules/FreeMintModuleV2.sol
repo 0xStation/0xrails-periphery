@@ -6,9 +6,9 @@ import {Permissions} from "src/lib/Permissions.sol";
 // module utils
 import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
 import {ModuleGrant} from "src/lib/module/ModuleGrant.sol";
-import {ModuleFee} from "src/lib/module/ModuleFee.sol";
+import {ModuleFeeV2} from "src/lib/module/ModuleFeeV2.sol";
 
-contract FreeMintModuleV2 is ModuleSetup, ModuleGrant, ModuleFee {
+contract FreeMintModuleV2 is ModuleSetup, ModuleGrant, ModuleFeeV2 {
     
     /*=============
         STORAGE
@@ -35,7 +35,7 @@ contract FreeMintModuleV2 is ModuleSetup, ModuleGrant, ModuleFee {
         CONFIG
     ============*/
 
-    constructor(address newOwner, uint256 newFee) ModuleGrant() ModuleFee(newOwner, newFee) {}
+    constructor(address _newOwner, address _feeManager) ModuleGrant() ModuleFeeV2(_newOwner, _feeManager) {}
 
     function setUp(address collection, bool enforceGrants) external canSetUp(collection) {
         if (_repealGrants[collection] != !enforceGrants) {
@@ -83,14 +83,15 @@ contract FreeMintModuleV2 is ModuleSetup, ModuleGrant, ModuleFee {
         enableGrants(abi.encode(collection))
         returns (uint256 tokenId)
     {
-        uint256 paidFee = _registerFee(); // reverts on invalid fee
+        // reverts on invalid fee
+        uint256 paidFee = _registerFee(collection, address(0x0), recipient, 0);
         tokenId = IMembership(collection).mintTo(recipient);
         emit Mint(collection, recipient, paidFee);
     }
 
     function _batchMint(address collection, address recipient, uint256 amount)
-        external
-        payable
+        internal
+        enableGrants(abi.encode(collection))
         returns (uint256 startTokenId, uint256 endTokenId)
         {
             require(amount > 0, "ZERO_AMOUNT");
