@@ -238,17 +238,20 @@ contract StablecoinPurchaseModuleV2 is ModuleFee, ModuleSetup, ModuleGrant {
         require(amount > 0, "ZERO_AMOUNT");
         Parameters memory params = _parameters[collection];
         require(_stablecoinEnabled(params.enabledCoins, paymentCoin), "STABLECOIN_NOT_ENABLED");
-        uint256 totalCost = mintPriceToStablecoinAmount(params.price * amount, paymentCoin);
+        // get total before fees
+        uint256 totalCost = mintPriceToStablecoinAmount(preFeeTotal, paymentCoin);
 
-        // take fee
+        // take total incl fee
         uint256 paidFee = _registerFeeBatch(amount);
 
         // transfer payment
         address paymentCollector = IMembership(collection).paymentCollector();
         // prevent accidentally unset payment collector
         require(paymentCollector != address(0), "MISSING_PAYMENT_COLLECTOR");
+        // collect fees and then forward subtotal; approval must have been made prior to top-level mint call;
+        IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, address(this), paidFee - totalCost);
         // use SafeERC20 for covering USDT no-return and other transfer issues
-        IERC20(paymentCoin).safeTransferFrom(msg.sender, paymentCollector, totalCost);
+        IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, paymentCollector, totalCost);
 
         for (uint256 i; i < amount; i++) {
             // mint token
