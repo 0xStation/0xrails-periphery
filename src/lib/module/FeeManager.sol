@@ -22,12 +22,11 @@ contract FeeManager is Ownable {
     /// @param erc20VariableFee The variable fee (in BPS) charged by Station Network on volume basis, accounting for each item's cost and total amount of items
     /// Accounts for each item's cost and total amount of items, in ERC20 stablecoins
 
-    /// @notice TODO Do the math on safety & security implications of packing storage struct members as uint128 instead of uint256 
     struct Fees {
-        uint256 ethBaseFee;
-        uint256 ethVariableFee;
-        uint256 erc20BaseFee;
-        uint256 erc20VariableFee;
+        uint128 ethBaseFee;
+        uint128 ethVariableFee;
+        uint128 erc20BaseFee;
+        uint128 erc20VariableFee;
     }
 
     /*============
@@ -52,6 +51,8 @@ contract FeeManager is Ownable {
     uint256 constant private bpsDenominator = 10_000;
 
     Fees public defaultFees;
+
+    //todo consider implementing erc20 support for non-stables
 
     /// @dev Mapping that stores override fees associated with specific collections
     /// @dev Since Station supports batch minting, visibility is set to private with a manual getter function implementation
@@ -110,6 +111,7 @@ contract FeeManager is Ownable {
     /// Will be summed with variableFeeTotal by the ModuleFeesV2 contract
     /// @param variableFeeTotal The returned variable fee total for the given collection. 
     /// Will be summed with baseFeeTotal by the ModuleFeesV2 contract
+    // todo find a way to return a single uint feetotal as opposed to deconstructed two fee tuple
     function getFeeTotals(
         address collection, 
         address paymentToken,
@@ -126,7 +128,9 @@ contract FeeManager is Ownable {
         // decide whether to collect ETH or ERC20 fees
         if (paymentToken == address(0)) {
             // terminate if being called as a free mint, where only ethBaseFee applies
-            if (unitPrice == 0) return (existingFees.ethBaseFee, existingFees.ethVariableFee);
+            //todo change to _calculateFees(basefee, , amount, price)
+            //todo in free mint, still feed params into _calculateFees() as in eth/stable context 
+            if (unitPrice == 0) return (existingFees.ethBaseFee, 0); //existingFees.ethVariableFee);
 
             (baseFeeTotal, variableFeeTotal) =  _calculateFees(
                 existingFees.ethBaseFee, 

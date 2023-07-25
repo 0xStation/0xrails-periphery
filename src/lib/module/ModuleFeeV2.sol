@@ -105,7 +105,8 @@ abstract contract ModuleFeeV2 is Ownable {
         if (paymentToken == address(0x0)) {
             if (msg.value != paidFee) revert InvalidFee(paidFee, msg.value);
             // update eth fee balances, will revert if interactions fail
-            ethTotalFeeBalance += paidFee; 
-        }
+            ethTotalFeeBalance += paidFee;
+        } 
+        // else{} ERC20 approval check with potential custom error to spell out exact error 
     }
 }

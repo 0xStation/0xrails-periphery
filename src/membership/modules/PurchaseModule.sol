@@ -230,7 +230,7 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
         // need only check free mint boolean as setUp() enforces collection configuration prices == 0
         if (collectionConfig.freeMint == 2) {
             // get and then registers fees for free mint of single token, reverting on invalid fee
-            paidFee = _registerFee(
+            paidFee = _registerFee( //todo: _registerFeeBatch(,,,,amount)
                 collection,
                 paymentCoin,
                 recipient,
@@ -298,7 +298,7 @@ contract PurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup, StablecoinRegi
                 );
 
                 // approval must have been made prior to top-level mint call; SafeERC20 reverts on failures and false returns
-                IERC20Metadata(collection).safeTransferFrom(msg.sender, address(this), paidFee - preFeeTotal);
+                IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, address(this), paidFee - preFeeTotal);
                 // transfer remaining payment to collector using SafeERC20 for covering USDT no-return and other transfer issues
                 IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, paymentCollector, preFeeTotal);
 
