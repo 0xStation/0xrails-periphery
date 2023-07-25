@@ -10,8 +10,8 @@ import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC
 
 /// @dev This contract enables payment by handling funds when charging base and variable fees on each Membership's mints
 
-/// @notice ModuleFeeV2 differs from ModuleFee in that it is intended to be inherited by the PurchaseModule
-/// The goal is to abstract all payment logic so this module can handle the GroupOS side of every client's desired Membership implementation
+/// @notice ModuleFeeV2 differs from ModuleFee in that it is intended to be inherited by all purchase modules
+/// The goal is to abstract all payment logic so this module can handle fees for every client's desired Membership implementation
 
 abstract contract ModuleFeeV2 is Ownable {
 
@@ -20,7 +20,6 @@ abstract contract ModuleFeeV2 is Ownable {
     ============*/
 
     error InvalidFee(uint256 expected, uint256 received);
-    error FeeCollectFailed();
 
     /*============
         EVENTS
@@ -68,6 +67,7 @@ abstract contract ModuleFeeV2 is Ownable {
     /// @param collection The token collection to mint from
     /// @param paymentToken The token address being used for payment
     /// @param recipient The recipient of successfully minted tokens
+    /// @param unitPrice The price per token to mint
     function _registerFee(
         address collection, 
         address paymentToken, 
@@ -78,6 +78,7 @@ abstract contract ModuleFeeV2 is Ownable {
     }
 
     /// @dev Function to update the feeBalance in storage when fees are paid to this module in ETH
+    /// @dev Called only by child contracts inheriting this one
     /// @param n The number of items being minted, used to calculate the total fee payment required
     function _registerFeeBatch(
         address collection, 

@@ -47,7 +47,7 @@ contract FeeManager is Ownable {
     uint256 constant private bpsDenominator = 10_000;
 
     /// @dev Mapping that stores default fees associated with a given token address
-    mapping (address = > Fees) public defaultFees;
+    mapping (address => Fees) public defaultFees;
 
     /// @dev Mapping that stores override fees associated with specific collections, ie for discounts
     mapping (address => mapping (address => Fees)) internal overrideFees;
@@ -125,8 +125,8 @@ contract FeeManager is Ownable {
         } else {
         // otherwise agnostically calculate fees
             (uint256 baseFeeTotal, uint256 variableFeeTotal) =  _calculateFees(
-                existingFees.ethBaseFee, 
-                existingFees.ethVariableFee, 
+                existingFees.baseFee, 
+                existingFees.variableFee, 
                 quantity, 
                 unitPrice
             );

@@ -238,7 +238,7 @@ contract StablecoinPurchaseModuleV2 is ModuleFee, ModuleSetup, ModuleGrant {
         Parameters memory params = _parameters[collection];
         require(_stablecoinEnabled(params.enabledCoins, paymentCoin), "STABLECOIN_NOT_ENABLED");
         // get total before fees
-        uint256 totalCost = mintPriceToStablecoinAmount(preFeeTotal, paymentCoin);
+        uint256 totalCost = mintPriceToStablecoinAmount(params.price * amount, paymentCoin);
 
         // take total incl fee
         uint256 paidFee = _registerFeeBatch(amount);

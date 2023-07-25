@@ -9,6 +9,7 @@ import {ModuleGrant} from "src/lib/module/ModuleGrant.sol";
 import {ModuleFee} from "src/lib/module/ModuleFee.sol";
 
 contract FreeMintModuleV2 is ModuleSetup, ModuleGrant, ModuleFee {
+    
     /*=============
         STORAGE
     =============*/
@@ -21,6 +22,14 @@ contract FreeMintModuleV2 is ModuleSetup, ModuleGrant, ModuleFee {
 
     event SetUp(address indexed collection, bool indexed enforceGrants);
     event Mint(address indexed collection, address indexed recipient, uint256 fee);
+    event Purchase(
+        address indexed collection,
+        address indexed recipient,
+        address indexed paymentCoin,
+        uint256 unitPrice,
+        uint256 unitFee,
+        uint256 units
+    );
 
     /*============
         CONFIG
@@ -47,15 +56,70 @@ contract FreeMintModuleV2 is ModuleSetup, ModuleGrant, ModuleFee {
         tokenId = _mint(collection, recipient);
     }
 
+    /// @notice returned tokenId range is inclusive
+    function batchMint(address collection, uint256 amount)
+        external
+        payable
+        returns (uint256 startTokenId, uint256 endTokenId)
+    {
+        return _batchMint(collection, msg.sender, amount);
+    }
+
+    /// @notice returned tokenId range is inclusive
+    function batchMintTo(address collection, address recipient, uint256 amount)
+        external
+        payable
+        returns (uint256 startTokenId, uint256 endTokenId)
+    {
+        return _batchMint(collection, recipient, amount);
+    }
+
+    /*===============
+        INTERNALS
+    ===============*/
+
     function _mint(address collection, address recipient)
         internal
         enableGrants(abi.encode(collection))
         returns (uint256 tokenId)
     {
         uint256 paidFee = _registerFee(); // reverts on invalid fee
-        (tokenId) = IMembership(collection).mintTo(recipient);
+        tokenId = IMembership(collection).mintTo(recipient);
         emit Mint(collection, recipient, paidFee);
     }
+
+    function _batchMint(address collection, address recipient, uint256 amount)
+        external
+        payable
+        returns (uint256 startTokenId, uint256 endTokenId)
+        {
+            require(amount > 0, "ZERO_AMOUNT");
+
+            // take baseFee (variableFee == 0 when price == 0)
+            uint256 paidFee = _registerFeeBatch(
+                collection,
+                address(0x0),
+                recipient,
+                amount,
+                0
+            );
+
+            // perform mints
+            for (uint256 i; i < amount; i++) {
+                // mint token
+                uint256 tokenId = IMembership(collection).mintTo(recipient);
+                // prevent unsuccessful mint
+                require(tokenId > 0, "MINT_FAILED");
+                // set startTokenId on first mint
+                if (startTokenId == 0) {
+                    startTokenId = tokenId;
+                }
+            }
+
+            emit Purchase(collection, recipient, address(0x0), 0, paidFee / amount, amount);
+
+            return (startTokenId, startTokenId + amount - 1); // purely inclusive set
+        }
 
     /*============
         GRANTS
