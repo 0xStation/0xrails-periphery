@@ -107,47 +107,48 @@ contract FeeManager is Ownable {
     /// @param recipient The address to mint to. Checked to apply discounts per user for Station Network incentives
     /// @param quantity The amount of tokens for which to compute total baseFee
     /// @param unitPrice The price of each token, used to compute subtotal on which to apply variableFee
-    /// @param baseFeeTotal The returned base fee total for the given collection. 
-    /// Will be summed with variableFeeTotal by the ModuleFeesV2 contract
-    /// @param variableFeeTotal The returned variable fee total for the given collection. 
-    /// Will be summed with baseFeeTotal by the ModuleFeesV2 contract
-    // todo find a way to return a single uint feetotal as opposed to deconstructed two fee tuple
+    /// @param feeTotal The returned total incl fees for the given collection. 
     function getFeeTotals(
         address collection, 
         address paymentToken,
         address recipient,
         uint256 quantity, 
         uint256 unitPrice
-    ) external view returns (uint256 baseFeeTotal, uint256 variableFeeTotal) {
+    ) external view returns (uint256 feeTotal) {
         // todo check if collection has existing discount
         // todo handle recipient discounts for individual users holding a collection NFT
         
         // get override fees if they have already been set for provided collection, else get defaults
         Fees memory existingFees = _checkOverrideFees(collection);
 
-        // decide whether to collect ETH or ERC20 fees
-        if (paymentToken == address(0)) {
-            // terminate if being called as a free mint, where only ethBaseFee applies
-            //todo change to _calculateFees(basefee, , amount, price)
-            //todo in free mint, still feed params into _calculateFees() as in eth/stable context 
-            if (unitPrice == 0) return (existingFees.ethBaseFee, 0); //existingFees.ethVariableFee);
+        // check if being called in free mint context, which results in only ETH base fee
+        if (unitPrice == 0) {
+            (uint256 baseFeeTotal, uint256 variableFeeTotal) = _calculateFees(
+                existingFees.ethBaseFee,
+                existingFees.ethVariableFee,
+                quantity,
+                0
+            );
+            return baseFeeTotal + variableFeeTotal;
+        }
+        // otherwise decide whether to collect ETH or ERC20 fees
+        else if (unitPrice !=0 && paymentToken == address(0)) {
 
-            (baseFeeTotal, variableFeeTotal) =  _calculateFees(
+            (uint256 baseFeeTotal, uint256 variableFeeTotal) =  _calculateFees(
                 existingFees.ethBaseFee, 
                 existingFees.ethVariableFee, 
                 quantity, 
                 unitPrice
             );
+            return baseFeeTotal + variableFeeTotal;
         } else {
-            // terminate if being called as a free mint, where only erc20BaseFee applies
-            if (unitPrice == 0) return (existingFees.erc20BaseFee, existingFees.erc20VariableFee);
-
-            (baseFeeTotal, variableFeeTotal) = _calculateFees(
+            (uint256 baseFeeTotal, uint256 variableFeeTotal) = _calculateFees(
                 existingFees.erc20BaseFee, 
                 existingFees.erc20VariableFee, 
                 quantity, 
                 unitPrice
             );
+            return baseFeeTotal + variableFeeTotal;
         }
     }
 

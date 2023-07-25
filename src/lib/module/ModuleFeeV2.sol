@@ -65,8 +65,6 @@ abstract contract ModuleFeeV2 is Ownable {
         emit WithdrawFee(recipient, balance);
     }
 
-    //todo function to withdraw stablecoin collected fees to owner
-
     /// @dev Function to update the feeBalance in storage when minting a single item
     /// @param collection The token collection to mint from
     /// @param paymentToken The token address being used for payment
@@ -89,8 +87,8 @@ abstract contract ModuleFeeV2 is Ownable {
         uint256 n,
         uint256 unitPrice
     ) internal returns (uint256 paidFee) {        
-        // baseFee and variableFee are handled as ETH or ERC20 stablecoin payment accordingly by FeeManager
-        (uint256 baseFee, uint256 variableFee) = FeeManager(feeManager).getFeeTotals(
+        // feeTotal is handled as either ETH or ERC20 stablecoin payment accordingly by FeeManager
+        paidFee = FeeManager(feeManager).getFeeTotals(
             collection, 
             paymentToken,
             recipient,
@@ -98,15 +96,12 @@ abstract contract ModuleFeeV2 is Ownable {
             unitPrice
         );
         
-        // in free mint context, variableFee will be 0 and baseFee may represent either ETH or ERC20
-        paidFee = baseFee + variableFee;
-        
         // for ETH context, accept funds only if the msg.value sent matches the FeeManager's calculation
         if (paymentToken == address(0x0)) {
             if (msg.value != paidFee) revert InvalidFee(paidFee, msg.value);
             // update eth fee balances, will revert if interactions fail
             ethTotalFeeBalance += paidFee;
         } 
-        // else{} ERC20 approval check with potential custom error to spell out exact error 
+        // todo else{} ERC20 approval check with potential custom error to spell out exact error 
     }
 }
