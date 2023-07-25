@@ -3,7 +3,6 @@ pragma solidity ^0.8.13;
 
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 import {FeeManager} from "./FeeManager.sol";
-import {StablecoinRegistry} from "./storage/StablecoinRegistry.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 /// @title Station Network Fee Manager Contract

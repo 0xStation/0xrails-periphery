@@ -9,7 +9,6 @@ import {ModuleGrant} from "src/lib/module/ModuleGrant.sol";
 import {ModuleFee} from "src/lib/module/ModuleFee.sol";
 // use SafeERC20: https://soliditydeveloper.com/safe-erc20
 import {SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
-import {IERC20 as IERC20Base} from "openzeppelin-contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 /// @notice Mint membership tokens when users pay a fixed amount of a stablecoin.
@@ -21,7 +20,7 @@ import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC
 /// will use the same price value and can never get out of sync. Deploy one instance
 /// of this module per currency, per chain (e.g. USD, EUR, BTC).
 contract StablecoinPurchaseModuleV2 is ModuleFee, ModuleSetup, ModuleGrant {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Metadata;
 
     struct Parameters {
         uint128 price;
@@ -175,7 +174,7 @@ contract StablecoinPurchaseModuleV2 is ModuleFee, ModuleSetup, ModuleGrant {
     }
 
     function mintPriceToStablecoinAmount(uint256 price, address stablecoin) public view returns (uint256) {
-        uint256 stablecoinDecimals = IERC20(stablecoin).decimals();
+        uint256 stablecoinDecimals = IERC20Metadata(stablecoin).decimals();
         if (stablecoinDecimals == decimals) {
             return price;
         } else if (stablecoinDecimals > decimals) {
@@ -288,7 +287,3 @@ contract StablecoinPurchaseModuleV2 is ModuleFee, ModuleSetup, ModuleGrant {
         return !_repealGrants[collection];
     }
 }
-
-// need base IERC20 for SafeERC20 to wrap
-// need IERC20Metadata for `decimals()`
-interface IERC20 is IERC20Base, IERC20Metadata {}

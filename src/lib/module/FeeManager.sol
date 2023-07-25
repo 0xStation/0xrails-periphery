@@ -35,6 +35,7 @@ contract FeeManager is Ownable {
 
     /// @dev Throws when supplied fees to be set are lower than the bpsDenominator to prevent Solidity rounding to 0
     error insufficientVariableFee();
+    error FeeCollectFailed();
 
     /*============
         EVENTS
