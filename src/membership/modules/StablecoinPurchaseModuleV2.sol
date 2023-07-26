@@ -22,6 +22,10 @@ import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC
 contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
     using SafeERC20 for IERC20Metadata;
 
+    /// @dev Struct of collection price data
+    /// @param price The price in ERC20 tokens set for a collection's mint
+    /// Max value of uint128 (~3.4e38) is several orders of magnitude larger than the current total supply of Ethereum (1.2e26 wei)
+    /// @param enabledCoins A bitmap of single byte keys that correspond to supported stablecoins
     struct Parameters {
         uint128 price;
         bytes16 enabledCoins;
@@ -31,19 +35,21 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         STORAGE
     =============*/
 
-    // decimals of precision for currency type
+    /// @dev Decimals of precision for this module's currency
     uint8 public immutable decimals;
     // currency type for this particular contract. (USD, EUR, etc.)
     string public currency;
-    // how many keys currently exist in map
+    /// @dev The total number of keys currently in bitmap, initialized to the number of default addresses in StablecoinRegistry
+    /// @notice This counter supports up to 255 stablecoin address keys in a bytes16 map
     uint8 public keyCounter;
-    // stablecoin address -> key in bitmap
+    /// @dev Mapping of stablecoin address => associated key in bitmap
     mapping(address => uint8) internal _keyOf;
-    // bitmap key -> stablecoin address
+    /// @dev Mapping of bitmap key => stablecoin address
     mapping(uint8 => address) internal _stablecoinOf;
-    // collection => mint parameters
+    /// @dev Mapping of each collection => mint parameters configuration
     mapping(address => Parameters) internal _parameters;
-    // TODO: pack collection config storage to one slot
+    /// @dev Mapping to show if a collection prevents or allows minting via signature grants, ie collection address => repealGrants
+    /// @notice Can improve gas efficiency here by using `uint 1 || 2` as opposed to `bool 0 || 1` due to repeated cold slot (ie 0) initialization costs
     mapping(address => bool) internal _repealGrants;
 
     /*============
@@ -65,6 +71,11 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         CONFIG
     ============*/
 
+    /// @param _owner The owner of the ModuleFeeV2, an address managed by Station Network
+    /// @param _feeManager The FeeManager module's address
+    /// @param _decimals The decimals value for this module's supported stablecoin payments
+    /// @param _currency The type of currency managed by this module
+    /// @param stablecoins An array of stablecoin addresses to initialize to state on deployment 
     constructor(address _owner, address _feeManager, uint8 _decimals, string memory _currency, address[] memory stablecoins)
         ModuleFeeV2(_owner, _feeManager)
     {
@@ -75,6 +86,8 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         }
     }
 
+    /// @dev Function to register new stablecoins when requested by clients
+    /// @param stablecoin The stablecoin token contract to register in the bitmap
     function register(address stablecoin) external onlyOwner returns (uint8 newKey) {
         return _register(stablecoin);
     }
@@ -87,16 +100,21 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         emit Register(stablecoin, newKey);
     }
 
+    /// @dev Function to check the bitmap key for a stablecoin
+    /// @param stablecoin The stablecoin address to query against the _keyOf storage mapping
     function keyOf(address stablecoin) public view returns (uint8 key) {
         key = _keyOf[stablecoin];
         require(key > 0, "STABLECOIN_NOT_REGISTERED");
     }
 
+    /// @dev Function to get the stablecoin contract address for a specific bitmap key
+    /// @param key The bitmap key to query against the _stablecoinOf storage mapping
     function stablecoinOf(uint8 key) public view returns (address stablecoin) {
         stablecoin = _stablecoinOf[key];
         require(stablecoin != address(0), "KEY_NOT_REGISTERED");
     }
 
+    /// @dev Function to get the entire set of stablecoins supported by this module
     function stablecoinOptions() public view returns (address[] memory stablecoins) {
         uint256 len = keyCounter;
         stablecoins = new address[](len);
@@ -109,6 +127,11 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         SET UP
     ============*/
 
+    /// @dev Function to set up and configure a new collection's purchase prices and payment options
+    /// @param collection The new collection to configure
+    /// @param stablecoinPrice The price in a stablecoin currency for this collection's mints
+    /// @param enabledCoins The stablecoin addresses to be supported for this collection's mints
+    /// @param enforceGrants A boolean to represent whether this collection will repeal or support grant functionality 
     function setUp(address collection, uint128 price, address[] memory enabledCoins, bool enforceGrants)
         external
         canSetUp(collection)
@@ -125,6 +148,8 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         ENABLED COINS
     ===================*/
 
+    /// @dev Function to get the enabled stablecoins of a collection
+    /// @param collection The collection for which stablecoins are enabled
     function enabledCoinsOf(address collection) external view returns (address[] memory stablecoins) {
         // cache state to save reads
         uint256 len = keyCounter;
@@ -146,6 +171,9 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         }
     }
 
+    /// @dev Function to check if a specific stablecoin is enabled for a collection. Reverts for unregistered stablecoins.
+    /// @param collection The collection to check against _collectionConfig storage mapping
+    /// @param stablecoin The stablecoin being queried against the provided collection address
     function stablecoinEnabled(address collection, address stablecoin) external view returns (bool) {
         return _stablecoinEnabled(_parameters[collection].enabledCoins, stablecoin);
     }
@@ -154,6 +182,8 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         return (enabledCoins & _keyBitOf(stablecoin)) > 0;
     }
 
+    /// @dev Internal function to process an array of stablecoin addresses into a packed 16 byte bitmap of their corresponding keys
+    /// @param stablecoins The stablecoin addresses to process
     function _enabledCoinsValue(address[] memory stablecoins) internal view returns (bytes16 value) {
         for (uint256 i; i < stablecoins.length; i++) {
             value |= _keyBitOf(stablecoins[i]);
@@ -168,11 +198,16 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         PURCHASE PRICE
     ====================*/
 
+    /// @dev Function to get the configuration of a collection, incl free mint boolean, ETH price, stablecoin price, and enabled stablecoins
+    /// @param collection The collection to query against _parameters storage mapping
     function priceOf(address collection) external view returns (uint128 price) {
         price = _parameters[collection].price;
         require(price > 0, "NO_PRICE");
     }
 
+    /// @dev Function to handle decimal precision variation between stablecoin implementations
+    /// @param price The desired stablecoin price to be checked against ERC20 decimals() and formatted if needed
+    /// @param stablecoin The stablecoin implementation to which to conform
     function mintPriceToStablecoinAmount(uint256 price, address stablecoin) public view returns (uint256) {
         uint256 stablecoinDecimals = IERC20Metadata(stablecoin).decimals();
         if (stablecoinDecimals == decimals) {
@@ -198,10 +233,12 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         MINT
     ==========*/
 
+    /// @dev Function to mint a single collection token to the caller, ie a user
     function mint(address collection, address paymentCoin) external payable returns (uint256 tokenId) {
         (tokenId,) = _batchMint(collection, paymentCoin, msg.sender, 1);
     }
 
+    /// @dev Function to mint a single collection token to a specified recipient
     function mintTo(address collection, address paymentCoin, address recipient)
         external
         payable
@@ -210,6 +247,7 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         (tokenId,) = _batchMint(collection, paymentCoin, recipient, 1);
     }
 
+    /// @dev Function to mint collection tokens in batches to the caller, ie a user
     /// @notice returned tokenId range is inclusive
     function batchMint(address collection, address paymentCoin, uint256 amount)
         external
@@ -219,6 +257,7 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         return _batchMint(collection, paymentCoin, msg.sender, amount);
     }
 
+    /// @dev Function to mint collection tokens in batches to a specified recipient
     /// @notice returned tokenId range is inclusive
     function batchMintTo(address collection, address paymentCoin, address recipient, uint256 amount)
         external
@@ -228,6 +267,11 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         return _batchMint(collection, paymentCoin, recipient, amount);
     }
 
+    /// @dev Internal function to which all external user + client facing mint functions are routed. Handles free / ETH / ERC20 mints.
+    /// @param collection The token collection to mint from
+    /// @param paymentCoin The stablecoin address being used for payment
+    /// @param recipient The recipient of successfully minted tokens
+    /// @param amount The amount of tokens to mint  
     /// @notice returned tokenId range is inclusive
     function _batchMint(address collection, address paymentCoin, address recipient, uint256 amount)
         internal
