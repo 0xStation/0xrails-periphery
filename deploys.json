@@ -14,7 +14,7 @@
   },
   "5": {
     "Renderer": "0xf8A31352e237af670D5DC6e9b75a4401A37BaD0E",
-    "Membership": "0xfc6eea2467f921c66063c8e2adb193c44299e869",
+    "Membership": "0x7B9e83E1Fc68378a9FA9e4FFE2ff47318f1ECcfb",
     "PublicFreeMintModule": "0x3B8f78cBFb54eB71DE88a17227E188BEbeA0BcE7",
     "FixedStablecoinPurchaseModule": "0x9c4969e1c585491ac5382eeeb9bc9668f8a5788c",
     "modules": {
@@ -29,6 +29,7 @@
     },
     "guards": {
       "onePerAddress": "0xfD54A7a9E5df54872b07df99893CCD474C8f2b53"
-    }
+    },
+    "Badge": "0x7a956c4e5ca6a2be7a3116615339d46b76502692"
   }
 }
