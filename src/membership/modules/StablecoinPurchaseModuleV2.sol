@@ -6,7 +6,7 @@ import {Permissions} from "src/lib/Permissions.sol";
 // module utils
 import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
 import {ModuleGrant} from "src/lib/module/ModuleGrant.sol";
-import {ModuleFee} from "src/lib/module/ModuleFee.sol";
+import {ModuleFeeV2} from "src/lib/module/ModuleFeeV2.sol";
 // use SafeERC20: https://soliditydeveloper.com/safe-erc20
 import {SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -19,7 +19,7 @@ import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC
 /// constant G(1) gas complexity. Additionally, it is guaranteed that all stablecoins
 /// will use the same price value and can never get out of sync. Deploy one instance
 /// of this module per currency, per chain (e.g. USD, EUR, BTC).
-contract StablecoinPurchaseModuleV2 is ModuleFee, ModuleSetup, ModuleGrant {
+contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
     using SafeERC20 for IERC20Metadata;
 
     struct Parameters {
@@ -65,8 +65,8 @@ contract StablecoinPurchaseModuleV2 is ModuleFee, ModuleSetup, ModuleGrant {
         CONFIG
     ============*/
 
-    constructor(address _owner, uint256 _fee, uint8 _decimals, string memory _currency, address[] memory stablecoins)
-        ModuleFee(_owner, _fee)
+    constructor(address _owner, address _feeManager, uint8 _decimals, string memory _currency, address[] memory stablecoins)
+        ModuleFeeV2(_owner, _feeManager)
     {
         decimals = _decimals;
         currency = _currency;
@@ -241,17 +241,22 @@ contract StablecoinPurchaseModuleV2 is ModuleFee, ModuleSetup, ModuleGrant {
         uint256 totalCost = mintPriceToStablecoinAmount(params.price * amount, paymentCoin);
 
         // take total incl fee
-        uint256 paidFee = _registerFeeBatch(amount);
+        uint256 paidFee = _registerFeeBatch(
+            collection,
+            paymentCoin,
+            recipient,
+            amount,
+            params.price
+        );
 
-        // transfer payment
-        address paymentCollector = IMembership(collection).paymentCollector();
+        // collect fees and then forward subtotal; approval must have been made prior to top-level mint call;
+        IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, address(this), paidFee - totalCost);        address paymentCollector = IMembership(collection).paymentCollector();
         // prevent accidentally unset payment collector
         require(paymentCollector != address(0), "MISSING_PAYMENT_COLLECTOR");
-        // collect fees and then forward subtotal; approval must have been made prior to top-level mint call;
-        IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, address(this), paidFee - totalCost);
-        // use SafeERC20 for covering USDT no-return and other transfer issues
+        // transfer remaining payment to collector using SafeERC20 for covering USDT no-return and other transfer issues
         IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, paymentCollector, totalCost);
 
+        // perform batch mint
         for (uint256 i; i < amount; i++) {
             // mint token
             (uint256 tokenId) = IMembership(collection).mintTo(recipient);
