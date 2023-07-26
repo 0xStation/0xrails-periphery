@@ -11,7 +11,7 @@ import {ModuleFeeV2} from "src/lib/module/ModuleFeeV2.sol";
 import {SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-/// @notice Mint membership tokens when users pay a fixed amount of a stablecoin.
+/// @title Station Network StablecoinPurchaseModuleV2 Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg)
 /// @notice Mint membership tokens when users pay a fixed amount of a stablecoin
 /// @dev Storage is designed to minimize costs for accepting multiple stablecoins as
@@ -19,6 +19,7 @@ import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC
 /// constant G(1) gas complexity. Additionally, it is guaranteed that all stablecoins
 /// will use the same price value and can never get out of sync. Deploy one instance
 /// of this module per currency, per chain (e.g. USD, EUR, BTC).
+
 contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
     using SafeERC20 for IERC20Metadata;
 
@@ -129,7 +130,7 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
 
     /// @dev Function to set up and configure a new collection's purchase prices and payment options
     /// @param collection The new collection to configure
-    /// @param stablecoinPrice The price in a stablecoin currency for this collection's mints
+    /// @param price The price in a stablecoin currency for this collection's mints
     /// @param enabledCoins The stablecoin addresses to be supported for this collection's mints
     /// @param enforceGrants A boolean to represent whether this collection will repeal or support grant functionality 
     function setUp(address collection, uint128 price, address[] memory enabledCoins, bool enforceGrants)
@@ -198,7 +199,7 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         PURCHASE PRICE
     ====================*/
 
-    /// @dev Function to get the configuration of a collection, incl free mint boolean, ETH price, stablecoin price, and enabled stablecoins
+    /// @dev Function to get the configuration of a collection, incl stablecoin price and enabled stablecoins
     /// @param collection The collection to query against _parameters storage mapping
     function priceOf(address collection) external view returns (uint128 price) {
         price = _parameters[collection].price;
@@ -267,7 +268,7 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         return _batchMint(collection, paymentCoin, recipient, amount);
     }
 
-    /// @dev Internal function to which all external user + client facing mint functions are routed. Handles free / ETH / ERC20 mints.
+    /// @dev Internal function to which all external user + client facing mint functions are routed.
     /// @param collection The token collection to mint from
     /// @param paymentCoin The stablecoin address being used for payment
     /// @param recipient The recipient of successfully minted tokens
