@@ -15,11 +15,16 @@ import {ModuleFee} from "./ModuleFee.sol";
 contract FeeManager is Ownable {
 
     /// @dev Struct of fee data, including both the base and variable fees
+    /// @param zeroFee A quasi-Boolean value indicating whether the collection is a free mint. 1 represents `false` and 2 represents `true`
+    /// 8 byte unsigned integers 1 || 2 are utilized instead of 0 || 1 for two reasons: 
+    /// 1. Provide a quantifiable, nonzero indication that a collection exists and has been registered with Station by an authorized Module
+    /// 2. Save gas on initialization costs when setting a cold storage slot from 0 to 1. Can also be packed if need for future struct members arises
     /// @param baseFee The flat fee charged by Station Network on a per item basis
     /// @param variableFee The variable fee (in BPS) charged by Station Network on volume basis
     /// Accounts for each item's cost and total amount of items
 
     struct Fees {
+        uint8 zeroFee;
         uint128 baseFee;
         uint128 variableFee;
     }
@@ -29,7 +34,7 @@ contract FeeManager is Ownable {
     ============*/
 
     /// @dev Throws when supplied fees to be set are lower than the bpsDenominator to prevent Solidity rounding to 0
-    error insufficientVariableFee();
+    error InsufficientVariableFee();
     error FeeCollectFailed();
 
     /*============
@@ -65,6 +70,11 @@ contract FeeManager is Ownable {
     /// @param _baselineFees The initialization of baseline fees for all token addresses that have not (yet) been given defaults
     /// @param _ethDefaultFees The initialization of ETH (or MATIC etc)'s default fees in wei
     constructor(address _newOwner, Fees memory _baselineFees, Fees memory _ethDefaultFees) {
+        require(
+            (_baselineFees.zeroFee == 1 || _baselineFees.zeroFee == 2)
+            && (_ethDefaultFees.zeroFee == 1 || _ethDefaultFees.zeroFee == 2), 
+            "INVALID_ZEROFEE_BOOL"
+        );
         baselineFees = _baselineFees;
         _isSufficientVariableFee(_ethDefaultFees);
         defaultFees[address(0x0)] = _ethDefaultFees;
@@ -77,6 +87,7 @@ contract FeeManager is Ownable {
     /// @param token The token for which to set new base and variable fees
     /// @param newDefaultFees The new Fees struct to set in storage
     function setDefaultFees(address token, Fees calldata newDefaultFees) external onlyOwner {
+        require(newDefaultFees.zeroFee == 1 || newDefaultFees.zeroFee == 2, "INVALID_ZEROFEE_BOOL");
         _isSufficientVariableFee(newDefaultFees);
         defaultFees[token] = newDefaultFees;
     }
@@ -86,6 +97,7 @@ contract FeeManager is Ownable {
     /// @param token The token for which to set new base and variable fees
     /// @param newOverrideFees The new Fees struct to set in storage
     function setOverrideFees(address collection, address token, Fees calldata newOverrideFees) external onlyOwner {
+        require(newOverrideFees.zeroFee == 1 || newOverrideFees.zeroFee == 2, "INVALID_ZEROFEE_BOOL");
         _isSufficientVariableFee(newOverrideFees);
         overrideFees[collection][token] = newOverrideFees;
     }
@@ -94,7 +106,7 @@ contract FeeManager is Ownable {
     /// @dev Prevents Solidity's arithmetic functionality from rounding a nonzero fee value to zero when not desired
     function _isSufficientVariableFee(Fees memory newFees) internal pure {
         // prevent Solidity arithmetic rounding to 0 when not intended
-        if (newFees.variableFee != 0 && newFees.variableFee < bpsDenominator) revert insufficientVariableFee();
+        if (newFees.variableFee != 0 && newFees.variableFee < bpsDenominator) revert InsufficientVariableFee();
     }
 
     /*============
@@ -170,15 +182,16 @@ contract FeeManager is Ownable {
     ) internal view returns (Fees memory existingFees) {
         // cache storage struct in memory to save SLOAD reads
         Fees memory overrides = overrideFees[_collection][_token];
-        // check for any existing fee overrides, returning defaults if none are set
-        bool overridesExist = overrides.baseFee != 0 || overrides.variableFee != 0;
-       
-        if (overridesExist) {
-            existingFees = overrides;
+
+        // check if zeroFee is set, indicating existing fee overrides or defaults, otherwise return baseline fees
+        bool overridesExist = overrides.zeroFee != 0;
+
+        if (overridesExist) { 
+            existingFees = overrides; 
         } else {
             Fees memory defaults = defaultFees[_token];
-            bool defaultsExist = defaults.baseFee != 0 || defaults.variableFee != 0;
-           
+            bool defaultsExist = defaults.zeroFee != 0;
+
             if (defaultsExist) {
                 existingFees = defaults;
             } else existingFees = baselineFees;
