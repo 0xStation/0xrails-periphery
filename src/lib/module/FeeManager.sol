@@ -134,15 +134,6 @@ contract FeeManager is Ownable {
 
         // check if being called in free mint context, which results in only ETH base fee
         if (unitPrice == 0) {
-            (uint256 baseFeeTotal,) = _calculateFees(
-                existingFees.baseFee,
-                existingFees.variableFee,
-                quantity,
-                0
-            );
-            return baseFeeTotal;
-        } else {
-        // otherwise agnostically calculate fees
             (uint256 baseFeeTotal, uint256 variableFeeTotal) =  _calculateFees(
                 existingFees.baseFee, 
                 existingFees.variableFee, 
