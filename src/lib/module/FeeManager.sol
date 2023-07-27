@@ -41,7 +41,9 @@ contract FeeManager is Ownable {
         EVENTS
     ============*/
 
-    event FeeUpdated(Fees);
+    event BaselineFeeUpdated(Fees fees);
+    event DefaultFeeUpdated(address indexed token, Fees fees);
+    event OverrideFeeUpdated(address indexed collection, address indexed token, Fees fees);
 
     /*=============
         STORAGE
@@ -53,10 +55,10 @@ contract FeeManager is Ownable {
 
     /// @dev Baseline fee struct that serves as a stand in for all token addresses that have been registered
     /// in a stablecoin purchase module but not had their default fees set
-    Fees baselineFees;
+    Fees public baselineFees;
 
     /// @dev Mapping that stores default fees associated with a given token address
-    mapping (address => Fees) public defaultFees;
+    mapping (address => Fees) internal defaultFees;
 
     /// @dev Mapping that stores override fees associated with specific collections, ie for discounts
     mapping (address => mapping (address => Fees)) internal overrideFees;
@@ -79,8 +81,21 @@ contract FeeManager is Ownable {
         _isSufficientVariableFee(_ethDefaultFees);
         defaultFees[address(0x0)] = _ethDefaultFees;
         _transferOwnership(_newOwner);
+
+        emit BaselineFeeUpdated(_baselineFees);
+        emit DefaultFeeUpdated(address(0x0), _ethDefaultFees);
     }
 
+
+    /// @dev Function to set baseline base and variable fees across all collections without specified defaults
+    /// @dev Only callable by contract owner, an address managed by Station
+    /// @param newBaselineFees The new Fees struct to set in storage
+    function setBaselineFees(Fees memory newBaselineFees) external onlyOwner {
+        require(newBaselineFees.zeroFee == 1 || newBaselineFees.zeroFee == 2, "INVALID_ZEROFEE_BOOL");
+        baselineFees = newBaselineFees;
+
+        emit BaselineFeeUpdated(newBaselineFees);
+    }
 
     /// @dev Function to set default base and variable fees across all collections without specified overrides
     /// @dev Only callable by contract owner, an address managed by Station
@@ -90,6 +105,8 @@ contract FeeManager is Ownable {
         require(newDefaultFees.zeroFee == 1 || newDefaultFees.zeroFee == 2, "INVALID_ZEROFEE_BOOL");
         _isSufficientVariableFee(newDefaultFees);
         defaultFees[token] = newDefaultFees;
+
+        emit DefaultFeeUpdated(token, newDefaultFees);
     }
 
     /// @dev Function to set override base and variable fees on a per-collection basis
@@ -100,6 +117,8 @@ contract FeeManager is Ownable {
         require(newOverrideFees.zeroFee == 1 || newOverrideFees.zeroFee == 2, "INVALID_ZEROFEE_BOOL");
         _isSufficientVariableFee(newOverrideFees);
         overrideFees[collection][token] = newOverrideFees;
+
+        emit OverrideFeeUpdated(collection, token, newOverrideFees);
     }
 
     /// @dev Reverts fee updates when variableFees are nonzero but less than the bpsDenominator constant.
@@ -142,6 +161,21 @@ contract FeeManager is Ownable {
             );
             return baseFeeTotal + variableFeeTotal;
         }
+    }
+
+    /// @dev Function to get default fees for a token if they have been set
+    /// @param token The token address to query against defaultFees mapping
+    function getDefaultFees(address token) public view returns (Fees memory tokenDefaults) {
+        tokenDefaults = defaultFees[token];
+        require(tokenDefaults.zeroFee != 0, "UNSUPPORTED_TOKEN");
+    }
+
+    /// @dev Function to get override fees for a collection and token if they have been set
+    /// @param collection The collection address to query against overrideFees mapping
+    /// @param token The token address to query against overrideFees mapping
+    function getOverrideFees(address collection, address token) public view returns (Fees memory overrides) {
+        overrides = overrideFees[collection][token];
+        require(overrides.zeroFee != 0, "UNSET_OVERRIDES");
     }
 
     /*============
