@@ -30,15 +30,6 @@ contract EthPurchaseModuleV2 is ModuleGrant, ModuleFeeV2, ModuleSetup {
     ============*/
 
     event SetUp(address indexed collection, uint256 price, bool indexed enforceGrants);
-    event Purchase(address indexed collection, address indexed buyer, uint256 price, uint256 fee);
-    event BatchPurchase(
-        address indexed collection,
-        address indexed recipient,
-        address indexed paymentCoin,
-        uint256 unitPrice,
-        uint256 unitFee,
-        uint256 units
-    );
 
     /*============
         CONFIG
@@ -120,7 +111,7 @@ contract EthPurchaseModuleV2 is ModuleGrant, ModuleFeeV2, ModuleSetup {
         uint256 price = priceOf(collection);
 
         // get total invoice incl fees and register to ModuleFeeV2 storage
-        uint256 paidFee = _registerFee(
+        _registerFee(
             collection, 
             address(0x0), 
             recipient, 
@@ -133,7 +124,6 @@ contract EthPurchaseModuleV2 is ModuleGrant, ModuleFeeV2, ModuleSetup {
         require(success, "PAYMENT_FAIL");
 
         tokenId = IMembership(collection).mintTo(recipient);
-        emit Purchase(collection, recipient, price, paidFee);
     }
 
     /// @dev Internal function to which all external user + client facing batchMint functions are routed.
@@ -152,7 +142,7 @@ contract EthPurchaseModuleV2 is ModuleGrant, ModuleFeeV2, ModuleSetup {
         uint256 price = priceOf(collection);
 
         // take fee and register to ModuleFeeV2 storage
-        uint256 paidFee = _registerFeeBatch(
+        _registerFeeBatch(
             collection,
             address(0x0),
             recipient,
@@ -176,8 +166,6 @@ contract EthPurchaseModuleV2 is ModuleGrant, ModuleFeeV2, ModuleSetup {
                 startTokenId = tokenId;
             }
         }
-
-        emit BatchPurchase(collection, recipient, address(0x0), price, paidFee / amount, amount);
 
         return (startTokenId, startTokenId + amount - 1); // purely inclusive set
     }

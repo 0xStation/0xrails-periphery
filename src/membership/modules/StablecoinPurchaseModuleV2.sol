@@ -59,14 +59,6 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
 
     event Register(address indexed stablecoin, uint8 indexed key);
     event SetUp(address indexed collection, uint128 price, address[] enabledCoins, bool indexed enforceGrants);
-    event Purchase(
-        address indexed collection,
-        address indexed recipient,
-        address indexed paymentCoin,
-        uint256 unitPrice,
-        uint256 unitFee,
-        uint256 units
-    );
 
     /*============
         CONFIG
@@ -312,8 +304,6 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
                 startTokenId = tokenId;
             }
         }
-
-        emit Purchase(collection, recipient, paymentCoin, params.price, paidFee / amount, amount);
 
         return (startTokenId, startTokenId + amount - 1); // purely inclusive set
     }

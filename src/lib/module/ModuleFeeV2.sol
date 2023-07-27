@@ -26,6 +26,14 @@ abstract contract ModuleFeeV2 is Ownable {
     ============*/
 
     event WithdrawFee(address indexed recipient, uint256 amount);
+    event Purchase(
+        address indexed collection,
+        address indexed buyer,
+        address indexed paymentToken,
+        uint256 unitPrice,
+        uint256 units,
+        uint256 totalFee
+    );
 
     /*=============
         STORAGE
@@ -103,5 +111,7 @@ abstract contract ModuleFeeV2 is Ownable {
             // update eth fee balances, will revert if interactions fail
             ethTotalFeeBalance += fees;
         }
+
+        emit Purchase(collection, recipient, paymentToken, unitPrice, quantity, totalWithFees);
     }
 }

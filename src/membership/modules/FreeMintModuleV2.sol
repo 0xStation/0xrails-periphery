@@ -28,14 +28,6 @@ contract FreeMintModuleV2 is ModuleSetup, ModuleGrant, ModuleFeeV2 {
 
     event SetUp(address indexed collection, bool indexed enforceGrants);
     event Mint(address indexed collection, address indexed recipient, uint256 fee);
-    event Purchase(
-        address indexed collection,
-        address indexed recipient,
-        address indexed paymentCoin,
-        uint256 unitPrice,
-        uint256 unitFee,
-        uint256 units
-    );
 
     /*============
         CONFIG
@@ -119,7 +111,7 @@ contract FreeMintModuleV2 is ModuleSetup, ModuleGrant, ModuleFeeV2 {
             require(amount > 0, "ZERO_AMOUNT");
 
             // take baseFee (variableFee == 0 when price == 0)
-            uint256 paidFee = _registerFeeBatch(
+            _registerFeeBatch(
                 collection,
                 address(0x0),
                 recipient,
@@ -138,8 +130,6 @@ contract FreeMintModuleV2 is ModuleSetup, ModuleGrant, ModuleFeeV2 {
                     startTokenId = tokenId;
                 }
             }
-
-            emit Purchase(collection, recipient, address(0x0), 0, paidFee / amount, amount);
 
             return (startTokenId, startTokenId + amount - 1); // purely inclusive set
         }
