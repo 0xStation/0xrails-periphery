@@ -46,6 +46,10 @@ contract FeeManager is Ownable {
     /// @dev Not actually kept in storage as it is marked `constant`, saving gas by putting its value in contract bytecode instead
     uint256 constant private bpsDenominator = 10_000;
 
+    /// @dev Baseline fee struct that serves as a stand in for all token addresses that have been registered
+    /// in a stablecoin purchase module but not had their default fees set
+    Fees baselineFees;
+
     /// @dev Mapping that stores default fees associated with a given token address
     mapping (address => Fees) public defaultFees;
 
@@ -57,13 +61,16 @@ contract FeeManager is Ownable {
     =================*/
 
     /// @notice Constructor will be deprecated in favor of an initialize() UUPS proxy call once logic is finalized & approved
-    /// @param newOwner The initialization of the contract's owner address, managed by Station
-    /// @param ethDefaultFees The initialization of ETH (or MATIC etc)'s default fees in wei, since most collections will support
-    constructor(address newOwner, Fees memory ethDefaultFees) {
-        _isSufficientVariableFee(ethDefaultFees);
-        defaultFees[address(0x0)] = ethDefaultFees;
-        _transferOwnership(newOwner);
+    /// @param _newOwner The initialization of the contract's owner address, managed by Station
+    /// @param _baselineFees The initialization of baseline fees for all token addresses that have not (yet) been given defaults
+    /// @param _ethDefaultFees The initialization of ETH (or MATIC etc)'s default fees in wei
+    constructor(address _newOwner, Fees memory _baselineFees, Fees memory _ethDefaultFees) {
+        baselineFees = _baselineFees;
+        _isSufficientVariableFee(_ethDefaultFees);
+        defaultFees[address(0x0)] = _ethDefaultFees;
+        _transferOwnership(_newOwner);
     }
+
 
     /// @dev Function to set default base and variable fees across all collections without specified overrides
     /// @dev Only callable by contract owner, an address managed by Station
@@ -111,7 +118,7 @@ contract FeeManager is Ownable {
         // todo handle recipient discounts for individual users holding a collection NFT
         
         // get existing fees, first checking for override fees or discounts if they have already been set
-        Fees memory existingFees = _checkOverrideFees(paymentToken, collection);
+        Fees memory existingFees = _checkOverrideFees(collection, paymentToken);
 
         // check if being called in free mint context, which results in only ETH base fee
         if (unitPrice == 0) {
@@ -155,7 +162,8 @@ contract FeeManager is Ownable {
         variableFeeTotal = unitPrice * quantity * variableFee / bpsDenominator;
     }
 
-    /// @dev Function to evaluate whether override fees have been set for a specific collection and token
+    /// @dev Function to evaluate whether override fees have been set for a specific collection 
+    /// and whether default fees have been set for the given token
     function _checkOverrideFees(
         address _collection,
         address _token
@@ -164,11 +172,16 @@ contract FeeManager is Ownable {
         Fees memory overrides = overrideFees[_collection][_token];
         // check for any existing fee overrides, returning defaults if none are set
         bool overridesExist = overrides.baseFee != 0 || overrides.variableFee != 0;
-        
+       
         if (overridesExist) {
             existingFees = overrides;
-        } else { 
-            existingFees = defaultFees[_token];
+        } else {
+            Fees memory defaults = defaultFees[_token];
+            bool defaultsExist = defaults.baseFee != 0 || defaults.variableFee != 0;
+           
+            if (defaultsExist) {
+                existingFees = defaults;
+            } else existingFees = baselineFees;
         }
     }
 }
