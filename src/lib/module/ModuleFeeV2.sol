@@ -41,7 +41,7 @@ abstract contract ModuleFeeV2 is Ownable {
 
     /// @dev Address of the deployed FeeManager contract which stores state for all collections' fee information
     /// @dev The FeeManager serves a Singleton role as central fee ledger for modules to read from
-    address immutable internal feeManager;
+    address internal feeManager;
 
     /// @dev The balance recordkeeping for the specific child contract that inherits from this module
     /// @dev Accounts for the sum of both baseFee and variableFee, which are set in the FeeManager
@@ -56,6 +56,12 @@ abstract contract ModuleFeeV2 is Ownable {
     constructor(address _newOwner, address _feeManager) {
         _transferOwnership(_newOwner);
         feeManager = _feeManager;
+    }
+
+    /// @dev Function to set a new FeeManager
+    /// @param newFeeManager The new FeeManager address to write to storage
+    function setNewFeeManager(address newFeeManager) external onlyOwner {
+        feeManager = newFeeManager;
     }
 
     /// @dev Function to withdraw the total balances of accrued base and variable eth fees collected from mints
