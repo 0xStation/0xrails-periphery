@@ -21,7 +21,10 @@
       "FreeMintModule": "0xD429e7618fda0B681D0037938EbD4Bf24BfCe9eD",
       "FreeMintModuleV2": "0x37cdd35d650c3f88c1e2f011a2d9ffe295f23132",
       "EthPurchaseModuleV2": "0xf025fef0226c9c1fc04c11011f57c5e8f2401d18",
-      "StablecoinPurchaseModuleV2": "0xe0140656b9663FADf58f713bD7cEbA9893Cb392A"
+      "StablecoinPurchaseModuleV2": "0xe0140656b9663FADf58f713bD7cEbA9893Cb392A",
+      "FreeMintModuleV3": "0x652f11c934197894c7ff0d988b4ac312c8dc6981",
+      "GasCoinPurchaseModuleV3": "0xd83c2bc7dfa5d570b0154625ee5f937c2da89595",
+      "StablecoinPurchaseModuleV3": "0x8dd7b5d3c221709069a7d8b2bd7944b8c1a74cd9"
     },
     "partners": {
       "Polygon d.Camp (TEST)": "0xca577A1Ae910B0020c5923d8B30560C509c1Ff07",
