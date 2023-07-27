@@ -9,12 +9,12 @@ import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
 import {ModuleGrant} from "src/lib/module/ModuleGrant.sol";
 import {ModuleFeeV2} from "src/lib/module/ModuleFeeV2.sol";
 
-/// @title Station Network EthPurchaseModuleV2 Contract
+/// @title Station Network GasCoinPurchaseModuleV2 Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg), 👦🏻👦🏻.eth
 /// @dev Provides a modular contract to handle collections who wish for their membership mints to be 
 /// paid in the native currency of the chain this contract is deployed to
 
-contract EthPurchaseModuleV2 is ModuleGrant, ModuleFeeV2, ModuleSetup {
+contract GasCoinPurchaseModuleV4 is ModuleGrant, ModuleFeeV2, ModuleSetup {
 
     /*=============
         STORAGE

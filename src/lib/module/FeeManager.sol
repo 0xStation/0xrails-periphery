@@ -33,8 +33,6 @@ contract FeeManager is Ownable {
         ERRORS
     ============*/
 
-    /// @dev Throws when supplied fees to be set are lower than the bpsDenominator to prevent Solidity rounding to 0
-    error InsufficientVariableFee();
     error FeeCollectFailed();
 
     /*============
@@ -78,8 +76,8 @@ contract FeeManager is Ownable {
             "INVALID_ZEROFEE_BOOL"
         );
         baselineFees = _baselineFees;
-        _isSufficientVariableFee(_ethDefaultFees);
         defaultFees[address(0x0)] = _ethDefaultFees;
+
         _transferOwnership(_newOwner);
 
         emit BaselineFeeUpdated(_baselineFees);
@@ -103,7 +101,6 @@ contract FeeManager is Ownable {
     /// @param newDefaultFees The new Fees struct to set in storage
     function setDefaultFees(address token, Fees calldata newDefaultFees) external onlyOwner {
         require(newDefaultFees.zeroFee == 1 || newDefaultFees.zeroFee == 2, "INVALID_ZEROFEE_BOOL");
-        _isSufficientVariableFee(newDefaultFees);
         defaultFees[token] = newDefaultFees;
 
         emit DefaultFeeUpdated(token, newDefaultFees);
@@ -115,17 +112,9 @@ contract FeeManager is Ownable {
     /// @param newOverrideFees The new Fees struct to set in storage
     function setOverrideFees(address collection, address token, Fees calldata newOverrideFees) external onlyOwner {
         require(newOverrideFees.zeroFee == 1 || newOverrideFees.zeroFee == 2, "INVALID_ZEROFEE_BOOL");
-        _isSufficientVariableFee(newOverrideFees);
         overrideFees[collection][token] = newOverrideFees;
 
         emit OverrideFeeUpdated(collection, token, newOverrideFees);
-    }
-
-    /// @dev Reverts fee updates when variableFees are nonzero but less than the bpsDenominator constant.
-    /// @dev Prevents Solidity's arithmetic functionality from rounding a nonzero fee value to zero when not desired
-    function _isSufficientVariableFee(Fees memory newFees) internal pure {
-        // prevent Solidity arithmetic rounding to 0 when not intended
-        if (newFees.variableFee != 0 && newFees.variableFee < bpsDenominator) revert InsufficientVariableFee();
     }
 
     /*============
