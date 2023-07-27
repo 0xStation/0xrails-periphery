@@ -64,43 +64,44 @@ abstract contract ModuleFeeV2 is Ownable {
     }
 
     /// @dev Function to update the feeBalance in storage when minting a single item
-    /// @param collection The token collection to mint from
-    /// @param paymentToken The token address being used for payment
-    /// @param recipient The recipient of successfully minted tokens
-    /// @param unitPrice The price per token to mint
     function _registerFee(
         address collection, 
         address paymentToken, 
         address recipient,
         uint256 unitPrice
-    ) internal returns (uint256 paidFee) {
+    ) internal returns (uint256 totalWithFees) {
         return _registerFeeBatch(collection, paymentToken, recipient, 1, unitPrice);
     }
 
     /// @dev Function to update the feeBalance in storage when fees are paid to this module in ETH
     /// @dev Called only by child contracts inheriting this one
-    /// @param n The number of items being minted, used to calculate the total fee payment required
+    /// @param collection The token collection to mint from
+    /// @param paymentToken The token address being used for payment
+    /// @param recipient The recipient of successfully minted tokens
+    /// @param quantity The number of items being minted, used to calculate the total fee payment required
+    /// @param unitPrice The price per token to mint
     function _registerFeeBatch(
         address collection, 
         address paymentToken, 
         address recipient, 
-        uint256 n,
+        uint256 quantity,
         uint256 unitPrice
-    ) internal returns (uint256 paidFee) {        
+    ) internal returns (uint256 totalWithFees) {        
         // feeTotal is handled as either ETH or ERC20 stablecoin payment accordingly by FeeManager
-        paidFee = FeeManager(feeManager).getFeeTotals(
+        totalWithFees = FeeManager(feeManager).getFeeTotals(
             collection, 
             paymentToken,
             recipient,
-            n, 
+            quantity, 
             unitPrice
         );
         
         // for ETH context, accept funds only if the msg.value sent matches the FeeManager's calculation
         if (paymentToken == address(0x0)) {
-            if (msg.value != paidFee) revert InvalidFee(paidFee, msg.value);
+            if (msg.value != totalWithFees) revert InvalidFee(totalWithFees, msg.value);
+            uint256 fees = totalWithFees - (quantity * unitPrice);
             // update eth fee balances, will revert if interactions fail
-            ethTotalFeeBalance += paidFee;
+            ethTotalFeeBalance += fees;
         }
     }
 }
