@@ -26,15 +26,15 @@ contract FeeManager is Ownable {
 
 
     /// @dev Struct of fee data, including FeeSetting enum and both base and variable fees, all packed into 1 slot
-    /// Since `type(uint112).max` ~= 5.2e33, it suffices for fees of up to 5.2e15 ETH or ERC20 tokens, far beyond realistic scenarios.
+    /// Since `type(uint120).max` ~= 1.3e36, it suffices for fees of up to 1.3e18 ETH or ERC20 tokens, far beyond realistic scenarios.
     /// @param setting FeeSetting enum indicating whether the collection is a free mint
     /// @param baseFee The flat fee charged by Station Network on a per item basis
     /// @param variableFee The variable fee (in BPS) charged by Station Network on volume basis
     /// Accounts for each item's cost and total amount of items
     struct Fees {
         FeeSetting setting;
-        uint112 baseFee;
-        uint112 variableFee;
+        uint120 baseFee;
+        uint120 variableFee;
     }
 
     /*============
