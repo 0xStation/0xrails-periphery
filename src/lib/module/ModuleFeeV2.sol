@@ -100,9 +100,9 @@ abstract contract ModuleFeeV2 is Ownable {
         address recipient, 
         uint256 quantity,
         uint256 unitPrice
-    ) internal returns (uint256 totalWithFees) {        
+    ) internal returns (uint256 paidFee) {        
         // feeTotal is handled as either ETH or ERC20 stablecoin payment accordingly by FeeManager
-        totalWithFees = FeeManager(feeManager).getFeeTotals(
+        paidFee = FeeManager(feeManager).getFeeTotals(
             collection, 
             paymentToken,
             recipient,
@@ -112,12 +112,12 @@ abstract contract ModuleFeeV2 is Ownable {
         
         // for ETH context, accept funds only if the msg.value sent matches the FeeManager's calculation
         if (paymentToken == address(0x0)) {
-            if (msg.value != totalWithFees) revert InvalidFee(totalWithFees, msg.value);
-            uint256 fees = totalWithFees - (quantity * unitPrice);
+            uint256 total = quantity * unitPrice + paidFee;
+            if (msg.value != total) revert InvalidFee(total, msg.value);
             // update eth fee balances, will revert if interactions fail
-            ethTotalFeeBalance += fees;
+            ethTotalFeeBalance += paidFee;
         }
 
-        emit Purchase(collection, recipient, paymentToken, unitPrice, quantity, totalWithFees);
+        emit Purchase(collection, recipient, paymentToken, unitPrice, quantity, paidFee);
     }
 }

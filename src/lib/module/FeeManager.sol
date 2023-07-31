@@ -135,12 +135,12 @@ contract FeeManager is Ownable {
         uint256 quantity, 
         uint256 unitPrice
     ) external view returns (uint256 feeTotal) {
-        // todo handle recipient discounts for individual users holding a collection NFT
+        // todo support recipient discounts for individual users holding a collection NFT
         
         // get existing fees, first checking for override fees or discounts if they have already been set
         Fees memory existingFees = _checkOverrideFees(collection, paymentToken);
 
-        // check if being called in free mint context, which results in only ETH base fee
+        // if being called in free mint context results in only base fee
         (uint256 baseFeeTotal, uint256 variableFeeTotal) =  _calculateFees(
             existingFees.baseFee, 
             existingFees.variableFee, 
