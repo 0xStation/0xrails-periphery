@@ -287,7 +287,8 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         );
 
         // collect fees and then forward subtotal; approval must have been made prior to top-level mint call;
-        IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, address(this), paidFee - totalCost);        address paymentCollector = IMembership(collection).paymentCollector();
+        IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, address(this), paidFee - totalCost);
+        address paymentCollector = IMembership(collection).paymentCollector();
         // prevent accidentally unset payment collector
         require(paymentCollector != address(0), "MISSING_PAYMENT_COLLECTOR");
         // transfer remaining payment to collector using SafeERC20 for covering USDT no-return and other transfer issues

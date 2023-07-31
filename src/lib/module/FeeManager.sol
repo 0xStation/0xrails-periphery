@@ -14,26 +14,34 @@ import {ModuleFee} from "./ModuleFee.sol";
 
 contract FeeManager is Ownable {
 
-    /// @dev Struct of fee data, including both the base and variable fees
-    /// @param zeroFee A quasi-Boolean value indicating whether the collection is a free mint. 1 represents `false` and 2 represents `true`
-    /// 8 byte unsigned integers 1 || 2 are utilized instead of 0 || 1 for two reasons: 
-    /// 1. Provide a quantifiable, nonzero indication that a collection exists and has been registered with Station by an authorized Module
-    /// 2. Save gas on initialization costs when setting a cold storage slot from 0 to 1. Can also be packed if need for future struct members arises
+    /// @dev A three-member enum indicating the status of a collection's fees to be one of the following:
+    /// 0. Unset fee: either because a collection does not exist or has not yet been configured using setUp()
+    /// 1. Set fee: collection exists, has an associated fee, and has been registered with Station by an authorized Module
+    /// 2. Fees waived: collection exists and has been registered with Station but fees have been waived to enable totally free mints
+    enum FeeSetting {
+        Unset,
+        Set,
+        Free
+    }
+
+
+    /// @dev Struct of fee data, including FeeSetting enum and both base and variable fees, all packed into 1 slot
+    /// Since `type(uint112).max` ~= 5.2e33, it suffices for fees of up to 5.2e15 ETH or ERC20 tokens, far beyond realistic scenarios.
+    /// @param setting FeeSetting enum indicating whether the collection is a free mint
     /// @param baseFee The flat fee charged by Station Network on a per item basis
     /// @param variableFee The variable fee (in BPS) charged by Station Network on volume basis
     /// Accounts for each item's cost and total amount of items
-
     struct Fees {
-        uint8 zeroFee;
-        uint128 baseFee;
-        uint128 variableFee;
+        FeeSetting setting;
+        uint112 baseFee;
+        uint112 variableFee;
     }
 
     /*============
         ERRORS
     ============*/
 
-    error FeeCollectFailed();
+    error FeesNotSet();
 
     /*============
         EVENTS
@@ -70,11 +78,6 @@ contract FeeManager is Ownable {
     /// @param _baselineFees The initialization of baseline fees for all token addresses that have not (yet) been given defaults
     /// @param _ethDefaultFees The initialization of ETH (or MATIC etc)'s default fees in wei
     constructor(address _newOwner, Fees memory _baselineFees, Fees memory _ethDefaultFees) {
-        require(
-            (_baselineFees.zeroFee == 1 || _baselineFees.zeroFee == 2)
-            && (_ethDefaultFees.zeroFee == 1 || _ethDefaultFees.zeroFee == 2), 
-            "INVALID_ZEROFEE_BOOL"
-        );
         baselineFees = _baselineFees;
         defaultFees[address(0x0)] = _ethDefaultFees;
 
@@ -89,7 +92,6 @@ contract FeeManager is Ownable {
     /// @dev Only callable by contract owner, an address managed by Station
     /// @param newBaselineFees The new Fees struct to set in storage
     function setBaselineFees(Fees memory newBaselineFees) external onlyOwner {
-        require(newBaselineFees.zeroFee == 1 || newBaselineFees.zeroFee == 2, "INVALID_ZEROFEE_BOOL");
         baselineFees = newBaselineFees;
 
         emit BaselineFeeUpdated(newBaselineFees);
@@ -100,7 +102,6 @@ contract FeeManager is Ownable {
     /// @param token The token for which to set new base and variable fees
     /// @param newDefaultFees The new Fees struct to set in storage
     function setDefaultFees(address token, Fees calldata newDefaultFees) external onlyOwner {
-        require(newDefaultFees.zeroFee == 1 || newDefaultFees.zeroFee == 2, "INVALID_ZEROFEE_BOOL");
         defaultFees[token] = newDefaultFees;
 
         emit DefaultFeeUpdated(token, newDefaultFees);
@@ -111,7 +112,6 @@ contract FeeManager is Ownable {
     /// @param token The token for which to set new base and variable fees
     /// @param newOverrideFees The new Fees struct to set in storage
     function setOverrideFees(address collection, address token, Fees calldata newOverrideFees) external onlyOwner {
-        require(newOverrideFees.zeroFee == 1 || newOverrideFees.zeroFee == 2, "INVALID_ZEROFEE_BOOL");
         overrideFees[collection][token] = newOverrideFees;
 
         emit OverrideFeeUpdated(collection, token, newOverrideFees);
@@ -141,22 +141,20 @@ contract FeeManager is Ownable {
         Fees memory existingFees = _checkOverrideFees(collection, paymentToken);
 
         // check if being called in free mint context, which results in only ETH base fee
-        if (unitPrice == 0) {
-            (uint256 baseFeeTotal, uint256 variableFeeTotal) =  _calculateFees(
-                existingFees.baseFee, 
-                existingFees.variableFee, 
-                quantity, 
-                unitPrice
-            );
-            return baseFeeTotal + variableFeeTotal;
-        }
+        (uint256 baseFeeTotal, uint256 variableFeeTotal) =  _calculateFees(
+            existingFees.baseFee, 
+            existingFees.variableFee, 
+            quantity, 
+            unitPrice
+        );
+        return baseFeeTotal + variableFeeTotal;
     }
 
     /// @dev Function to get default fees for a token if they have been set
     /// @param token The token address to query against defaultFees mapping
     function getDefaultFees(address token) public view returns (Fees memory tokenDefaults) {
         tokenDefaults = defaultFees[token];
-        require(tokenDefaults.zeroFee != 0, "UNSUPPORTED_TOKEN");
+        if (tokenDefaults.setting == FeeSetting.Unset) revert FeesNotSet();
     }
 
     /// @dev Function to get override fees for a collection and token if they have been set
@@ -164,7 +162,7 @@ contract FeeManager is Ownable {
     /// @param token The token address to query against overrideFees mapping
     function getOverrideFees(address collection, address token) public view returns (Fees memory overrides) {
         overrides = overrideFees[collection][token];
-        require(overrides.zeroFee != 0, "UNSET_OVERRIDES");
+        if (overrides.setting == FeeSetting.Unset) revert FeesNotSet();
     }
 
     /*============
@@ -197,14 +195,14 @@ contract FeeManager is Ownable {
         // cache storage struct in memory to save SLOAD reads
         Fees memory overrides = overrideFees[_collection][_token];
 
-        // check if zeroFee is set, indicating existing fee overrides or defaults, otherwise return baseline fees
-        bool overridesExist = overrides.zeroFee != 0;
+        // check if FeeSetting is set, indicating existing fee overrides or defaults, otherwise return baseline fees
+        bool overridesExist = uint8(overrides.setting) != 0;
 
         if (overridesExist) { 
             existingFees = overrides; 
         } else {
             Fees memory defaults = defaultFees[_token];
-            bool defaultsExist = defaults.zeroFee != 0;
+            bool defaultsExist = uint8(defaults.setting) != 0;
 
             if (defaultsExist) {
                 existingFees = defaults;
