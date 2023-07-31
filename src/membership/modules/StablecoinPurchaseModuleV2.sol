@@ -309,6 +309,16 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         return (startTokenId, startTokenId + amount - 1); // purely inclusive set
     }
 
+    /// @dev Function to withdraw ERC20 fees accrued by this contract to the owner.
+    /// @param paymentCoin The token address to call. Must previously have been enabled
+    function ownerWithdraw(address paymentCoin) external returns (bool r) {
+        // revert if key not enabled ie token not recognized
+        require(_keyOf[paymentCoin] > 0, "UNSUPPORTED_TOKEN");
+
+        uint256 balance = IERC20Metadata(paymentCoin).balanceOf(address(this));
+        r = IERC20Metadata(paymentCoin).transfer(owner(), balance);
+    }
+
     /*============
         GRANTS
     ============*/
