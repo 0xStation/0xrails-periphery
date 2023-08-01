@@ -16,3 +16,6 @@
 [submodule "lib/contracts"]
 	path = lib/contracts
 	url = https://github.com/tokenbound/contracts
+[submodule "lib/mage"]
+	path = lib/mage
+	url = https://github.com/0xStation/mage
