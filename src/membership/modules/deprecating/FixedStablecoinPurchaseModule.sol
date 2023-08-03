@@ -30,7 +30,7 @@ contract FixedStablecoinPurchaseModule is ModuleFee, ModuleSetup, ReentrancyGuar
         STORAGE
     =============*/
 
-    // decimals of percision for currency type
+    // decimals of precision for currency type
     uint8 public immutable decimals;
     // currency type for this particular contract. (USD, EUR, etc.)
     string public currency;
