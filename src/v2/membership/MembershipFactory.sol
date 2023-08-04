@@ -5,8 +5,8 @@ import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.so
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
 import {Owner} from "mage/access/owner/Owner.sol";
 import {Initializer} from "mage/lib/Initializer/Initializer.sol";
+import {IMageToken} from "mage/cores/IMageToken.sol";
 
-import {IMembership} from "./interface/IMembership.sol";
 import {IMembershipFactory} from "./interface/IMembershipFactory.sol";
 
 contract MembershipFactory is Initializer, Owner, UUPSUpgradeable, IMembershipFactory {
@@ -17,6 +17,11 @@ contract MembershipFactory is Initializer, Owner, UUPSUpgradeable, IMembershipFa
         _transferOwnership(owner_);
     }
 
+    function updateMembershipImpl(address newImpl) external onlyOwner {
+        membershipImpl = newImpl;
+        emit MembershipUpdated(newImpl);
+    }
+
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function create(address owner, string memory name, string memory symbol, bytes calldata initData)
@@ -24,7 +29,7 @@ contract MembershipFactory is Initializer, Owner, UUPSUpgradeable, IMembershipFa
         returns (address membership)
     {
         bytes memory initialization =
-            abi.encodeWithSelector(IMembership(membershipImpl).initialize.selector, owner, name, symbol, initData);
+            abi.encodeWithSelector(IMageToken(membershipImpl).initialize.selector, owner, name, symbol, initData);
         membership = address(new ERC1967Proxy(membershipImpl, initialization));
 
         emit MembershipCreated(membership);
