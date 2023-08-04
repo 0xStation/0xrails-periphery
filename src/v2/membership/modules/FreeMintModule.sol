@@ -8,13 +8,12 @@ import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
 import {ModuleGrant} from "src/lib/module/ModuleGrant.sol";
 import {ModuleFeeV2} from "src/lib/module/ModuleFeeV2.sol";
 
-/// @title Station Network FreeMintModuleV2 Contract
+/// @title Station Network FreeMintModuleV3 Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg), 👦🏻👦🏻.eth
-/// @dev Provides a modular contract to handle collections who wish for their membership mints to be 
+/// @dev Provides a modular contract to handle collections who wish for their membership mints to be
 /// free of charge, save for Station Network's base fee
 
-contract FreeMintModuleV2 is ModuleSetup, ModuleGrant, ModuleFeeV2 {
-    
+contract FreeMintModuleV4 is ModuleSetup, ModuleGrant, ModuleFeeV2 {
     /*=============
         STORAGE
     =============*/
@@ -39,7 +38,7 @@ contract FreeMintModuleV2 is ModuleSetup, ModuleGrant, ModuleFeeV2 {
 
     /// @dev Function to set up and configure a new collection
     /// @param collection The new collection to configure
-    /// @param enforceGrants A boolean to represent whether this collection will repeal or support grant functionality 
+    /// @param enforceGrants A boolean to represent whether this collection will repeal or support grant functionality
     function setUp(address collection, bool enforceGrants) external canSetUp(collection) {
         if (_repealGrants[collection] != !enforceGrants) {
             _repealGrants[collection] = !enforceGrants;
@@ -102,37 +101,31 @@ contract FreeMintModuleV2 is ModuleSetup, ModuleGrant, ModuleFeeV2 {
     /// @dev Internal function to which all external user + client facing batchMint functions are routed.
     /// @param collection The token collection to mint from
     /// @param recipient The recipient of successfully minted tokens
-    /// @param amount The amount of tokens to mint  
+    /// @param amount The amount of tokens to mint
     function _batchMint(address collection, address recipient, uint256 amount)
         internal
         enableGrants(abi.encode(collection))
         returns (uint256 startTokenId, uint256 endTokenId)
-        {
-            require(amount > 0, "ZERO_AMOUNT");
+    {
+        require(amount > 0, "ZERO_AMOUNT");
 
-            // take baseFee (variableFee == 0 when price == 0)
-            _registerFeeBatch(
-                collection,
-                address(0x0),
-                recipient,
-                amount,
-                0
-            );
+        // take baseFee (variableFee == 0 when price == 0)
+        _registerFeeBatch(collection, address(0x0), recipient, amount, 0);
 
-            // perform mints
-            for (uint256 i; i < amount; i++) {
-                // mint token
-                uint256 tokenId = IMembership(collection).mintTo(recipient);
-                // prevent unsuccessful mint
-                require(tokenId > 0, "MINT_FAILED");
-                // set startTokenId on first mint
-                if (startTokenId == 0) {
-                    startTokenId = tokenId;
-                }
+        // perform mints
+        for (uint256 i; i < amount; i++) {
+            // mint token
+            uint256 tokenId = IMembership(collection).mintTo(recipient);
+            // prevent unsuccessful mint
+            require(tokenId > 0, "MINT_FAILED");
+            // set startTokenId on first mint
+            if (startTokenId == 0) {
+                startTokenId = tokenId;
             }
-
-            return (startTokenId, startTokenId + amount - 1); // purely inclusive set
         }
+
+        return (startTokenId, startTokenId + amount - 1); // purely inclusive set
+    }
 
     /*============
         GRANTS

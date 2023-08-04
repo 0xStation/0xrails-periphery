@@ -6,7 +6,7 @@ import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Batch} from "src/lib/Batch.sol";
 import {Permissions} from "src/lib/Permissions.sol";
-import {FreeMintModuleV2} from "src/membership/modules/FreeMintModuleV2.sol";
+import {FreeMintModuleV3} from "src/membership/modules/FreeMintModuleV3.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 // forge script --keystores $ETH_KEYSTORE --sender $ETH_FROM --broadcast --fork-url $GOERLI_RPC_URL script/membership/DeployTestCollection.s.sol:DeployTestCollection

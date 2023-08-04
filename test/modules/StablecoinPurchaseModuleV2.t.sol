@@ -9,14 +9,14 @@ import {Permissions} from "src/lib/Permissions.sol";
 import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
 import {ModuleFee} from "src/lib/module/ModuleFee.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
-import {StablecoinPurchaseModuleV2} from "src/membership/modules/StablecoinPurchaseModuleV2.sol";
+import {StablecoinPurchaseModuleV3} from "src/membership/modules/StablecoinPurchaseModuleV3.sol";
 // test
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 import {FakeERC20} from "test/utils/FakeERC20.sol";
 
-contract StablecoinPurchaseModuleV2Test is Test, SetUpMembership {
+contract StablecoinPurchaseModuleV3Test is Test, SetUpMembership {
     Membership public proxy;
-    StablecoinPurchaseModuleV2 public module;
+    StablecoinPurchaseModuleV3 public module;
     FakeERC20 public stablecoin;
 
     function setUp() public override {
@@ -31,7 +31,7 @@ contract StablecoinPurchaseModuleV2Test is Test, SetUpMembership {
     function initDeploys(uint8 coinDecimals, uint8 moduleDecimals, uint64 fee) public {
         vm.assume(coinDecimals < 50 && moduleDecimals < 50);
         address[] memory stablecoins = new address[](0);
-        module = new StablecoinPurchaseModuleV2(owner, fee, moduleDecimals, "TEST", stablecoins);
+        module = new StablecoinPurchaseModuleV3(owner, fee, moduleDecimals, "TEST", stablecoins);
         stablecoin = new FakeERC20(coinDecimals);
     }
 
@@ -206,8 +206,9 @@ contract StablecoinPurchaseModuleV2Test is Test, SetUpMembership {
         vm.assume(price > 0);
         address[] memory stablecoins = new address[](1);
         stablecoins[0] = address(stablecoin);
+
         bytes memory setupData =
-            abi.encodeWithSelector(StablecoinPurchaseModuleV2.setUp.selector, proxy, price, stablecoins, false);
+            abi.encodeWithSignature("setUp(address,uint128,address[],bool)", proxy, price, stablecoins, false);
 
         vm.prank(owner);
         proxy.permitAndSetup(address(module), operationPermissions(Permissions.Operation.MINT), setupData);
@@ -809,7 +810,7 @@ contract StablecoinPurchaseModuleV2Test is Test, SetUpMembership {
 
     // function test_constructor(uint64 fee) public {
     //     uint8 moduleDecimals = 0;
-    //     module = new StablecoinPurchaseModuleV2(owner, fee, moduleDecimals, "TEST");
+    //     module = new StablecoinPurchaseModuleV3(owner, fee, moduleDecimals, "TEST");
     //     // no fee balance
     //     assertEq(module.feeBalance(), 0);
     //     // fee set
@@ -820,7 +821,7 @@ contract StablecoinPurchaseModuleV2Test is Test, SetUpMembership {
 
     // function test_updateFee(uint64 fee1, uint64 fee2) public {
     //     uint8 moduleDecimals = 0;
-    //     module = new StablecoinPurchaseModuleV2(owner, fee1, moduleDecimals, "TEST");
+    //     module = new StablecoinPurchaseModuleV3(owner, fee1, moduleDecimals, "TEST");
 
     //     vm.prank(owner);
     //     module.updateFee(fee2);
@@ -830,7 +831,7 @@ contract StablecoinPurchaseModuleV2Test is Test, SetUpMembership {
 
     // function test_updateFee_revert_notOwner(uint64 fee1, uint64 fee2, address randomAddress) public {
     //     uint8 moduleDecimals = 0;
-    //     module = new StablecoinPurchaseModuleV2(owner, fee1, moduleDecimals, "TEST");
+    //     module = new StablecoinPurchaseModuleV3(owner, fee1, moduleDecimals, "TEST");
 
     //     vm.assume(randomAddress != owner);
     //     vm.prank(randomAddress);
