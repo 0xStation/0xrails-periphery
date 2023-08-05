@@ -57,9 +57,9 @@ contract Deploy is Script {
         bytes memory permitSymUpgrade = abi.encodeWithSelector(
             Permissions.permit.selector, sym, operationPermissions(Permissions.Operation.UPGRADE)
         );
-        bytes memory permitUserUpgrade = abi.encodeWithSelector(
-            Permissions.permit.selector, user, operationPermissions(Permissions.Operation.UPGRADE)
-        );
+        // bytes memory permitUserUpgrade = abi.encodeWithSelector(
+        //     Permissions.permit.selector, user, operationPermissions(Permissions.Operation.UPGRADE)
+        // );
 
         bytes[] memory setupCalls = new bytes[](4);
         setupCalls[0] = permitTurnkeyGrant;
