@@ -8,35 +8,55 @@ abstract contract MetadataURIExtension {
     /// @dev change metadataRouter constant to real address prior to deploying
     address public constant metadataRouter = address(0);
 
-    function contractURI() external view returns (string memory uri) {
-        return IMetadataRouter(metadataRouter).contractURI(address(this));
-    }
-
     /*===========
         VIEWS
     ===========*/
 
-    function ext_contractURI() external view returns (string memory uri) {
+    function contractURI() public view returns (string memory uri) {
         return IMetadataRouter(metadataRouter).contractURI(address(this));
     }
 
-    function ext_moduleURI() external view returns (string memory uri) {
+    function moduleURI() public view returns (string memory uri) {
         return IMetadataRouter(metadataRouter).moduleURI(address(this));
     }
 
-    function ext_guardURI() external view returns (string memory uri) {
+    function guardURI() public view returns (string memory uri) {
         return IMetadataRouter(metadataRouter).guardURI(address(this));
     }
 
-    function ext_extensionURI() external view returns (string memory uri) {
+    function extensionURI() public view returns (string memory uri) {
         return IMetadataRouter(metadataRouter).extensionURI(address(this));
     }
 
-    function ext_collectionURI() external view returns (string memory uri) {
+    function collectionURI() public view returns (string memory uri) {
         return IMetadataRouter(metadataRouter).collectionURI(address(this));
     }
 
-    function ext_tokenURI(uint256 tokenId) external view returns (string memory uri) {
+    function tokenURI(uint256 tokenId) public view returns (string memory uri) {
         return IMetadataRouter(metadataRouter).tokenURI(address(this), tokenId);
+    }
+
+    function ext_contractURI() public view returns (string memory uri) {
+        return contractURI();
+    }
+
+    function ext_moduleURI() public view returns (string memory uri) {
+        return moduleURI();
+    }
+
+    function ext_guardURI() public view returns (string memory uri) {
+        return guardURI();
+    }
+
+    function ext_extensionURI() public view returns (string memory uri) {
+        return extensionURI();
+    }
+
+    function ext_collectionURI() public view returns (string memory uri) {
+        return collectionURI();
+    }
+
+    function ext_tokenURI(uint256 tokenId) public view returns (string memory uri) {
+        return tokenURI(tokenId);
     }
 }
