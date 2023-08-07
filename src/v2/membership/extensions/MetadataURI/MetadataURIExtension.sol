@@ -6,7 +6,11 @@ import {IMetadataRouter} from "../../../metadataRouter/IMetadataRouter.sol";
 
 abstract contract MetadataURIExtension {
     /// @dev change metadataRouter constant to real address prior to deploying
-    address public constant metadataRouter = address(0);
+    address public immutable metadataRouter;
+
+    constructor(address router) {
+        metadataRouter = router;
+    }
 
     /*===========
         VIEWS
