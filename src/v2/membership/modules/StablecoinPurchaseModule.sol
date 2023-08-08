@@ -20,7 +20,7 @@ import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC
 /// will use the same price value and can never get out of sync. Deploy one instance
 /// of this module per currency, per chain (e.g. USD, EUR, BTC).
 
-contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
+contract StablecoinPurchaseModule is ModuleFeeV2, ModuleSetup, ModuleGrant {
     using SafeERC20 for IERC20Metadata;
 
     /// @dev Struct of collection price data
@@ -274,8 +274,8 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
         require(amount > 0, "ZERO_AMOUNT");
         Parameters memory params = _parameters[collection];
         require(_stablecoinEnabled(params.enabledCoins, paymentCoin), "STABLECOIN_NOT_ENABLED");
-        // get total before fees
-        uint256 totalCost = mintPriceToStablecoinAmount(params.price * amount, paymentCoin);
+        // get decimals-formatted price
+        uint256 formattedPrice = mintPriceToStablecoinAmount(params.price, paymentCoin);
 
         // take total incl fee
         uint256 paidFee = _registerFeeBatch(
@@ -283,16 +283,16 @@ contract StablecoinPurchaseModuleV2 is ModuleFeeV2, ModuleSetup, ModuleGrant {
             paymentCoin,
             recipient,
             amount,
-            params.price
+            formattedPrice
         );
 
-        // collect fees and then forward subtotal; approval must have been made prior to top-level mint call;
-        IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, address(this), paidFee - totalCost);
+        // collect fees; approval must have been made prior to top-level mint call;
+        IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, address(this), paidFee);
         address paymentCollector = IMembership(collection).paymentCollector();
         // prevent accidentally unset payment collector
         require(paymentCollector != address(0), "MISSING_PAYMENT_COLLECTOR");
-        // transfer remaining payment to collector using SafeERC20 for covering USDT no-return and other transfer issues
-        IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, paymentCollector, totalCost);
+        // forward subtotal to collector using SafeERC20 for covering USDT no-return and other transfer issues
+        IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, paymentCollector, formattedPrice * amount);
 
         // perform batch mint
         for (uint256 i; i < amount; i++) {

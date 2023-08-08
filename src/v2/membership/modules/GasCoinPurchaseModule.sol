@@ -14,7 +14,7 @@ import {ModuleFeeV2} from "src/lib/module/ModuleFeeV2.sol";
 /// @dev Provides a modular contract to handle collections who wish for their membership mints to be 
 /// paid in the native currency of the chain this contract is deployed to
 
-contract GasCoinPurchaseModuleV4 is ModuleGrant, ModuleFeeV2, ModuleSetup {
+contract GasCoinPurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup {
 
     /*=============
         STORAGE
