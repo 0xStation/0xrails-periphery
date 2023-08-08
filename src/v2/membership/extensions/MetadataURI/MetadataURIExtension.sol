@@ -1,22 +1,77 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import {Extension} from "mage/extension/Extension.sol";
 import {IMetadataURIExtension} from "./IMetadataURIExtension.sol";
 import {IMetadataRouter} from "../../../metadataRouter/IMetadataRouter.sol";
 
-abstract contract MetadataURIExtension {
+contract MetadataURIExtension is Extension {
     /// @dev change metadataRouter constant to real address prior to deploying
     address public immutable metadataRouter;
 
-    constructor(address router) {
+    constructor(address router) Extension() {
         metadataRouter = router;
+    }
+
+    /*===============
+        EXTENSION
+    ===============*/
+
+    function getAllSelectors() public pure override returns (bytes4[] memory selectors) {
+        selectors = new bytes4[](12);
+        selectors[0] = this.contractURI.selector;
+        selectors[1] = this.moduleURI.selector;
+        selectors[2] = this.guardURI.selector;
+        selectors[3] = this.extensionURI.selector;
+        selectors[4] = this.collectionURI.selector;
+        selectors[5] = this.tokenURI.selector;
+        selectors[6] = this.ext_contractURI.selector;
+        selectors[7] = this.ext_moduleURI.selector;
+        selectors[8] = this.ext_guardURI.selector;
+        selectors[9] = this.ext_extensionURI.selector;
+        selectors[10] = this.ext_collectionURI.selector;
+        selectors[11] = this.ext_tokenURI.selector;
+        return selectors;
+    }
+
+    function signatureOf(bytes4 selector) public pure override returns (string memory) {
+        if (selector == this.contractURI.selector) {
+            return "contractURI()";
+        } else if (selector == this.moduleURI.selector) {
+            return "moduleURI()";
+        } else if (selector == this.guardURI.selector) {
+            return "guardURI()";
+        } else if (selector == this.extensionURI.selector) {
+            return "extensionURI()";
+        } else if (selector == this.collectionURI.selector) {
+            return "collectionURI()";
+        } else if (selector == this.tokenURI.selector) {
+            return "tokenURI(uint256)";
+        } else if (selector == this.ext_contractURI.selector) {
+            return "ext_contractURI()";
+        } else if (selector == this.ext_moduleURI.selector) {
+            return "ext_moduleURI()";
+        } else if (selector == this.ext_guardURI.selector) {
+            return "ext_guardURI()";
+        } else if (selector == this.ext_extensionURI.selector) {
+            return "ext_extensionURI()";
+        } else if (selector == this.ext_collectionURI.selector) {
+            return "ext_collectionURI()";
+        } else if (selector == this.ext_tokenURI.selector) {
+            return "ext_tokenURI(uint256)";
+        } else {
+            return "";
+        }
     }
 
     /*===========
         VIEWS
     ===========*/
 
-    function contractURI() public view returns (string memory uri) {
+    // double counts for this extension and dependent mage contracts
+    // call for this extension's contract metadata
+    // delegatecall for the mage's contract metadata
+    function contractURI() public view override returns (string memory uri) {
         return IMetadataRouter(metadataRouter).contractURI(address(this));
     }
 

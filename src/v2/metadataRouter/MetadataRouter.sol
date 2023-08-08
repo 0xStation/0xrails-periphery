@@ -33,9 +33,15 @@ contract MetadataRouter is Owner, UUPSUpgradeable, IMetadataRouter {
     constructor(address _owner, string memory baselineURI_, string[] memory contractTypes, string[] memory uris) {
         uint256 len = contractTypes.length;
         if (len != uris.length) revert();
+
         for (uint256 i; i < len; i++) {
             defaultURI[contractTypes[i]] = uris[i];
+            emit UpdateDefaultURI(contractTypes[i], uris[i]);
         }
+
+        baselineURI = baselineURI_;
+        emit UpdateBaselineURI(baselineURI_);
+
         _transferOwnership(_owner);
     }
 

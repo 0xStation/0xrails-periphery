@@ -1,69 +1,94 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "forge-std/Script.sol";
-import "src/lib/renderer/Renderer.sol";
-import {Batch} from "src/lib/Batch.sol";
-import {Membership} from "src/membership/Membership.sol";
-import "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {Script} from "forge-std/Script.sol";
+import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
+import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
+import {FeeManager} from "../../src/lib/module/FeeManager.sol";
+import {FreeMintModule} from "../../src/v2/membership/modules/FreeMintModule.sol";
+import {GasCoinPurchaseModule} from "../../src/v2/membership/modules/GasCoinPurchaseModule.sol";
+import {StablecoinPurchaseModule} from "../../src/v2/membership/modules/StablecoinPurchaseModule.sol";
+import {MetadataRouter} from "../../src/v2/metadataRouter/MetadataRouter.sol";
+import {MetadataURIExtension} from "../../src/v2/membership/extensions/MetadataURI/MetadataURIExtension.sol";
+import {PayoutAddressExtension} from "../../src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
+import {MembershipFactory} from "../../src/v2/membership/MembershipFactory.sol";
 
 contract Deploy is Script {
+    address public turnkey = 0xBb942519A1339992630b13c3252F04fCB09D4841;
+    address public frog = 0xE7affDB964178261Df49B86BFdBA78E9d768Db6D;
+    address public sym = 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d;
+
+    address public owner = sym;
+
     function setUp() public {}
 
     function run() public {
         vm.startBroadcast();
-        address owner = 0x016562aA41A8697720ce0943F003141f5dEAe006; // sym
-        // address owner = 0xE7affDB964178261Df49B86BFdBA78E9d768Db6D; // frog
-        address renderer = 0xf8A31352e237af670D5DC6e9b75a4401A37BaD0E; // goerli
-        // address renderer = 0x9AE8391F311292c8E241DB576C6d528932B1939f; // polygon
-        // address paymentCollector = owner;
 
-        string memory name = "Lobby3";
-        string memory symbol = "LOBBY";
+        address feeManager = deployFeeManager(owner);
+        address freeMintModule = deployFreeMintModule(owner, feeManager);
+        address gasCoinPurchaseModule = deployGasCoinPurchaseModule(owner, feeManager);
+        address stablecoinPurchaseModule = deployStablecoinPurchaseModule(owner, feeManager);
 
-        // address turnkey = 0xBb942519A1339992630b13c3252F04fCB09D4841;
-        // address onePerAddress = 0x8626BFA8dc92262d98A96A9a5CE8CCFDB0c59cB7; // goerli
-        // address onePerAddress = 0xfD54A7a9E5df54872b07df99893CCD474C8f2b53; // polygon
-        // address MAX_ADDRESS = 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF;
+        address metadataRouter = deployMetadataRouter(owner);
+        address metadataURIExtension = deployMetadataURIExtension(metadataRouter);
+        address payoutAddressExtension = deployPayoutAddressExtension(metadataRouter);
 
-        address membershipImpl = 0x1b8C7a6b778eedE6DB61a8e01922b6F350810aDE; // goerli
-        // address membershipImpl = 0xA9879cbfa6a1Fe2964F37BcCD6fcF6ea61EfcDbf; // polygon
-        // address membershipImpl = address(new Membership());
+        address membershipFactory = deployMembershipFactory(owner);
 
-        bytes memory initData =
-            abi.encodeWithSelector(Membership(membershipImpl).init.selector, msg.sender, renderer, name, symbol);
-        address proxy = address(new ERC1967Proxy(membershipImpl, initData));
-
-        // config
-
-        bytes memory permitTurnkey = abi.encodeWithSelector(
-            Permissions.permit.selector,
-            0xBb942519A1339992630b13c3252F04fCB09D4841,
-            permissionsValue(Permissions.Operation.MINT, membershipImpl)
-        );
-        bytes memory guardMint = abi.encodeWithSelector(
-            Permissions.guard.selector, Permissions.Operation.MINT, 0x8626BFA8dc92262d98A96A9a5CE8CCFDB0c59cB7
-        );
-        bytes memory guardTransfer = abi.encodeWithSelector(
-            Permissions.guard.selector, Permissions.Operation.TRANSFER, 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF
-        );
-
-        bytes[] memory setupCalls = new bytes[](3);
-        setupCalls[0] = permitTurnkey;
-        setupCalls[1] = guardMint;
-        setupCalls[2] = guardTransfer;
-
-        // make non-atomic batch call, using permission as owner to do anything
-        Batch(proxy).batch(false, setupCalls);
-        // transfer ownership to provided argument
-        Permissions(proxy).transferOwnership(owner);
+        // missing: OnePerAddressGuard, ExtensionBeacon
 
         vm.stopBroadcast();
     }
 
-    function permissionsValue(Permissions.Operation operation, address membershipImpl) public pure returns (bytes32) {
-        Permissions.Operation[] memory operations = new Permissions.Operation[](1);
-        operations[0] = operation;
-        return Permissions(membershipImpl).permissionsValue(operations);
+    function deployFeeManager(address owner) internal returns (address) {
+        FeeManager.Fees memory baselineFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 0, 500); // 0 base, 5% variable
+        FeeManager.Fees memory ethFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 1e15, 500); // 0.001 base, 5% variable
+        // FeeManager.Fees memory polygonFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 2e18, 500); // 2 base, 5% variable
+
+        return address(new FeeManager(owner, baselineFees, ethFees));
+    }
+
+    function deployFreeMintModule(address owner, address feeManager) internal returns (address) {
+        return address(new FreeMintModule(owner, feeManager));
+    }
+
+    function deployGasCoinPurchaseModule(address owner, address feeManager) internal returns (address) {
+        return address(new GasCoinPurchaseModule(owner, feeManager));
+    }
+
+    function deployStablecoinPurchaseModule(address owner, address feeManager) internal returns (address) {
+        uint8 decimals = 2;
+        string memory currency = "USD";
+        address[] memory stablecoins = new address[](0);
+
+        return address(new StablecoinPurchaseModule(owner, feeManager, decimals, currency, stablecoins));
+    }
+
+    function deployMetadataRouter(address owner) internal returns (address) {
+        string memory baselineURI = "https://dev.station.express/api/v1/nftMetadata";
+        string[] memory contractTypes = new string[](0);
+        string[] memory uris = new string[](0);
+
+        return address(new MetadataRouter(owner, baselineURI, contractTypes, uris));
+    }
+
+    function deployMetadataURIExtension(address metadataRouter) internal returns (address) {
+        return address(new MetadataURIExtension(metadataRouter));
+    }
+
+    function deployPayoutAddressExtension(address metadataRouter) internal returns (address) {
+        return address(new PayoutAddressExtension(metadataRouter));
+    }
+
+    function deployMembershipFactory(address owner) internal returns (address) {
+        // address erc721Mage = address(new ERC721Mage());
+        address erc721Mage = 0xbE5302F0B0AAdAD779252b49669D4A5922A000CC; // goerli
+        address membershipFactoryImpl = address(new MembershipFactory());
+
+        bytes memory initFactory =
+            abi.encodeWithSelector(MembershipFactory(membershipFactoryImpl).initialize.selector, erc721Mage, owner);
+        return address(new ERC1967Proxy(membershipFactoryImpl, initFactory));
     }
 }

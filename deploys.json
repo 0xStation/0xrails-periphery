@@ -13,6 +13,18 @@
     }
   },
   "5": {
+    "v2": {
+      "FeeManager": "0x71C9D5ef2Fa97d3beDa64571Bd90028c5B4C3CEB",
+      "FreeMintModule": "0x3717C0701ad128FC23dC82da7BFC7C247B734f89",
+      "GasCoinPurchaseModule": "0x3bE1b82fe777bCcF6b915556d029066e9D5ae19d",
+      "StablecoinPurchaseModule": "0xb88741858B12dcbb4354C43ea57B31Ea2198a78E",
+      "MetadataRouter": "0xD56E05b46291e338c29e5C180E8600A67fA2A6a1",
+      "MetadataURIExtension": "0x93DA5F068185712AC5F38D02E2c08330cD24C726",
+      "PayoutAddressExtension": "0x860f76b4DD7C969150edB0fda28CC85Deb169176",
+      "ERC721Mage (impl)": "0xbE5302F0B0AAdAD779252b49669D4A5922A000CC",
+      "MembershipFactory (impl)": "0x9A05FCCDDFA399C8cCC98E1C6e4359Ab2f2FFAf5",
+      "MembershipFactory (proxy)": "0x1a4C7acdc0d296501fC369f8ACa3cE79aFD2C861"
+    },
     "Renderer": "0xf8A31352e237af670D5DC6e9b75a4401A37BaD0E",
     "Membership": "0x7B9e83E1Fc68378a9FA9e4FFE2ff47318f1ECcfb",
     "PublicFreeMintModule": "0x3B8f78cBFb54eB71DE88a17227E188BEbeA0BcE7",

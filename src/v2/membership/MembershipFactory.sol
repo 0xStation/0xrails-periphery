@@ -14,6 +14,7 @@ contract MembershipFactory is Initializer, Owner, UUPSUpgradeable, IMembershipFa
 
     function initialize(address membershipImpl_, address owner_) external initializer {
         membershipImpl = membershipImpl_;
+        emit MembershipUpdated(membershipImpl_);
         _transferOwnership(owner_);
     }
 
