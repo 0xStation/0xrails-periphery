@@ -3,8 +3,10 @@ pragma solidity ^0.8.13;
 
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
+import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
+import {Operations} from "mage/lib/Operations.sol";
+
 import {Renderer} from "src/lib/renderer/Renderer.sol";
-import {Membership} from "src/membership/Membership.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
 import {GasCoinPurchaseModule} from "src/v2/membership/modules/GasCoinPurchaseModule.sol";
@@ -12,7 +14,7 @@ import {FeeManager} from "src/lib/module/FeeManager.sol";
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
 contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
-    Membership public proxy;
+    ERC721Mage public proxy;
     GasCoinPurchaseModule public gasCoinModule;
     FeeManager public feeManager;
 
@@ -39,7 +41,7 @@ contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
         // enable grants in module config setup and give module mint permission on proxy
         vm.startPrank(owner);
         gasCoinModule.setUp(address(proxy), price, false);
-        proxy.permit(address(gasCoinModule), operationPermissions(Permissions.Operation.MINT));
+        proxy.grantPermission(Operations.MINT, address(gasCoinModule));
         vm.stopPrank();
     }
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {IMembership} from "src/membership/IMembership.sol";
+import {IERC721Mage} from "mage/cores/ERC721/interface/IERC721Mage.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 // module utils
 import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
@@ -26,7 +26,6 @@ contract FreeMintModule is ModuleSetup, ModuleGrant, ModuleFeeV2 {
     ============*/
 
     event SetUp(address indexed collection, bool indexed enforceGrants);
-    event Mint(address indexed collection, address indexed recipient, uint256 fee);
 
     /*============
         CONFIG
@@ -51,80 +50,49 @@ contract FreeMintModule is ModuleSetup, ModuleGrant, ModuleFeeV2 {
     ==========*/
 
     /// @dev Function to mint a single collection token to the caller, ie a user
-    function mint(address collection) external payable returns (uint256 tokenId) {
-        tokenId = _mint(collection, msg.sender);
+    function mint(address collection) external payable {
+        _batchMint(collection, msg.sender, 1);
     }
 
     /// @dev Function to mint a single collection token to a specified recipient
-    function mintTo(address collection, address recipient) external payable returns (uint256 tokenId) {
-        tokenId = _mint(collection, recipient);
+    function mintTo(address collection, address recipient) external payable {
+        _batchMint(collection, recipient, 1);
     }
 
     /// @dev Function to mint collection tokens in batches to the caller, ie a user
     /// @notice returned tokenId range is inclusive
-    function batchMint(address collection, uint256 amount)
-        external
-        payable
-        returns (uint256 startTokenId, uint256 endTokenId)
-    {
-        return _batchMint(collection, msg.sender, amount);
+    function batchMint(address collection, uint256 amount) external payable {
+        _batchMint(collection, msg.sender, amount);
     }
 
     /// @dev Function to mint collection tokens in batches to a specified recipient
     /// @notice returned tokenId range is inclusive
-    function batchMintTo(address collection, address recipient, uint256 amount)
-        external
-        payable
-        returns (uint256 startTokenId, uint256 endTokenId)
-    {
-        return _batchMint(collection, recipient, amount);
+    function batchMintTo(address collection, address recipient, uint256 amount) external payable {
+        _batchMint(collection, recipient, amount);
     }
 
     /*===============
         INTERNALS
     ===============*/
 
-    /// @dev Internal function to which all external user + client facing single mint functions are routed.
-    /// @param collection The token collection to mint from
-    /// @param recipient The recipient of successfully minted tokens
-    function _mint(address collection, address recipient)
-        internal
-        enableGrants(abi.encode(collection))
-        returns (uint256 tokenId)
-    {
-        // reverts on invalid fee
-        uint256 paidFee = _registerFee(collection, address(0x0), recipient, 0);
-        tokenId = IMembership(collection).mintTo(recipient);
-        emit Mint(collection, recipient, paidFee);
-    }
-
     /// @dev Internal function to which all external user + client facing batchMint functions are routed.
     /// @param collection The token collection to mint from
     /// @param recipient The recipient of successfully minted tokens
-    /// @param amount The amount of tokens to mint
-    function _batchMint(address collection, address recipient, uint256 amount)
+    /// @param quantity The quantity of tokens to mint
+    function _batchMint(address collection, address recipient, uint256 quantity)
         internal
         enableGrants(abi.encode(collection))
         returns (uint256 startTokenId, uint256 endTokenId)
     {
-        require(amount > 0, "ZERO_AMOUNT");
+        require(quantity > 0, "ZERO_AMOUNT");
 
         // take baseFee (variableFee == 0 when price == 0)
-        _registerFeeBatch(collection, address(0x0), recipient, amount, 0);
+        _registerFeeBatch(collection, address(0x0), recipient, quantity, 0);
+
+        // no revenue transfer to collection payoutAddress because this is a free mint
 
         // perform mints
-        for (uint256 i; i < amount; i++) {
-            // mint token
-            uint256 tokenId = IMembership(collection).mintTo(recipient);
-            // prevent unsuccessful mint
-            require(tokenId > 0, "MINT_FAILED");
-            // set startTokenId on first mint
-            if (startTokenId == 0) {
-                startTokenId = tokenId;
-            }
-        }
-
-        return (startTokenId, startTokenId + amount - 1); // purely inclusive set
+        IERC721Mage(collection).mintTo(recipient, quantity);
     }
 
     /*============

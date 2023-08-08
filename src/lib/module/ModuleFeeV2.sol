@@ -14,7 +14,6 @@ import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC
 /// The goal is to abstract all payment logic so this module can handle fees for every client's desired Membership implementation
 
 abstract contract ModuleFeeV2 is Ownable {
-
     /*============
         ERRORS
     ============*/
@@ -31,7 +30,7 @@ abstract contract ModuleFeeV2 is Ownable {
         address indexed buyer,
         address indexed paymentToken,
         uint256 unitPrice,
-        uint256 units,
+        uint256 quantity,
         uint256 totalFee
     );
 
@@ -72,18 +71,16 @@ abstract contract ModuleFeeV2 is Ownable {
         uint256 balance = ethTotalFeeBalance;
         ethTotalFeeBalance = 0;
 
-        (bool r,) = payable(recipient).call{ value: balance}('');
+        (bool r,) = payable(recipient).call{value: balance}("");
         require(r);
         emit WithdrawFee(recipient, balance);
     }
 
     /// @dev Function to update the feeBalance in storage when minting a single item
-    function _registerFee(
-        address collection, 
-        address paymentToken, 
-        address recipient,
-        uint256 unitPrice
-    ) internal returns (uint256 totalWithFees) {
+    function _registerFee(address collection, address paymentToken, address recipient, uint256 unitPrice)
+        internal
+        returns (uint256 totalWithFees)
+    {
         return _registerFeeBatch(collection, paymentToken, recipient, 1, unitPrice);
     }
 
@@ -95,21 +92,15 @@ abstract contract ModuleFeeV2 is Ownable {
     /// @param quantity The number of items being minted, used to calculate the total fee payment required
     /// @param unitPrice The price per token to mint
     function _registerFeeBatch(
-        address collection, 
-        address paymentToken, 
-        address recipient, 
+        address collection,
+        address paymentToken,
+        address recipient,
         uint256 quantity,
         uint256 unitPrice
-    ) internal returns (uint256 paidFee) {        
+    ) internal returns (uint256 paidFee) {
         // feeTotal is handled as either ETH or ERC20 stablecoin payment accordingly by FeeManager
-        paidFee = FeeManager(feeManager).getFeeTotals(
-            collection, 
-            paymentToken,
-            recipient,
-            quantity, 
-            unitPrice
-        );
-        
+        paidFee = FeeManager(feeManager).getFeeTotals(collection, paymentToken, recipient, quantity, unitPrice);
+
         // for ETH context, accept funds only if the msg.value sent matches the FeeManager's calculation
         if (paymentToken == address(0x0)) {
             uint256 total = quantity * unitPrice + paidFee;

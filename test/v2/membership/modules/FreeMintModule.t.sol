@@ -3,8 +3,10 @@ pragma solidity ^0.8.13;
 
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
+import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
+import {Operations} from "mage/lib/Operations.sol";
+
 import {Renderer} from "src/lib/renderer/Renderer.sol";
-import {Membership} from "src/membership/Membership.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
 import {FreeMintModule} from "src/v2/membership/modules/FreeMintModule.sol";
@@ -12,7 +14,7 @@ import {FeeManager} from "src/lib/module/FeeManager.sol";
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
 contract FreeMintModuleTest is Test, SetUpMembership {
-    Membership public proxy;
+    ERC721Mage public proxy;
     FreeMintModule public module;
     FeeManager public feeManager;
 
@@ -39,7 +41,7 @@ contract FreeMintModuleTest is Test, SetUpMembership {
         // enable grants in module config setup and give module mint permission on proxy
         vm.startPrank(owner);
         module.setUp(address(proxy), false);
-        proxy.permit(address(module), operationPermissions(Permissions.Operation.MINT));
+        proxy.grantPermission(Operations.MINT, address(module));
         vm.stopPrank();
     }
 
@@ -53,7 +55,8 @@ contract FreeMintModuleTest is Test, SetUpMembership {
 
         vm.startPrank(recipient);
         // mint token
-        uint256 tokenId = module.mint{value: fee}(address(proxy));
+        module.mint{value: fee}(address(proxy));
+        uint256 tokenId = proxy.totalSupply();
 
         // asserts
         assertEq(proxy.balanceOf(recipient), 1);
@@ -95,7 +98,8 @@ contract FreeMintModuleTest is Test, SetUpMembership {
 
         vm.startPrank(payer);
         // mint token
-        uint256 tokenId = module.mintTo{value: fee}(address(proxy), recipient);
+        module.mintTo{value: fee}(address(proxy), recipient);
+        uint256 tokenId = proxy.totalSupply();
 
         // asserts
         assertEq(proxy.balanceOf(recipient), 1);
@@ -139,16 +143,18 @@ contract FreeMintModuleTest is Test, SetUpMembership {
         uint256 fee = feeManager.getFeeTotals(address(proxy), address(0x0), recipient, quantity, 0);
         vm.deal(recipient, fee);
         uint256 initialBalance = recipient.balance;
+        uint256 initialSupply = proxy.totalSupply();
+        uint256 startTokenId = initialSupply;
 
         vm.startPrank(recipient);
-        (uint256 startTokenId, uint256 endTokenId) = module.batchMint{value: fee}(address(proxy), quantity);
+        module.batchMint{value: fee}(address(proxy), quantity);
 
         // asserts
         assertEq(proxy.balanceOf(recipient), quantity);
-        for (uint256 i; i < endTokenId - startTokenId; ++i) {
+        for (uint256 i; i < quantity; ++i) {
             assertEq(proxy.ownerOf(startTokenId + i), recipient);
         }
-        assertEq(proxy.totalSupply(), quantity);
+        assertEq(proxy.totalSupply(), initialSupply + quantity);
         assertEq(recipient.balance, initialBalance - fee);
     }
 
@@ -192,16 +198,18 @@ contract FreeMintModuleTest is Test, SetUpMembership {
         uint256 fee = feeManager.getFeeTotals(address(proxy), address(0x0), recipient, quantity, 0);
         vm.deal(payer, fee);
         uint256 initialBalance = payer.balance;
+        uint256 initialSupply = proxy.totalSupply();
+        uint256 startTokenId = initialSupply;
 
         vm.startPrank(payer);
-        (uint256 startTokenId, uint256 endTokenId) = module.batchMintTo{value: fee}(address(proxy), recipient, quantity);
+        module.batchMintTo{value: fee}(address(proxy), recipient, quantity);
 
         // asserts
         assertEq(proxy.balanceOf(recipient), quantity);
-        for (uint256 i; i < endTokenId - startTokenId; ++i) {
+        for (uint256 i; i < quantity; ++i) {
             assertEq(proxy.ownerOf(startTokenId + i), recipient);
         }
-        assertEq(proxy.totalSupply(), quantity);
+        assertEq(proxy.totalSupply(), initialSupply + quantity);
         assertEq(recipient.balance, initialBalance - fee);
     }
 

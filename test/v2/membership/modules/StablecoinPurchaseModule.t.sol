@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-// src
 import {Test} from "forge-std/Test.sol";
+import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
+import {Operations} from "mage/lib/Operations.sol";
+
+// src
 import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Permissions} from "src/lib/Permissions.sol";
@@ -11,6 +14,7 @@ import {ModuleFee} from "src/lib/module/ModuleFee.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
 import {StablecoinPurchaseModule} from "src/v2/membership/modules/StablecoinPurchaseModule.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
+import {IPayoutAddressExtensionExternal} from "src/v2/membership/extensions/PayoutAddress/IPayoutAddressExtension.sol";
 // test
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 import {FakeERC20} from "test/utils/FakeERC20.sol";
@@ -25,7 +29,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         uint128 price;
     }
 
-    Membership public proxy;
+    ERC721Mage public proxy;
     StablecoinPurchaseModule public stablecoinModule;
     FakeERC20 public stablecoin;
     FeeManager public feeManager;
@@ -181,7 +185,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // set up UPGRADE permission
         vm.prank(owner);
-        proxy.permit(admin, operationPermissions(Permissions.Operation.UPGRADE));
+        proxy.grantPermission(Operations.ADMIN, admin);
 
         address[] memory stablecoins = new address[](1);
         stablecoins[0] = address(stablecoin);
@@ -328,11 +332,17 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         address[] memory stablecoins = new address[](1);
         stablecoins[0] = address(stablecoin);
-        bytes memory setupData =
+        bytes memory setUpModuleData =
             abi.encodeWithSelector(StablecoinPurchaseModule.setUp.selector, proxy, price, stablecoins, false);
+        bytes memory grantPermissionData =
+            abi.encodeWithSelector(proxy.grantPermission.selector, Operations.MINT, address(stablecoinModule));
+
+        bytes[] memory calls = new bytes[](2);
+        calls[0] = grantPermissionData;
+        calls[1] = setUpModuleData;
 
         vm.prank(owner);
-        proxy.permitAndSetup(address(stablecoinModule), operationPermissions(Permissions.Operation.MINT), setupData);
+        proxy.multicall(calls);
 
         // check stablecoin enabled
         assertEq(stablecoinModule.stablecoinEnabled(address(proxy), address(stablecoin)), true);
@@ -603,7 +613,8 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // disable all tokens
         vm.prank(owner);
-        proxy.updatePaymentCollector(address(0));
+        IPayoutAddressExtensionExternal(address(proxy)).updatePayoutAddress(payoutAddress);
+        (address(0));
 
         vm.prank(buyer);
         vm.expectRevert("MISSING_PAYMENT_COLLECTOR");
@@ -765,7 +776,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // set guard to reject all mints
         vm.prank(owner);
-        proxy.guard(Permissions.Operation.MINT, 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF);
+        proxy.addGuard(Operations.MINT, 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF);
 
         vm.prank(buyer);
         vm.expectRevert("NOT_ALLOWED");
@@ -798,7 +809,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // disable module
         vm.prank(owner);
-        proxy.permit(address(stablecoinModule), bytes32(0));
+        proxy.revokePermission(Operations.MINT, address(stablecoinModule));
 
         vm.prank(buyer);
         vm.expectRevert("NOT_PERMITTED");
@@ -1025,7 +1036,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         // enable grants in module config setup and give module mint permission on proxy
         vm.startPrank(owner);
         stablecoinModule.setUp(address(proxy), price, stablecoins, false);
-        proxy.permit(address(stablecoinModule), operationPermissions(Permissions.Operation.MINT));
+        proxy.grantPermission(Operations.MINT, address(stablecoinModule));
         vm.stopPrank();
     }
 
@@ -1068,9 +1079,10 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.startPrank(owner);
         stablecoinModule.setUp(address(proxy), price, stablecoins, false);
         // give module mint permission on proxy
-        proxy.permit(address(stablecoinModule), operationPermissions(Permissions.Operation.MINT));
+        proxy.grantPermission(Operations.MINT, address(stablecoinModule));
         // set payment collector
-        proxy.updatePaymentCollector(owner);
+        IPayoutAddressExtensionExternal(address(proxy)).updatePayoutAddress(payoutAddress);
+        (owner);
         vm.stopPrank();
 
         // init buyer
