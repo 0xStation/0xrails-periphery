@@ -7,13 +7,13 @@ import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
-import {FreeMintModuleV4} from "src/v2/membership/modules/FreeMintModule.sol";
+import {FreeMintModule} from "src/v2/membership/modules/FreeMintModule.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
 contract FreeMintModuleTest is Test, SetUpMembership {
     Membership public proxy;
-    FreeMintModuleV4 public module;
+    FreeMintModule public module;
     FeeManager public feeManager;
 
     // intended to contain custom error signatures
@@ -34,7 +34,7 @@ contract FreeMintModuleTest is Test, SetUpMembership {
         FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Free, baseFee, variableFee);
         feeManager = new FeeManager(owner, exampleFees, exampleFees);
 
-        module = new FreeMintModuleV4(owner, address(feeManager));
+        module = new FreeMintModule(owner, address(feeManager));
 
         // enable grants in module config setup and give module mint permission on proxy
         vm.startPrank(owner);

@@ -13,7 +13,7 @@ import {ModuleFeeV2} from "src/lib/module/ModuleFeeV2.sol";
 /// @dev Provides a modular contract to handle collections who wish for their membership mints to be
 /// free of charge, save for Station Network's base fee
 
-contract FreeMintModuleV4 is ModuleSetup, ModuleGrant, ModuleFeeV2 {
+contract FreeMintModule is ModuleSetup, ModuleGrant, ModuleFeeV2 {
     /*=============
         STORAGE
     =============*/

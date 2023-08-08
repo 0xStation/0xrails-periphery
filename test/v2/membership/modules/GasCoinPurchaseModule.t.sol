@@ -7,13 +7,13 @@ import {Renderer} from "src/lib/renderer/Renderer.sol";
 import {Membership} from "src/membership/Membership.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
-import {GasCoinPurchaseModuleV4} from "src/v2/membership/modules/GasCoinPurchaseModule.sol";
+import {GasCoinPurchaseModule} from "src/v2/membership/modules/GasCoinPurchaseModule.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
-contract GasCoinPurchaseModuleV4Test is Test, SetUpMembership {
+contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
     Membership public proxy;
-    GasCoinPurchaseModuleV4 public gasCoinModule;
+    GasCoinPurchaseModule public gasCoinModule;
     FeeManager public feeManager;
 
     // intended to contain custom error signatures
@@ -31,10 +31,10 @@ contract GasCoinPurchaseModuleV4Test is Test, SetUpMembership {
     // @note Not invoked as a standalone test
     function initModule(uint120 baseFee, uint120 variableFee, uint256 price) public {
         // instantiate feeManager with fuzzed base and variable fees as baseline
-        FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Free, baseFee, variableFee);
+        FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Set, baseFee, variableFee);
         feeManager = new FeeManager(owner, exampleFees, exampleFees);
 
-        gasCoinModule = new GasCoinPurchaseModuleV4(owner, address(feeManager));
+        gasCoinModule = new GasCoinPurchaseModule(owner, address(feeManager));
 
         // enable grants in module config setup and give module mint permission on proxy
         vm.startPrank(owner);
