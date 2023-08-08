@@ -9,7 +9,7 @@ import {Permissions} from "src/lib/Permissions.sol";
 import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
 import {ModuleFee} from "src/lib/module/ModuleFee.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
-import {StablecoinPurchaseModule} from "src/membership/modules/StablecoinPurchaseModule.sol";
+import {StablecoinPurchaseModule} from "src/v2/membership/modules/StablecoinPurchaseModule.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
 // test
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
