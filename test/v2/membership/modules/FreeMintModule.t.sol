@@ -40,6 +40,7 @@ contract FreeMintModuleTest is Test, SetUpMembership {
         vm.startPrank(owner);
         module.setUp(address(proxy), false);
         proxy.permit(address(module), operationPermissions(Permissions.Operation.MINT));
+        vm.stopPrank();
     }
 
     function test_mint(uint120 baseFee, uint120 variableFee) public {

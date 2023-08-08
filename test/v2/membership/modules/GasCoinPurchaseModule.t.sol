@@ -40,6 +40,7 @@ contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
         vm.startPrank(owner);
         gasCoinModule.setUp(address(proxy), price, false);
         proxy.permit(address(gasCoinModule), operationPermissions(Permissions.Operation.MINT));
+        vm.stopPrank();
     }
 
     function test_mint(uint120 baseFee, uint120 variableFee, uint256 price) public {

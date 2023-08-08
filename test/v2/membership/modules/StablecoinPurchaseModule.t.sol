@@ -16,14 +16,13 @@ import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 import {FakeERC20} from "test/utils/FakeERC20.sol";
 
 contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
-    
     // struct populated with test params to solve `stack too deep` errors for funcs with > 16 variables
     struct TestParams {
-        uint8 coinDecimals; 
+        uint8 coinDecimals;
         uint8 moduleDecimals;
-        uint120 baseFee; 
-        uint120 variableFee; 
-        uint128 price; 
+        uint120 baseFee;
+        uint120 variableFee;
+        uint128 price;
     }
 
     Membership public proxy;
@@ -47,10 +46,10 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     ============*/
 
     function test_register(
-        uint8 coinDecimals, 
+        uint8 coinDecimals,
         uint8 moduleDecimals,
-        uint120 baseFee, 
-        uint120 variableFee, 
+        uint120 baseFee,
+        uint120 variableFee,
         uint128 price
     ) public {
         _constrainFuzzInputs(coinDecimals, moduleDecimals, baseFee, variableFee, price);
@@ -58,10 +57,10 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // initial null states sanity asserts
         assertEq(stablecoinModule.keyCounter(), 0);
-        err = bytes('STABLECOIN_NOT_REGISTERED');
+        err = bytes("STABLECOIN_NOT_REGISTERED");
         vm.expectRevert(err);
         stablecoinModule.keyOf(address(stablecoin));
-        err = bytes('KEY_NOT_REGISTERED');
+        err = bytes("KEY_NOT_REGISTERED");
         vm.expectRevert(err);
         stablecoinModule.stablecoinOf(1);
 
@@ -81,21 +80,15 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     }
 
     function test_registerRevertNotOwner(
-        uint8 coinDecimals, 
-        uint8 moduleDecimals, 
-        uint120 baseFee, 
-        uint120 variableFee, 
-        uint128 price, 
+        uint8 coinDecimals,
+        uint8 moduleDecimals,
+        uint120 baseFee,
+        uint120 variableFee,
+        uint128 price,
         address caller
     ) public {
         _constrainFuzzInputs(coinDecimals, moduleDecimals, baseFee, variableFee, price);
-        initModuleAndErc20(
-            coinDecimals, 
-            moduleDecimals,
-            baseFee, 
-            variableFee, 
-            price
-        );
+        initModuleAndErc20(coinDecimals, moduleDecimals, baseFee, variableFee, price);
 
         vm.assume(caller != owner);
         vm.prank(caller);
@@ -111,20 +104,14 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     }
 
     function test_registerRevertAlreadyRegistered(
-        uint8 coinDecimals, 
-        uint8 moduleDecimals, 
-        uint120 baseFee, 
-        uint120 variableFee, 
+        uint8 coinDecimals,
+        uint8 moduleDecimals,
+        uint120 baseFee,
+        uint120 variableFee,
         uint128 price
     ) public {
         _constrainFuzzInputs(coinDecimals, moduleDecimals, baseFee, variableFee, price);
-        initModuleAndErc20(
-            coinDecimals, 
-            moduleDecimals,
-            baseFee, 
-            variableFee, 
-            price
-        );
+        initModuleAndErc20(coinDecimals, moduleDecimals, baseFee, variableFee, price);
 
         vm.startPrank(owner);
         stablecoinModule.register(address(stablecoin));
@@ -133,21 +120,15 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     }
 
     function test_registerMultiple(
-        uint8 coinDecimals, 
-        uint8 moduleDecimals, 
-        uint120 baseFee, 
-        uint120 variableFee, 
-        uint128 price, 
+        uint8 coinDecimals,
+        uint8 moduleDecimals,
+        uint120 baseFee,
+        uint120 variableFee,
+        uint128 price,
         address randomAddress
     ) public {
         _constrainFuzzInputs(coinDecimals, moduleDecimals, baseFee, variableFee, price);
-        initModuleAndErc20(
-            coinDecimals, 
-            moduleDecimals,
-            baseFee, 
-            variableFee, 
-            price
-        );
+        initModuleAndErc20(coinDecimals, moduleDecimals, baseFee, variableFee, price);
 
         vm.startPrank(owner);
         // register stablecoin
@@ -168,13 +149,9 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         SET UP
     ============*/
 
-    function test_setUp(
-        uint8 coinDecimals, 
-        uint8 moduleDecimals, 
-        uint120 baseFee, 
-        uint120 variableFee, 
-        uint128 price
-    ) public {
+    function test_setUp(uint8 coinDecimals, uint8 moduleDecimals, uint120 baseFee, uint120 variableFee, uint128 price)
+        public
+    {
         initRegister(coinDecimals, moduleDecimals, baseFee, variableFee, price);
 
         address[] memory stablecoins = new address[](1);
@@ -191,11 +168,11 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     }
 
     function test_setUpAsAdmin(
-        uint8 coinDecimals, 
-        uint8 moduleDecimals, 
-        uint120 baseFee, 
-        uint120 variableFee, 
-        uint128 price, 
+        uint8 coinDecimals,
+        uint8 moduleDecimals,
+        uint120 baseFee,
+        uint120 variableFee,
+        uint128 price,
         address admin
     ) public {
         vm.assume(admin != owner);
@@ -208,7 +185,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         address[] memory stablecoins = new address[](1);
         stablecoins[0] = address(stablecoin);
-        
+
         // setUp() as non-owner admin
         vm.prank(admin);
         stablecoinModule.setUp(address(proxy), price, stablecoins, false);
@@ -222,11 +199,11 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     }
 
     function test_setUpRevertNotPermitted(
-        uint8 coinDecimals, 
-        uint8 moduleDecimals, 
-        uint120 baseFee, 
-        uint120 variableFee, 
-        uint128 price, 
+        uint8 coinDecimals,
+        uint8 moduleDecimals,
+        uint120 baseFee,
+        uint120 variableFee,
+        uint128 price,
         address randomAddress
     ) public {
         vm.assume(randomAddress != owner);
@@ -235,8 +212,8 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // following code is identical to initModuleAndErc20() but w/out calling module.setUp(proxy) and proxy.permit
         // instantiate feeManager with fuzzed base and variable fees as baseline
-        vm.assume(baseFee != 0); // since this test file tests stablecoins, FeeSetting.Set is used and baseFee should != 0 
-        FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Set, baseFee, variableFee); 
+        vm.assume(baseFee != 0); // since this test file tests stablecoins, FeeSetting.Set is used and baseFee should != 0
+        FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Set, baseFee, variableFee);
         feeManager = new FeeManager(owner, exampleFees, exampleFees);
 
         stablecoin = new FakeERC20(coinDecimals);
@@ -259,7 +236,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         stablecoinModule.setUp(address(proxy), price, stablecoins, false);
 
         // check stablecoin NOT enabled
-        err = bytes('STABLECOIN_NOT_REGISTERED');
+        err = bytes("STABLECOIN_NOT_REGISTERED");
         vm.expectRevert(err);
         stablecoinModule.stablecoinEnabled(address(proxy), address(stablecoin));
         // check all enabled coins
@@ -269,16 +246,13 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         stablecoinModule.priceOf(address(proxy));
     }
 
-    function test_setUpRevertZeroPrice(
-        uint8 coinDecimals, 
-        uint8 moduleDecimals, 
-        uint120 baseFee, 
-        uint120 variableFee
-    ) public {
-        vm.assume(baseFee != 0); // since this test file tests stablecoins, FeeSetting.Set is used and baseFee should != 0 
+    function test_setUpRevertZeroPrice(uint8 coinDecimals, uint8 moduleDecimals, uint120 baseFee, uint120 variableFee)
+        public
+    {
+        vm.assume(baseFee != 0); // since this test file tests stablecoins, FeeSetting.Set is used and baseFee should != 0
         // following code is identical to initModuleAndErc20() but w/out calling module.setUp(proxy) and proxy.permit
         // instantiate feeManager with fuzzed base and variable fees as baseline
-        FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Set, baseFee, variableFee); 
+        FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Set, baseFee, variableFee);
         feeManager = new FeeManager(owner, exampleFees, exampleFees);
 
         stablecoin = new FakeERC20(coinDecimals);
@@ -311,11 +285,11 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     }
 
     function test_setUpUnsupportedStablecoin(
-        uint8 coinDecimals, 
-        uint8 moduleDecimals, 
-        uint120 baseFee, 
-        uint120 variableFee, 
-        uint128 price 
+        uint8 coinDecimals,
+        uint8 moduleDecimals,
+        uint120 baseFee,
+        uint120 variableFee,
+        uint128 price
     ) public {
         // calls setUp() on the proxy address with price but doesn't provide stablecoin addrs
         initRegister(coinDecimals, moduleDecimals, baseFee, variableFee, price);
@@ -335,7 +309,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         address unsupportedStablecoin = address(0xbeefEbabe);
         address[] memory unsupportedStables = new address[](1);
         unsupportedStables[0] = unsupportedStablecoin;
-        
+
         vm.prank(owner);
         vm.expectRevert("STABLECOIN_NOT_REGISTERED");
         stablecoinModule.setUp(address(proxy), price, unsupportedStables, false);
@@ -344,10 +318,10 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     }
 
     function test_setUpFromProxy(
-        uint8 coinDecimals, 
-        uint8 moduleDecimals, 
-        uint120 baseFee, 
-        uint120 variableFee, 
+        uint8 coinDecimals,
+        uint8 moduleDecimals,
+        uint120 baseFee,
+        uint120 variableFee,
         uint128 price
     ) public {
         initRegister(coinDecimals, moduleDecimals, baseFee, variableFee, price);
@@ -374,20 +348,14 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
     // mintPriceToStablecoinAmount() can overflow if `price` exceeds type(120).max: (1.3e36)
     function test_mintPriceToStablecoinAmount(
-        uint8 coinDecimals, 
-        uint8 moduleDecimals, 
-        uint120 baseFee, 
-        uint120 variableFee, 
+        uint8 coinDecimals,
+        uint8 moduleDecimals,
+        uint120 baseFee,
+        uint120 variableFee,
         uint128 price
     ) public {
         _constrainFuzzInputs(coinDecimals, moduleDecimals, baseFee, variableFee, price);
-        initModuleAndErc20(
-            coinDecimals, 
-            moduleDecimals,
-            baseFee, 
-            variableFee, 
-            price
-        );
+        initModuleAndErc20(coinDecimals, moduleDecimals, baseFee, variableFee, price);
 
         if (coinDecimals == moduleDecimals) {
             assertEq(stablecoinModule.mintPriceToStablecoinAmount(price, address(stablecoin)), price);
@@ -408,93 +376,57 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         }
     }
 
-    function test_mintPriceToStablecoinAmountUSDC(
-        uint120 baseFee, 
-        uint120 variableFee, 
-        uint128 price
-    ) public {
+    function test_mintPriceToStablecoinAmountUSDC(uint120 baseFee, uint120 variableFee, uint128 price) public {
         vm.assume(price != 0);
 
         uint8 coinDecimals = 6;
         uint8 moduleDecimals = 4;
 
-        initModuleAndErc20(
-            coinDecimals, 
-            moduleDecimals,
-            baseFee, 
-            variableFee, 
-            price
-        );
+        initModuleAndErc20(coinDecimals, moduleDecimals, baseFee, variableFee, price);
 
         assertEq(stablecoinModule.mintPriceToStablecoinAmount(price, address(stablecoin)), uint256(price) * 100);
     }
 
-    function test_mintPriceToStablecoinAmountDAI(
-        uint120 baseFee, 
-        uint120 variableFee,
-        uint128 price
-    ) public {
+    function test_mintPriceToStablecoinAmountDAI(uint120 baseFee, uint120 variableFee, uint128 price) public {
         vm.assume(price != 0);
 
         uint8 coinDecimals = 18;
         uint8 moduleDecimals = 4;
 
-        initModuleAndErc20(
-            coinDecimals, 
-            moduleDecimals,
-            baseFee, 
-            variableFee, 
-            price
-        );
+        initModuleAndErc20(coinDecimals, moduleDecimals, baseFee, variableFee, price);
 
         assertEq(stablecoinModule.mintPriceToStablecoinAmount(price, address(stablecoin)), uint256(price) * 10 ** 14);
     }
 
-    function test_mintPriceToStablecoinAmountWBTC(
-        uint120 baseFee, 
-        uint120 variableFee,
-        uint128 price
-    ) public {
+    function test_mintPriceToStablecoinAmountWBTC(uint120 baseFee, uint120 variableFee, uint128 price) public {
         vm.assume(price != 0);
 
         uint8 coinDecimals = 18;
         uint8 moduleDecimals = 18;
 
-        initModuleAndErc20(
-            coinDecimals, 
-            moduleDecimals,
-            baseFee, 
-            variableFee, 
-            price
-        );
+        initModuleAndErc20(coinDecimals, moduleDecimals, baseFee, variableFee, price);
 
         assertEq(stablecoinModule.mintPriceToStablecoinAmount(price, address(stablecoin)), uint256(price));
     }
 
-    function test_mintPriceToStablecoinAmountInverse(
-        uint120 baseFee, 
-        uint120 variableFee,
-        uint128 price
-    ) public {
+    function test_mintPriceToStablecoinAmountInverse(uint120 baseFee, uint120 variableFee, uint128 price) public {
         // bound fuzzed price value to less than ie
         vm.assume(price != 0 && price < type(uint128).max / 10e9);
 
         uint8 coinDecimals = 4;
         uint8 moduleDecimals = 18;
 
-        initModuleAndErc20(
-            coinDecimals, 
-            moduleDecimals,
-            baseFee, 
-            variableFee, 
-            price
-        );
+        initModuleAndErc20(coinDecimals, moduleDecimals, baseFee, variableFee, price);
 
         // arithmetic in this check can cause overflow for values of price > ~1e32
         if (price % 10 ** 14 > 0) {
-            assertEq(stablecoinModule.mintPriceToStablecoinAmount(price, address(stablecoin)), uint256(price) / 10 ** 14 + 1);
+            assertEq(
+                stablecoinModule.mintPriceToStablecoinAmount(price, address(stablecoin)), uint256(price) / 10 ** 14 + 1
+            );
         } else {
-            assertEq(stablecoinModule.mintPriceToStablecoinAmount(price, address(stablecoin)), uint256(price) / 10 ** 14);
+            assertEq(
+                stablecoinModule.mintPriceToStablecoinAmount(price, address(stablecoin)), uint256(price) / 10 ** 14
+            );
         }
     }
 
@@ -502,13 +434,12 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         MINT
     ==========*/
 
-
     function test_mint(
-        uint8 coinDecimals, 
-        uint8 moduleDecimals, 
-        uint120 baseFee, 
-        uint120 variableFee, 
-        uint128 price, 
+        uint8 coinDecimals,
+        uint8 moduleDecimals,
+        uint120 baseFee,
+        uint120 variableFee,
+        uint128 price,
         uint64 balanceOffset
     ) public {
         (
@@ -520,7 +451,8 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         uint256 amount = 1; // single mint
         uint256 priceFormattedDecimals = stablecoinModule.mintPriceToStablecoinAmount(price, address(stablecoin));
-        uint256 stablecoinFee = feeManager.getFeeTotals(address(proxy), address(stablecoin), buyer, amount, priceFormattedDecimals);
+        uint256 stablecoinFee =
+            feeManager.getFeeTotals(address(proxy), address(stablecoin), buyer, amount, priceFormattedDecimals);
 
         vm.prank(buyer);
         // mint token
@@ -539,15 +471,13 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     }
 
     function test_mintTo(
-        uint8 coinDecimals, 
-        uint8 moduleDecimals, 
-        uint120 baseFee, 
-        uint120 variableFee, 
-        uint128 price,  
+        uint8 coinDecimals,
+        uint8 moduleDecimals,
+        uint120 baseFee,
+        uint120 variableFee,
+        uint128 price,
         uint64 balanceOffset
-    )
-        public
-    {
+    ) public {
         (
             address buyer,
             uint256 buyerInitialBalance,
@@ -559,8 +489,9 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         address recipient = createAccount();
 
         uint256 amount = 1; // single mint
-        uint256 priceFormattedDecimals = stablecoinModule.mintPriceToStablecoinAmount(price, address(stablecoin));        
-        uint256 stablecoinFee = feeManager.getFeeTotals(address(proxy), address(stablecoin), buyer, amount, priceFormattedDecimals);
+        uint256 priceFormattedDecimals = stablecoinModule.mintPriceToStablecoinAmount(price, address(stablecoin));
+        uint256 stablecoinFee =
+            feeManager.getFeeTotals(address(proxy), address(stablecoin), buyer, amount, priceFormattedDecimals);
 
         vm.prank(buyer);
         // mint token
@@ -634,18 +565,19 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         uint256 amount = 1; // single mint
 
-        uint256 priceFormattedDecimals = stablecoinModule.mintPriceToStablecoinAmount(price, address(stablecoin));        
-        uint256 stablecoinFee = feeManager.getFeeTotals(address(proxy), address(stablecoin), buyer, 1, priceFormattedDecimals);
+        uint256 priceFormattedDecimals = stablecoinModule.mintPriceToStablecoinAmount(price, address(stablecoin));
+        uint256 stablecoinFee =
+            feeManager.getFeeTotals(address(proxy), address(stablecoin), buyer, 1, priceFormattedDecimals);
         uint256 totalInclFees = priceFormattedDecimals + stablecoinFee;
 
-        // attempt mint with invalid fee ie insufficient stablecoin balance 
-        vm.expectRevert(bytes('ERC20: transfer amount exceeds balance'));
+        // attempt mint with invalid fee ie insufficient stablecoin balance
+        vm.expectRevert(bytes("ERC20: transfer amount exceeds balance"));
         vm.prank(buyer);
         stablecoinModule.mint(address(proxy), address(stablecoin));
 
         // buyer balance unchanged
         assertEq(buyer.balance, buyerInitialBalance);
-        
+
         // no token minted
         assertEq(proxy.balanceOf(buyer), 0);
         assertEq(proxy.totalSupply(), 0);
@@ -724,7 +656,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         uint8 coinDecimals,
         uint8 moduleDecimals,
         uint120 baseFee,
-        uint120 variableFee,    
+        uint120 variableFee,
         uint128 price,
         uint64 balanceOffset
     ) public {
@@ -760,7 +692,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         uint8 coinDecimals,
         uint8 moduleDecimals,
         uint120 baseFee,
-        uint120 variableFee,    
+        uint120 variableFee,
         uint128 price,
         uint64 balanceOffset
     ) public {
@@ -789,7 +721,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         uint8 coinDecimals,
         uint8 moduleDecimals,
         uint120 baseFee,
-        uint120 variableFee,    
+        uint120 variableFee,
         uint128 price,
         uint64 balanceOffset
     ) public {
@@ -820,7 +752,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         uint8 coinDecimals,
         uint8 moduleDecimals,
         uint120 baseFee,
-        uint120 variableFee,    
+        uint120 variableFee,
         uint128 price,
         uint64 balanceOffset
     ) public {
@@ -853,7 +785,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         uint8 coinDecimals,
         uint8 moduleDecimals,
         uint120 baseFee,
-        uint120 variableFee,    
+        uint120 variableFee,
         uint128 price,
         uint64 balanceOffset
     ) public {
@@ -886,7 +818,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         uint8 coinDecimals,
         uint8 moduleDecimals,
         uint120 baseFee,
-        uint120 variableFee,    
+        uint120 variableFee,
         uint128 price,
         uint64 balanceOffset
     ) public {
@@ -915,27 +847,22 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         BATCHMINT
     ==============*/
 
-    function test_batchMint(
-        TestParams calldata testParams,
-        uint64 balanceOffset,
-        uint8 amount
-    ) public {
+    function test_batchMint(TestParams calldata testParams, uint64 balanceOffset, uint8 amount) public {
         vm.assume(amount > 0);
         (
             address buyer,
             uint256 buyerInitialBalance,
             uint256 buyerInitialStablecoinBalance,
             uint256 ownerInitialStablecoinBalance
-        ) = 
-            initModuleAndBuyer(
-                testParams.coinDecimals, 
-                testParams.moduleDecimals, 
-                testParams.baseFee, 
-                testParams.variableFee, 
-                testParams.price, 
-                balanceOffset, 
-                amount
-            );
+        ) = initModuleAndBuyer(
+            testParams.coinDecimals,
+            testParams.moduleDecimals,
+            testParams.baseFee,
+            testParams.variableFee,
+            testParams.price,
+            balanceOffset,
+            amount
+        );
 
         vm.prank(buyer);
         // mint token
@@ -949,38 +876,35 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         assertEq(proxy.totalSupply(), amount);
         assertEq(endTokenId, startTokenId + amount - 1);
 
-        uint256 priceFormattedDecimals = stablecoinModule.mintPriceToStablecoinAmount(testParams.price, address(stablecoin));
-        uint256 stablecoinFee = feeManager.getFeeTotals(address(proxy), address(stablecoin), buyer, amount, priceFormattedDecimals);
+        uint256 priceFormattedDecimals =
+            stablecoinModule.mintPriceToStablecoinAmount(testParams.price, address(stablecoin));
+        uint256 stablecoinFee =
+            feeManager.getFeeTotals(address(proxy), address(stablecoin), buyer, amount, priceFormattedDecimals);
         uint256 purchaseAmount = amount * priceFormattedDecimals;
         uint256 totalInclFees = purchaseAmount + stablecoinFee;
-        
+
         // buyer stablecoin balance decreased by totalInclFees
         assertEq(stablecoin.balanceOf(buyer), buyerInitialStablecoinBalance - totalInclFees);
         // owner stablecoin balance increased by purchaseAmount
         assertEq(stablecoin.balanceOf(owner), ownerInitialStablecoinBalance + purchaseAmount);
     }
 
-    function test_batchMintTo(
-        TestParams calldata testParams,
-        uint64 balanceOffset,
-        uint8 amount
-    ) public {
+    function test_batchMintTo(TestParams calldata testParams, uint64 balanceOffset, uint8 amount) public {
         vm.assume(amount > 0);
         (
             address buyer,
             uint256 buyerInitialBalance,
             uint256 buyerInitialStablecoinBalance,
             uint256 ownerInitialStablecoinBalance
-        ) = 
-            initModuleAndBuyer(
-                testParams.coinDecimals, 
-                testParams.moduleDecimals, 
-                testParams.baseFee, 
-                testParams.variableFee, 
-                testParams.price, 
-                balanceOffset, 
-                amount
-            );
+        ) = initModuleAndBuyer(
+            testParams.coinDecimals,
+            testParams.moduleDecimals,
+            testParams.baseFee,
+            testParams.variableFee,
+            testParams.price,
+            balanceOffset,
+            amount
+        );
 
         // recipient is NOT buyer
         address recipient = createAccount();
@@ -997,23 +921,24 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         assertEq(proxy.totalSupply(), amount);
         assertEq(endTokenId, startTokenId + amount - 1);
 
-        uint256 priceFormattedDecimals = stablecoinModule.mintPriceToStablecoinAmount(testParams.price, address(stablecoin));
-        uint256 stablecoinFee = feeManager.getFeeTotals(address(proxy), address(stablecoin), recipient, amount, priceFormattedDecimals);
+        uint256 priceFormattedDecimals =
+            stablecoinModule.mintPriceToStablecoinAmount(testParams.price, address(stablecoin));
+        uint256 stablecoinFee =
+            feeManager.getFeeTotals(address(proxy), address(stablecoin), recipient, amount, priceFormattedDecimals);
         uint256 purchaseAmount = amount * priceFormattedDecimals;
         uint256 totalInclFees = purchaseAmount + stablecoinFee;
-        
+
         // buyer stablecoin balance decreased by totalInclFees
         assertEq(stablecoin.balanceOf(buyer), buyerInitialStablecoinBalance - totalInclFees);
         // owner stablecoin balance increased by purchaseAmount
         assertEq(stablecoin.balanceOf(owner), ownerInitialStablecoinBalance + purchaseAmount);
     }
 
-
     function test_batchMintRevertZeroAmount(
         uint8 coinDecimals,
         uint8 moduleDecimals,
         uint120 baseFee,
-        uint120 variableFee,   
+        uint120 variableFee,
         uint128 price,
         uint64 balanceOffset
     ) public {
@@ -1054,10 +979,10 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     // but only on impossibly high fees, price, & decimals causing a revert, roughly:
     // if (1e_coinDecimals * 1e_moduleDecimals * _baseFee * _variableFee * _price > type(uint256).max)
     function _constrainFuzzInputs(
-        uint8 _coinDecimals, 
+        uint8 _coinDecimals,
         uint8 _moduleDecimals,
-        uint120 _baseFee, 
-        uint120 _variableFee, 
+        uint120 _baseFee,
+        uint120 _variableFee,
         uint128 _price
     ) internal pure {
         // limit coin and module decimals to roughly match that of _price: type(uint96).max
@@ -1071,18 +996,17 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.assume(_variableFee < type(uint64).max);
     }
 
-
     // helper function to initialize module and ERC20 (but not register it) for each test function
     function initModuleAndErc20(
-        uint8 coinDecimals, 
+        uint8 coinDecimals,
         uint8 moduleDecimals,
-        uint120 baseFee, 
-        uint120 variableFee, 
+        uint120 baseFee,
+        uint120 variableFee,
         uint128 price
     ) public {
-        vm.assume(baseFee != 0); // since this test file tests stablecoins, FeeSetting.Set is used and baseFee should != 0 
+        vm.assume(baseFee != 0); // since this test file tests stablecoins, FeeSetting.Set is used and baseFee should != 0
         // instantiate feeManager with fuzzed base and variable fees as baseline
-        FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Set, baseFee, variableFee); 
+        FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Set, baseFee, variableFee);
         feeManager = new FeeManager(owner, exampleFees, exampleFees);
 
         // deploy fake stablecoin but not include it in stablecoinModule constructor
@@ -1102,24 +1026,15 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.startPrank(owner);
         stablecoinModule.setUp(address(proxy), price, stablecoins, false);
         proxy.permit(address(stablecoinModule), operationPermissions(Permissions.Operation.MINT));
+        vm.stopPrank();
     }
 
     // helper function to initialize module, ERC20, and register the ERC20 with the module for each test function
-    function initRegister(
-        uint8 coinDecimals, 
-        uint8 moduleDecimals,
-        uint120 baseFee, 
-        uint120 variableFee, 
-        uint128 price
-    ) public {
+    function initRegister(uint8 coinDecimals, uint8 moduleDecimals, uint120 baseFee, uint120 variableFee, uint128 price)
+        public
+    {
         _constrainFuzzInputs(coinDecimals, moduleDecimals, baseFee, variableFee, price);
-        initModuleAndErc20(
-            coinDecimals, 
-            moduleDecimals,
-            baseFee, 
-            variableFee, 
-            price
-        );
+        initModuleAndErc20(coinDecimals, moduleDecimals, baseFee, variableFee, price);
 
         vm.prank(owner);
         stablecoinModule.register(address(stablecoin));
@@ -1160,16 +1075,18 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // init buyer
         buyer = createAccount();
-        
+
         // deal stablecoin for purchase
-        uint256 priceFormattedDecimals = stablecoinModule.mintPriceToStablecoinAmount(uint256(price), address(stablecoin)); 
-        uint256 stablecoinFee = feeManager.getFeeTotals(address(proxy), address(stablecoin), buyer, amount, priceFormattedDecimals); 
+        uint256 priceFormattedDecimals =
+            stablecoinModule.mintPriceToStablecoinAmount(uint256(price), address(stablecoin));
+        uint256 stablecoinFee =
+            feeManager.getFeeTotals(address(proxy), address(stablecoin), buyer, amount, priceFormattedDecimals);
         uint256 purchaseAmount = amount * priceFormattedDecimals;
         buyerInitialStablecoinBalance = stablecoinFee + purchaseAmount + uint256(balanceOffset); // cast to prevent overflow
         stablecoin.mint(buyer, buyerInitialStablecoinBalance);
         // allow module to spend buyer's stablecoin
         vm.prank(buyer);
-        stablecoin.increaseAllowance(address(stablecoinModule), buyerInitialStablecoinBalance); 
+        stablecoin.increaseAllowance(address(stablecoinModule), buyerInitialStablecoinBalance);
 
         ownerInitialStablecoinBalance = stablecoin.balanceOf(owner);
 
