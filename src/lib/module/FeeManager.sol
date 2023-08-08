@@ -61,7 +61,7 @@ contract FeeManager is Ownable {
 
     /// @dev Baseline fee struct that serves as a stand in for all token addresses that have been registered
     /// in a stablecoin purchase module but not had their default fees set
-    Fees public baselineFees;
+    Fees internal baselineFees;
 
     /// @dev Mapping that stores default fees associated with a given token address
     mapping (address => Fees) internal defaultFees;
@@ -148,6 +148,11 @@ contract FeeManager is Ownable {
             unitPrice
         );
         return baseFeeTotal + variableFeeTotal;
+    }
+
+    /// @dev Function to get baseline fees for all tokens
+    function getBaselineFees() public view returns (Fees memory baselines) {
+        baselines = baselineFees;
     }
 
     /// @dev Function to get default fees for a token if they have been set
