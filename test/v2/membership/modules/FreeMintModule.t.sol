@@ -3,8 +3,10 @@ pragma solidity ^0.8.13;
 
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
+import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
+import {Operations} from "mage/lib/Operations.sol";
+
 import {Renderer} from "src/lib/renderer/Renderer.sol";
-import {Membership} from "src/membership/Membership.sol";
 import {Permissions} from "src/lib/Permissions.sol";
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
 import {FreeMintModule} from "src/v2/membership/modules/FreeMintModule.sol";
@@ -12,7 +14,7 @@ import {FeeManager} from "src/lib/module/FeeManager.sol";
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
 contract FreeMintModuleTest is Test, SetUpMembership {
-    Membership public proxy;
+    ERC721Mage public proxy;
     FreeMintModule public module;
     FeeManager public feeManager;
 
@@ -29,7 +31,7 @@ contract FreeMintModuleTest is Test, SetUpMembership {
 
     // helper function to initialize Modules for each test function
     // @note Not invoked as a standalone test
-    function initModule(uint120 baseFee, uint120 variableFee) public {
+    function initModule(uint96 baseFee, uint96 variableFee) public {
         // instantiate feeManager with fuzzed base and variable fees as baseline
         FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Free, baseFee, variableFee);
         feeManager = new FeeManager(owner, exampleFees, exampleFees);
@@ -39,11 +41,11 @@ contract FreeMintModuleTest is Test, SetUpMembership {
         // enable grants in module config setup and give module mint permission on proxy
         vm.startPrank(owner);
         module.setUp(address(proxy), false);
-        proxy.permit(address(module), operationPermissions(Permissions.Operation.MINT));
+        proxy.grantPermission(Operations.MINT, address(module));
         vm.stopPrank();
     }
 
-    function test_mint(uint120 baseFee, uint120 variableFee) public {
+    function test_mint(uint96 baseFee, uint96 variableFee) public {
         initModule(baseFee, variableFee);
 
         address recipient = createAccount();
@@ -53,7 +55,8 @@ contract FreeMintModuleTest is Test, SetUpMembership {
 
         vm.startPrank(recipient);
         // mint token
-        uint256 tokenId = module.mint{value: fee}(address(proxy));
+        module.mint{value: fee}(address(proxy));
+        uint256 tokenId = proxy.totalSupply();
 
         // asserts
         assertEq(proxy.balanceOf(recipient), 1);
@@ -61,7 +64,7 @@ contract FreeMintModuleTest is Test, SetUpMembership {
         assertEq(proxy.totalSupply(), 1);
     }
 
-    function test_mintRevertInvalidFee(uint120 baseFee, uint120 variableFee) public {
+    function test_mintRevertInvalidFee(uint96 baseFee, uint96 variableFee) public {
         initModule(baseFee, variableFee);
 
         address recipient = createAccount();
@@ -84,7 +87,7 @@ contract FreeMintModuleTest is Test, SetUpMembership {
         assertEq(recipient.balance, initialBalance);
     }
 
-    function test_mintTo(uint120 baseFee, uint120 variableFee) public {
+    function test_mintTo(uint96 baseFee, uint96 variableFee) public {
         initModule(baseFee, variableFee);
 
         address payer = createAccount();
@@ -95,7 +98,8 @@ contract FreeMintModuleTest is Test, SetUpMembership {
 
         vm.startPrank(payer);
         // mint token
-        uint256 tokenId = module.mintTo{value: fee}(address(proxy), recipient);
+        module.mintTo{value: fee}(address(proxy), recipient);
+        uint256 tokenId = proxy.totalSupply();
 
         // asserts
         assertEq(proxy.balanceOf(recipient), 1);
@@ -103,7 +107,7 @@ contract FreeMintModuleTest is Test, SetUpMembership {
         assertEq(proxy.totalSupply(), 1);
     }
 
-    function test_mintToRevertInvalidFee(uint120 baseFee, uint120 variableFee) public {
+    function test_mintToRevertInvalidFee(uint96 baseFee, uint96 variableFee) public {
         initModule(baseFee, variableFee);
 
         address payer = createAccount();
@@ -127,7 +131,7 @@ contract FreeMintModuleTest is Test, SetUpMembership {
         assertEq(payer.balance, initialBalance);
     }
 
-    function test_batchMint(uint120 baseFee, uint120 variableFee, uint8 _quantity) public {
+    function test_batchMint(uint96 baseFee, uint96 variableFee, uint8 _quantity) public {
         // bounded fuzz inputs to a smaller range for performance, tests pass even for `uint64 _quantity`
         vm.assume(_quantity != 0);
         // bound cheatcode took too long so recasting works fine
@@ -139,20 +143,22 @@ contract FreeMintModuleTest is Test, SetUpMembership {
         uint256 fee = feeManager.getFeeTotals(address(proxy), address(0x0), recipient, quantity, 0);
         vm.deal(recipient, fee);
         uint256 initialBalance = recipient.balance;
+        uint256 initialSupply = proxy.totalSupply();
+        uint256 startTokenId = initialSupply + 1;
 
         vm.startPrank(recipient);
-        (uint256 startTokenId, uint256 endTokenId) = module.batchMint{value: fee}(address(proxy), quantity);
+        module.batchMint{value: fee}(address(proxy), quantity);
 
         // asserts
         assertEq(proxy.balanceOf(recipient), quantity);
-        for (uint256 i; i < endTokenId - startTokenId; ++i) {
+        for (uint256 i; i < quantity; ++i) {
             assertEq(proxy.ownerOf(startTokenId + i), recipient);
         }
-        assertEq(proxy.totalSupply(), quantity);
+        assertEq(proxy.totalSupply(), initialSupply + quantity);
         assertEq(recipient.balance, initialBalance - fee);
     }
 
-    function test_batchMintRevertInvalidFee(uint120 baseFee, uint120 variableFee, uint8 _quantity) public {
+    function test_batchMintRevertInvalidFee(uint96 baseFee, uint96 variableFee, uint8 _quantity) public {
         // bounded fuzz inputs to a smaller range for performance, tests pass even for `uint64 _quantity`
         vm.assume(_quantity != 0);
         // bound cheatcode took too long so recasting works fine
@@ -179,7 +185,7 @@ contract FreeMintModuleTest is Test, SetUpMembership {
         assertEq(recipient.balance, initialBalance);
     }
 
-    function test_batchMintTo(uint120 baseFee, uint120 variableFee, uint8 _quantity) public {
+    function test_batchMintTo(uint96 baseFee, uint96 variableFee, uint8 _quantity) public {
         // bounded fuzz inputs to a smaller range for performance, tests pass even for `uint64 _quantity`
         vm.assume(_quantity != 0);
         // bound cheatcode took too long so recasting works fine
@@ -192,20 +198,22 @@ contract FreeMintModuleTest is Test, SetUpMembership {
         uint256 fee = feeManager.getFeeTotals(address(proxy), address(0x0), recipient, quantity, 0);
         vm.deal(payer, fee);
         uint256 initialBalance = payer.balance;
+        uint256 initialSupply = proxy.totalSupply();
+        uint256 startTokenId = initialSupply + 1;
 
         vm.startPrank(payer);
-        (uint256 startTokenId, uint256 endTokenId) = module.batchMintTo{value: fee}(address(proxy), recipient, quantity);
+        module.batchMintTo{value: fee}(address(proxy), recipient, quantity);
 
         // asserts
         assertEq(proxy.balanceOf(recipient), quantity);
-        for (uint256 i; i < endTokenId - startTokenId; ++i) {
+        for (uint256 i; i < quantity; ++i) {
             assertEq(proxy.ownerOf(startTokenId + i), recipient);
         }
-        assertEq(proxy.totalSupply(), quantity);
+        assertEq(proxy.totalSupply(), initialSupply + quantity);
         assertEq(recipient.balance, initialBalance - fee);
     }
 
-    function test_batchMintToRevertInvalidFee(uint120 baseFee, uint120 variableFee, uint8 _quantity) public {
+    function test_batchMintToRevertInvalidFee(uint96 baseFee, uint96 variableFee, uint8 _quantity) public {
         // bounded fuzz inputs to a smaller range for performance, tests pass even for `uint64 _quantity`
         vm.assume(_quantity != 0);
         // bound cheatcode took too long so recasting works fine

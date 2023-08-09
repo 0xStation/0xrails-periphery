@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {IMembership} from "src/membership/IMembership.sol";
-import {Membership} from "src/membership/Membership.sol";
-import {Permissions} from "src/lib/Permissions.sol";
-// module utils
-import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
-import {ModuleGrant} from "src/lib/module/ModuleGrant.sol";
-import {ModuleFeeV2} from "src/lib/module/ModuleFeeV2.sol";
+import {IERC721Mage} from "mage/cores/ERC721/interface/IERC721Mage.sol";
+import {IPermissions} from "mage/access/permissions/interface/IPermissions.sol";
+import {Operations} from "mage/lib/Operations.sol";
+
+import {ModuleSetup} from "src/v2/lib/module/ModuleSetup.sol";
+import {ModuleGrant} from "src/v2/lib/module/ModuleGrant.sol";
+import {ModuleFee} from "src/v2/lib/module/ModuleFee.sol";
+import {PayoutAddressExtension} from "src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 
 /// @title Station Network GasCoinPurchaseModuleV2 Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg), 👦🏻👦🏻.eth
-/// @dev Provides a modular contract to handle collections who wish for their membership mints to be 
+/// @dev Provides a modular contract to handle collections who wish for their membership mints to be
 /// paid in the native currency of the chain this contract is deployed to
 
-contract GasCoinPurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup {
-
+contract GasCoinPurchaseModule is ModuleSetup, ModuleGrant, ModuleFee {
     /*=============
         STORAGE
     =============*/
@@ -37,12 +37,12 @@ contract GasCoinPurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup {
 
     /// @param _newOwner The owner of the ModuleFeeV2, an address managed by Station Network
     /// @param _feeManager The FeeManager's address
-    constructor(address _newOwner, address _feeManager) ModuleGrant() ModuleFeeV2(_newOwner, _feeManager) {}
+    constructor(address _newOwner, address _feeManager) ModuleGrant() ModuleFee(_newOwner, _feeManager) {}
 
     /// @dev Function to set up and configure a new collection's purchase prices
     /// @param collection The new collection to configure
     /// @param price The price in this chain's native currency for this collection's mints
-    /// @param enforceGrants A boolean to represent whether this collection will repeal or support grant functionality 
+    /// @param enforceGrants A boolean to represent whether this collection will repeal or support grant functionality
     function setUp(address collection, uint256 price, bool enforceGrants) external canSetUp(collection) {
         if (prices[collection] != price) {
             prices[collection] = price;
@@ -66,108 +66,53 @@ contract GasCoinPurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup {
 
     /// @dev Function to mint a single collection token to the caller, ie a user
     function mint(address collection) external payable returns (uint256 tokenId) {
-        tokenId = _mint(collection, msg.sender);
+        _batchMint(collection, msg.sender, 1);
     }
 
     /// @dev Function to mint a single collection token to a specified recipient
     function mintTo(address collection, address recipient) external payable returns (uint256 tokenId) {
-        tokenId = _mint(collection, recipient);
+        _batchMint(collection, recipient, 1);
     }
 
     /// @dev Function to mint collection tokens in batches to the caller, ie a user
     /// @notice returned tokenId range is inclusive
-    function batchMint(address collection, uint256 amount)
-        external
-        payable
-        returns (uint256 startTokenId, uint256 endTokenId)
-    {
-        return _batchMint(collection, msg.sender, amount);
+    function batchMint(address collection, uint256 quantity) external payable {
+        _batchMint(collection, msg.sender, quantity);
     }
 
     /// @dev Function to mint collection tokens in batches to a specified recipient
     /// @notice returned tokenId range is inclusive
-    function batchMintTo(address collection, address recipient, uint256 amount)
-        external
-        payable
-        returns (uint256 startTokenId, uint256 endTokenId)
-    {
-        return _batchMint(collection, recipient, amount);
+    function batchMintTo(address collection, address recipient, uint256 quantity) external payable {
+        _batchMint(collection, recipient, quantity);
     }
-
 
     /*===============
         INTERNALS
     ===============*/
 
-    /// @dev Internal function to which all external user + client facing single mint functions are routed.
-    /// @param collection The token collection to mint from
-    /// @param recipient The recipient of successfully minted tokens
-    function _mint(address collection, address recipient)
-        internal
-        enableGrants(abi.encode(collection))
-        returns (uint256 tokenId)
-    {
-        // reverts if collection has not been setUp()
-        uint256 price = priceOf(collection);
-
-        // get total invoice incl fees and register to ModuleFeeV2 storage
-        _registerFee(
-            collection, 
-            address(0x0), 
-            recipient, 
-            price
-        );
-
-        // send payment
-        address paymentCollector = Membership(collection).paymentCollector();
-        (bool success,) = paymentCollector.call{ value: price }("");
-        require(success, "PAYMENT_FAIL");
-
-        tokenId = IMembership(collection).mintTo(recipient);
-    }
-
     /// @dev Internal function to which all external user + client facing batchMint functions are routed.
     /// @param collection The token collection to mint from
     /// @param recipient The recipient of successfully minted tokens
-    /// @param amount The amount of tokens to mint  
+    /// @param quantity The quantity of tokens to mint
     /// @notice returned tokenId range is inclusive
-    function _batchMint(address collection, address recipient, uint256 amount)
+    function _batchMint(address collection, address recipient, uint256 quantity)
         internal
         enableGrants(abi.encode(collection))
-        returns (uint256 startTokenId, uint256 endTokenId)
     {
-        require(amount > 0, "ZERO_AMOUNT");
+        require(quantity > 0, "ZERO_QUANTITY");
 
         // reverts if collection has not been setUp()
         uint256 price = priceOf(collection);
 
         // take fee and register to ModuleFeeV2 storage
-        _registerFeeBatch(
-            collection,
-            address(0x0),
-            recipient,
-            amount,
-            price
-        );
+        _registerFeeBatch(collection, address(0x0), recipient, quantity, price);
 
         // send payment
-        address paymentCollector = Membership(collection).paymentCollector();
-        (bool success,) = paymentCollector.call{ value: price * amount }("");
+        address payoutAddress = PayoutAddressExtension(collection).payoutAddress();
+        (bool success,) = payoutAddress.call{value: price * quantity}("");
         require(success, "PAYMENT_FAIL");
 
-        // perform mints
-        for (uint256 i; i < amount; i++) {
-            // mint token
-            uint256 tokenId = IMembership(collection).mintTo(recipient);
-            // prevent unsuccessful mint
-            require(tokenId > 0, "MINT_FAILED");
-            // set startTokenId on first mint
-            if (startTokenId == 0) {
-                startTokenId = tokenId;
-            }
-        }
-
-        return (startTokenId, startTokenId + amount - 1); // purely inclusive set
+        IERC721Mage(collection).mintTo(recipient, quantity);
     }
 
     /*============
@@ -181,7 +126,7 @@ contract GasCoinPurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup {
         returns (bool)
     {
         address collection = abi.decode(callContext, (address));
-        return (grantInProgress && Permissions(collection).hasPermission(signer, Permissions.Operation.GRANT))
+        return (grantInProgress && IPermissions(collection).hasPermission(Operations.MINT_PERMIT, signer))
             || (!grantsEnforced(collection));
     }
 

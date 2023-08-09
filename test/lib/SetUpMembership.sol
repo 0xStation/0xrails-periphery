@@ -1,28 +1,57 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Renderer} from "src/lib/renderer/Renderer.sol";
-import {Membership} from "src/membership/Membership.sol";
-import {MembershipFactory} from "src/membership/MembershipFactory.sol";
+import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
+import {IExtensionsExternal as IExtensions} from "mage/extension/interface/IExtensions.sol";
+import {Multicall} from "openzeppelin-contracts/utils/Multicall.sol";
+
+import {MembershipFactory} from "src/v2/membership/MembershipFactory.sol";
+import {PayoutAddressExtension} from "src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
+import {
+    IPayoutAddressExtensionInternal,
+    IPayoutAddressExtensionExternal
+} from "src/v2/membership/extensions/PayoutAddress/IPayoutAddressExtension.sol";
 import {Helpers} from "test/lib/Helpers.sol";
 
 abstract contract SetUpMembership is Helpers {
     address public owner;
-    address public paymentCollector;
-    address public rendererImpl;
-    Membership public membershipImpl;
+    address public payoutAddress;
+    ERC721Mage public membershipImpl;
     MembershipFactory public membershipFactory;
+    PayoutAddressExtension public payoutAddressExtension;
 
     function setUp() public virtual {
         owner = createAccount();
-        paymentCollector = createAccount();
-        rendererImpl = address(new Renderer(owner, "https://members.station.express"));
-        membershipImpl = new Membership();
+        payoutAddress = createAccount();
+        membershipImpl = new ERC721Mage();
         membershipFactory = new MembershipFactory();
         membershipFactory.initialize(address(membershipImpl), owner);
+        payoutAddressExtension = new PayoutAddressExtension(address(0));
     }
 
-    function create() public returns (Membership proxy) {
-        proxy = Membership(membershipFactory.create(owner, rendererImpl, "Test", "TEST"));
+    function create() public returns (ERC721Mage proxy) {
+        // add payout address extension to proxy, to be replaced with extension beacon
+        bytes memory addPayoutAddressExtension = abi.encodeWithSelector(
+            IExtensions.addExtension.selector,
+            IPayoutAddressExtensionInternal.payoutAddress.selector,
+            address(payoutAddressExtension)
+        );
+        bytes memory addUpdatePayoutAddressExtension = abi.encodeWithSelector(
+            IExtensions.addExtension.selector,
+            IPayoutAddressExtensionExternal.updatePayoutAddress.selector,
+            address(payoutAddressExtension)
+        );
+        bytes memory addRemovePayoutAddressExtension = abi.encodeWithSelector(
+            IExtensions.addExtension.selector,
+            IPayoutAddressExtensionExternal.removePayoutAddress.selector,
+            address(payoutAddressExtension)
+        );
+        bytes[] memory calls = new bytes[](3);
+        calls[0] = addPayoutAddressExtension;
+        calls[1] = addUpdatePayoutAddressExtension;
+        calls[2] = addRemovePayoutAddressExtension;
+        bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, calls);
+
+        proxy = ERC721Mage(payable(membershipFactory.create(owner, "Test", "TEST", initData)));
     }
 }

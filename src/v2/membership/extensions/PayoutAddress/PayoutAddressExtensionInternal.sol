@@ -18,7 +18,6 @@ abstract contract PayoutAddressExtensionInternal is IPayoutAddressExtensionInter
     =============*/
 
     function _setPayoutAddress(address newPayoutAddress) internal {
-        if (newPayoutAddress == address(0)) revert PayoutAddressIsZero();
         PayoutAddressExtensionStorage.Layout storage layout = PayoutAddressExtensionStorage.layout();
         emit PayoutAddressUpdated(layout.payoutAddress, newPayoutAddress);
         layout.payoutAddress = newPayoutAddress;

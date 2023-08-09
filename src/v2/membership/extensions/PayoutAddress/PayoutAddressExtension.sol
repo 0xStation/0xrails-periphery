@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Access} from "mage/access/Access.sol";
+import {IPermissions} from "mage/access/permissions/interface/IPermissions.sol";
+import {Operations} from "mage/lib/Operations.sol";
 import {Extension} from "mage/extension/Extension.sol";
 
 import {IMetadataRouter} from "../../../metadataRouter/IMetadataRouter.sol";
@@ -9,12 +10,7 @@ import {IPayoutAddressExtensionExternal} from "./IPayoutAddressExtension.sol";
 import {PayoutAddressExtensionInternal} from "./PayoutAddressExtensionInternal.sol";
 import {PayoutAddressExtensionStorage} from "./PayoutAddressExtensionStorage.sol";
 
-contract PayoutAddressExtension is
-    Extension,
-    Access,
-    PayoutAddressExtensionInternal,
-    IPayoutAddressExtensionExternal
-{
+contract PayoutAddressExtension is Extension, PayoutAddressExtensionInternal, IPayoutAddressExtensionExternal {
     /// @dev change metadataRouter constant to real address prior to deploying
     address public immutable metadataRouter;
 
@@ -54,7 +50,13 @@ contract PayoutAddressExtension is
 
     function updatePayoutAddress(address payoutAddress) external virtual {
         checkCanUpdatePayoutAddress();
+        if (payoutAddress == address(0)) revert PayoutAddressIsZero();
         _setPayoutAddress(payoutAddress);
+    }
+
+    function removePayoutAddress() external virtual {
+        checkCanUpdatePayoutAddress();
+        _setPayoutAddress(address(0));
     }
 
     /*====================
@@ -63,9 +65,7 @@ contract PayoutAddressExtension is
 
     // make public with return to be callable by UIs to enable/disable input
     function checkCanUpdatePayoutAddress() public virtual returns (bool) {
-        /// @dev TODO: what happens with virtual owner() from Access??
-        /// @dev maybe need Access to make an external self-call to use whatever owner() implementation
-        _checkSenderIsAdmin();
+        IPermissions(address(this)).hasPermission(Operations.ADMIN, msg.sender);
         return true;
     }
 }

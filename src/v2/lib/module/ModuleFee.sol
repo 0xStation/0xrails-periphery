@@ -2,8 +2,9 @@
 pragma solidity ^0.8.13;
 
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
-import {FeeManager} from "./FeeManager.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
+import {FeeManager} from "./FeeManager.sol";
 
 /// @title Station Network Fee Manager Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg), 👦🏻👦🏻.eth
@@ -13,7 +14,7 @@ import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC
 /// @notice ModuleFeeV2 differs from ModuleFee in that it is intended to be inherited by all purchase modules
 /// The goal is to abstract all payment logic so this module can handle fees for every client's desired Membership implementation
 
-abstract contract ModuleFeeV2 is Ownable {
+abstract contract ModuleFee is Ownable {
     /*============
         ERRORS
     ============*/

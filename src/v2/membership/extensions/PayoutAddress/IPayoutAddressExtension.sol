@@ -15,6 +15,7 @@ interface IPayoutAddressExtensionInternal {
 interface IPayoutAddressExtensionExternal {
     // setters
     function updatePayoutAddress(address payoutAddress) external;
+    function removePayoutAddress() external;
 }
 
 interface IPayoutAddressExtension is IPayoutAddressExtensionInternal, IPayoutAddressExtensionExternal {}
