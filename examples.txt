@@ -35,3 +35,6 @@ forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constru
 
 # Verify MembershipFactory
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY 0xD7B9C9C2aedE444accb7C7A00b8d6Cb99178fa69 src/v2/membership/MembershipFactory.sol:MembershipFactory
+
+# Deploy FreeMintModule and verify
+forge create --private-key $PRIVATE_KEY --verify --chain-id 5 --rpc-url $GOERLI_RPC_URL --api-key $ETHERSCAN_API_KEY src/v2/membership/modules/FreeMintModule.sol:FreeMintModule --constructor-args 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0xd2cC2c9E347DacbA6AE3c0ab65F07CC5241797da

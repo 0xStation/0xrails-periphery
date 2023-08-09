@@ -6,7 +6,7 @@ import {IPermissions} from "mage/access/permissions/interface/IPermissions.sol";
 import {Operations} from "mage/lib/Operations.sol";
 
 import {ModuleSetup} from "src/v2/lib/module/ModuleSetup.sol";
-import {ModuleGrant} from "src/v2/lib/module/ModuleGrant.sol";
+import {ModulePermit} from "src/v2/lib/module/ModulePermit.sol";
 import {ModuleFee} from "src/v2/lib/module/ModuleFee.sol";
 import {PayoutAddressExtension} from "src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 
@@ -15,13 +15,13 @@ import {PayoutAddressExtension} from "src/v2/membership/extensions/PayoutAddress
 /// @dev Provides a modular contract to handle collections who wish for their membership mints to be
 /// paid in the native currency of the chain this contract is deployed to
 
-contract GasCoinPurchaseModule is ModuleSetup, ModuleGrant, ModuleFee {
+contract GasCoinPurchaseModule is ModuleSetup, ModulePermit, ModuleFee {
     /*=============
         STORAGE
     =============*/
 
-    /// @dev Mapping to show if a collection prevents or allows minting via signature grants, ie collection address => repealGrants
-    mapping(address => bool) internal _repealGrants;
+    /// @dev collection => permits disabled, permits are enabled by default
+    mapping(address => bool) internal _disablePermits;
     /// @dev Mapping of collections to their mint's native currency price
     mapping(address => uint256) public prices;
 
@@ -29,7 +29,7 @@ contract GasCoinPurchaseModule is ModuleSetup, ModuleGrant, ModuleFee {
         EVENTS
     ============*/
 
-    event SetUp(address indexed collection, uint256 price, bool indexed enforceGrants);
+    event SetUp(address indexed collection, uint256 price, bool indexed enablePermits);
 
     /*============
         CONFIG
@@ -37,21 +37,26 @@ contract GasCoinPurchaseModule is ModuleSetup, ModuleGrant, ModuleFee {
 
     /// @param _newOwner The owner of the ModuleFeeV2, an address managed by Station Network
     /// @param _feeManager The FeeManager's address
-    constructor(address _newOwner, address _feeManager) ModuleGrant() ModuleFee(_newOwner, _feeManager) {}
+    constructor(address _newOwner, address _feeManager) ModulePermit() ModuleFee(_newOwner, _feeManager) {}
 
     /// @dev Function to set up and configure a new collection's purchase prices
     /// @param collection The new collection to configure
     /// @param price The price in this chain's native currency for this collection's mints
-    /// @param enforceGrants A boolean to represent whether this collection will repeal or support grant functionality
-    function setUp(address collection, uint256 price, bool enforceGrants) external canSetUp(collection) {
+    /// @param enablePermits A boolean to represent whether this collection will repeal or support grant functionality
+    function setUp(address collection, uint256 price, bool enablePermits) public canSetUp(collection) {
         if (prices[collection] != price) {
             prices[collection] = price;
         }
-        if (_repealGrants[collection] != !enforceGrants) {
-            _repealGrants[collection] = !enforceGrants;
+        if (_disablePermits[collection] != !enablePermits) {
+            _disablePermits[collection] = !enablePermits;
         }
 
-        emit SetUp(collection, price, enforceGrants);
+        emit SetUp(collection, price, enablePermits);
+    }
+
+    /// @dev convenience function for setting up when creating collections, relies on auth done in public setUp
+    function setUp(uint256 price, bool enablePermits) external {
+        setUp(msg.sender, price, enablePermits);
     }
 
     /*==========
@@ -97,7 +102,7 @@ contract GasCoinPurchaseModule is ModuleSetup, ModuleGrant, ModuleFee {
     /// @notice returned tokenId range is inclusive
     function _batchMint(address collection, address recipient, uint256 quantity)
         internal
-        enableGrants(abi.encode(collection))
+        usePermits(_encodePermitContext(collection))
     {
         require(quantity > 0, "ZERO_QUANTITY");
 
@@ -116,21 +121,24 @@ contract GasCoinPurchaseModule is ModuleSetup, ModuleGrant, ModuleFee {
     }
 
     /*============
-        GRANTS
+        PERMIT
     ============*/
 
-    function validateGrantSigner(bool grantInProgress, address signer, bytes memory callContext)
-        public
-        view
-        override
-        returns (bool)
-    {
-        address collection = abi.decode(callContext, (address));
-        return (grantInProgress && IPermissions(collection).hasPermission(Operations.MINT_PERMIT, signer))
-            || (!grantsEnforced(collection));
+    function _encodePermitContext(address collection) internal pure returns (bytes memory context) {
+        return abi.encode(collection);
     }
 
-    function grantsEnforced(address collection) public view returns (bool) {
-        return !_repealGrants[collection];
+    function _decodePermitContext(bytes memory context) internal pure returns (address collection) {
+        return abi.decode(context, (address));
+    }
+
+    function signerCanPermit(address signer, bytes memory context) public view override returns (bool) {
+        address collection = _decodePermitContext(context);
+        return IPermissions(collection).hasPermission(Operations.MINT_PERMIT, signer);
+    }
+
+    function requirePermits(bytes memory context) public view override returns (bool) {
+        address collection = _decodePermitContext(context);
+        return !_disablePermits[collection];
     }
 }

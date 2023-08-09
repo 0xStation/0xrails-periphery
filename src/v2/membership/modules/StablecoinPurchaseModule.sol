@@ -9,7 +9,7 @@ import {IPermissions} from "mage/access/permissions/interface/IPermissions.sol";
 import {Operations} from "mage/lib/Operations.sol";
 
 import {ModuleSetup} from "src/v2/lib/module/ModuleSetup.sol";
-import {ModuleGrant} from "src/v2/lib/module/ModuleGrant.sol";
+import {ModulePermit} from "src/v2/lib/module/ModulePermit.sol";
 import {ModuleFee} from "src/v2/lib/module/ModuleFee.sol";
 import {PayoutAddressExtension} from "src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 
@@ -22,7 +22,7 @@ import {PayoutAddressExtension} from "src/v2/membership/extensions/PayoutAddress
 /// will use the same price value and can never get out of sync. Deploy one instance
 /// of this module per currency, per chain (e.g. USD, EUR, BTC).
 
-contract StablecoinPurchaseModule is ModuleSetup, ModuleGrant, ModuleFee {
+contract StablecoinPurchaseModule is ModuleSetup, ModulePermit, ModuleFee {
     using SafeERC20 for IERC20Metadata;
 
     /// @dev Struct of collection price data
@@ -51,16 +51,15 @@ contract StablecoinPurchaseModule is ModuleSetup, ModuleGrant, ModuleFee {
     mapping(uint8 => address) internal _stablecoinOf;
     /// @dev Mapping of each collection => mint parameters configuration
     mapping(address => Parameters) internal _parameters;
-    /// @dev Mapping to show if a collection prevents or allows minting via signature grants, ie collection address => repealGrants
-    /// @notice Can improve gas efficiency here by using `uint 1 || 2` as opposed to `bool 0 || 1` due to repeated cold slot (ie 0) initialization costs
-    mapping(address => bool) internal _repealGrants;
+    /// @dev collection => permits disabled, permits are enabled by default
+    mapping(address => bool) internal _disablePermits;
 
     /*============
         EVENTS
     ============*/
 
     event Register(address indexed stablecoin, uint8 indexed key);
-    event SetUp(address indexed collection, uint128 price, address[] enabledCoins, bool indexed enforceGrants);
+    event SetUp(address indexed collection, uint128 price, address[] enabledCoins, bool indexed enablePermits);
 
     /*============
         CONFIG
@@ -77,7 +76,7 @@ contract StablecoinPurchaseModule is ModuleSetup, ModuleGrant, ModuleFee {
         uint8 _decimals,
         string memory _currency,
         address[] memory stablecoins
-    ) ModuleFee(_owner, _feeManager) {
+    ) ModulePermit() ModuleFee(_owner, _feeManager) {
         decimals = _decimals;
         currency = _currency;
         for (uint256 i; i < stablecoins.length; i++) {
@@ -130,22 +129,22 @@ contract StablecoinPurchaseModule is ModuleSetup, ModuleGrant, ModuleFee {
     /// @param collection The new collection to configure
     /// @param price The price in a stablecoin currency for this collection's mints
     /// @param enabledCoins The stablecoin addresses to be supported for this collection's mints
-    /// @param enforceGrants A boolean to represent whether this collection will repeal or support grant functionality
-    function setUp(address collection, uint128 price, address[] memory enabledCoins, bool enforceGrants)
+    /// @param enablePermits A boolean to represent whether this collection will repeal or support grant functionality
+    function setUp(address collection, uint128 price, address[] memory enabledCoins, bool enablePermits)
         public
         canSetUp(collection)
     {
         require(price > 0, "ZERO_PRICE");
         _parameters[collection] = Parameters(price, _enabledCoinsValue(enabledCoins));
-        if (_repealGrants[collection] != !enforceGrants) {
-            _repealGrants[collection] = !enforceGrants;
+        if (_disablePermits[collection] != !enablePermits) {
+            _disablePermits[collection] = !enablePermits;
         }
-        emit SetUp(collection, price, enabledCoins, enforceGrants);
+        emit SetUp(collection, price, enabledCoins, enablePermits);
     }
 
     /// @dev note that this relies on the canSetUp modifier being used in the public function
-    function setUp(uint128 price, address[] memory enabledCoins, bool enforceGrants) external {
-        setUp(msg.sender, price, enabledCoins, enforceGrants);
+    function setUp(uint128 price, address[] memory enabledCoins, bool enablePermits) external {
+        setUp(msg.sender, price, enabledCoins, enablePermits);
     }
 
     /*===================
@@ -270,7 +269,7 @@ contract StablecoinPurchaseModule is ModuleSetup, ModuleGrant, ModuleFee {
     /// @notice returned tokenId range is inclusive
     function _batchMint(address collection, address paymentCoin, address recipient, uint256 quantity)
         internal
-        enableGrants(abi.encode(collection))
+        usePermits(_encodePermitContext(collection))
     {
         require(quantity > 0, "ZERO_AMOUNT");
         Parameters memory params = _parameters[collection];
@@ -303,21 +302,24 @@ contract StablecoinPurchaseModule is ModuleSetup, ModuleGrant, ModuleFee {
     }
 
     /*============
-        GRANTS
+        PERMIT
     ============*/
 
-    function validateGrantSigner(bool grantInProgress, address signer, bytes memory callContext)
-        public
-        view
-        override
-        returns (bool)
-    {
-        address collection = abi.decode(callContext, (address));
-        return (grantInProgress && IPermissions(collection).hasPermission(Operations.MINT_PERMIT, signer))
-            || (!grantsEnforced(collection));
+    function _encodePermitContext(address collection) internal pure returns (bytes memory context) {
+        return abi.encode(collection);
     }
 
-    function grantsEnforced(address collection) public view returns (bool) {
-        return !_repealGrants[collection];
+    function _decodePermitContext(bytes memory context) internal pure returns (address collection) {
+        return abi.decode(context, (address));
+    }
+
+    function signerCanPermit(address signer, bytes memory context) public view override returns (bool) {
+        address collection = _decodePermitContext(context);
+        return IPermissions(collection).hasPermission(Operations.MINT_PERMIT, signer);
+    }
+
+    function requirePermits(bytes memory context) public view override returns (bool) {
+        address collection = _decodePermitContext(context);
+        return !_disablePermits[collection];
     }
 }

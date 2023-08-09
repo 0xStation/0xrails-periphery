@@ -26,7 +26,7 @@ contract FreeMintModule is ModuleSetup, ModulePermit, ModuleFee {
         EVENTS
     ============*/
 
-    event SetUp(address indexed collection, bool indexed disablePermits);
+    event SetUp(address indexed collection, bool indexed enablePermits);
 
     /*============
         CONFIG
@@ -38,17 +38,17 @@ contract FreeMintModule is ModuleSetup, ModulePermit, ModuleFee {
 
     /// @dev Function to set up and configure a new collection
     /// @param collection The new collection to configure
-    /// @param disablePermits A boolean to represent whether this collection will repeal or support grant functionality
-    function setUp(address collection, bool disablePermits) public canSetUp(collection) {
-        if (_disablePermits[collection] != !disablePermits) {
-            _disablePermits[collection] = !disablePermits;
+    /// @param enablePermits A boolean to represent whether this collection will repeal or support grant functionality
+    function setUp(address collection, bool enablePermits) public canSetUp(collection) {
+        if (_disablePermits[collection] != !enablePermits) {
+            _disablePermits[collection] = !enablePermits;
         }
-        emit SetUp(collection, disablePermits);
+        emit SetUp(collection, enablePermits);
     }
 
     /// @dev convenience function for setting up when creating collections, relies on auth done in public setUp
-    function setUp(bool disablePermits) external {
-        setUp(msg.sender, disablePermits);
+    function setUp(bool enablePermits) external {
+        setUp(msg.sender, enablePermits);
     }
 
     /*==========
