@@ -2,7 +2,6 @@
 pragma solidity ^0.8.13;
 
 import {Script} from "forge-std/Script.sol";
-import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import {FeeManager} from "../../src/lib/module/FeeManager.sol";
@@ -25,6 +24,8 @@ contract Deploy is Script {
 
     function run() public {
         vm.startBroadcast();
+
+        /// @dev first deploy ERC721Mage from the mage repo and update the address in `deployMembershipFactory`!
 
         address feeManager = deployFeeManager(owner);
         address freeMintModule = deployFreeMintModule(owner, feeManager);
@@ -83,8 +84,7 @@ contract Deploy is Script {
     }
 
     function deployMembershipFactory(address owner) internal returns (address) {
-        // address erc721Mage = address(new ERC721Mage());
-        address erc721Mage = 0xbE5302F0B0AAdAD779252b49669D4A5922A000CC; // goerli
+        address erc721Mage = 0xCAde55923e5106bb6d8D67d914e5BcB8444cDFb3; // goerli
         address membershipFactoryImpl = address(new MembershipFactory());
 
         bytes memory initFactory =
