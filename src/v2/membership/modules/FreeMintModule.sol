@@ -6,7 +6,7 @@ import {IPermissions} from "mage/access/permissions/interface/IPermissions.sol";
 import {Operations} from "mage/lib/Operations.sol";
 // module utils
 import {ModuleSetup} from "src/v2/lib/module/ModuleSetup.sol";
-import {ModuleGrant} from "src/v2/lib/module/ModuleGrant.sol";
+import {ModulePermit} from "src/v2/lib/module/ModulePermit.sol";
 import {ModuleFee} from "src/v2/lib/module/ModuleFee.sol";
 
 /// @title Station Network FreeMintModuleV3 Contract
@@ -14,19 +14,19 @@ import {ModuleFee} from "src/v2/lib/module/ModuleFee.sol";
 /// @dev Provides a modular contract to handle collections who wish for their membership mints to be
 /// free of charge, save for Station Network's base fee
 
-contract FreeMintModule is ModuleSetup, ModuleGrant, ModuleFee {
+contract FreeMintModule is ModuleSetup, ModulePermit, ModuleFee {
     /*=============
         STORAGE
     =============*/
 
-    /// @dev Mapping to show if a collection prevents or allows minting via signature grants, ie collection address => repealGrants
-    mapping(address => bool) internal _repealGrants;
+    /// @dev collection => permits disabled, permits are enabled by default
+    mapping(address => bool) internal _disablePermits;
 
     /*============
         EVENTS
     ============*/
 
-    event SetUp(address indexed collection, bool indexed enforceGrants);
+    event SetUp(address indexed collection, bool indexed disablePermits);
 
     /*============
         CONFIG
@@ -34,16 +34,21 @@ contract FreeMintModule is ModuleSetup, ModuleGrant, ModuleFee {
 
     /// @param _newOwner The owner of the ModuleFeeV2, an address managed by Station Network
     /// @param _feeManager The FeeManager's address
-    constructor(address _newOwner, address _feeManager) ModuleGrant() ModuleFee(_newOwner, _feeManager) {}
+    constructor(address _newOwner, address _feeManager) ModulePermit() ModuleFee(_newOwner, _feeManager) {}
 
     /// @dev Function to set up and configure a new collection
     /// @param collection The new collection to configure
-    /// @param enforceGrants A boolean to represent whether this collection will repeal or support grant functionality
-    function setUp(address collection, bool enforceGrants) external canSetUp(collection) {
-        if (_repealGrants[collection] != !enforceGrants) {
-            _repealGrants[collection] = !enforceGrants;
+    /// @param disablePermits A boolean to represent whether this collection will repeal or support grant functionality
+    function setUp(address collection, bool disablePermits) public canSetUp(collection) {
+        if (_disablePermits[collection] != !disablePermits) {
+            _disablePermits[collection] = !disablePermits;
         }
-        emit SetUp(collection, enforceGrants);
+        emit SetUp(collection, disablePermits);
+    }
+
+    /// @dev convenience function for setting up when creating collections, relies on auth done in public setUp
+    function setUp(bool disablePermits) external {
+        setUp(msg.sender, disablePermits);
     }
 
     /*==========
@@ -82,7 +87,7 @@ contract FreeMintModule is ModuleSetup, ModuleGrant, ModuleFee {
     /// @param quantity The quantity of tokens to mint
     function _batchMint(address collection, address recipient, uint256 quantity)
         internal
-        enableGrants(abi.encode(collection))
+        usePermits(_encodePermitContext(collection))
         returns (uint256 startTokenId, uint256 endTokenId)
     {
         require(quantity > 0, "ZERO_AMOUNT");
@@ -96,22 +101,25 @@ contract FreeMintModule is ModuleSetup, ModuleGrant, ModuleFee {
         IERC721Mage(collection).mintTo(recipient, quantity);
     }
 
-    /*============
-        GRANTS
-    ============*/
+    /*=============
+        PERMITS
+    =============*/
 
-    function validateGrantSigner(bool grantInProgress, address signer, bytes memory callContext)
-        public
-        view
-        override
-        returns (bool)
-    {
-        address collection = abi.decode(callContext, (address));
-        return (grantInProgress && IPermissions(collection).hasPermission(Operations.MINT_PERMIT, signer))
-            || (!grantsEnforced(collection));
+    function _encodePermitContext(address collection) internal pure returns (bytes memory context) {
+        return abi.encode(collection);
     }
 
-    function grantsEnforced(address collection) public view returns (bool) {
-        return !_repealGrants[collection];
+    function _decodePermitContext(bytes memory context) internal pure returns (address collection) {
+        return abi.decode(context, (address));
+    }
+
+    function signerCanPermit(address signer, bytes memory context) public view override returns (bool) {
+        address collection = _decodePermitContext(context);
+        return IPermissions(collection).hasPermission(Operations.MINT_PERMIT, signer);
+    }
+
+    function requirePermits(bytes memory context) public view override returns (bool) {
+        address collection = _decodePermitContext(context);
+        return !_disablePermits[collection];
     }
 }
