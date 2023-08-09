@@ -50,7 +50,13 @@ contract PayoutAddressExtension is Extension, PayoutAddressExtensionInternal, IP
 
     function updatePayoutAddress(address payoutAddress) external virtual {
         checkCanUpdatePayoutAddress();
+        if (payoutAddress == address(0)) revert PayoutAddressIsZero();
         _setPayoutAddress(payoutAddress);
+    }
+
+    function removePayoutAddress() external virtual {
+        checkCanUpdatePayoutAddress();
+        _setPayoutAddress(address(0));
     }
 
     /*====================

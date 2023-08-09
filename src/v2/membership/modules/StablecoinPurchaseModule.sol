@@ -1,26 +1,28 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {IMembership} from "src/membership/IMembership.sol";
-import {Permissions} from "src/lib/Permissions.sol";
-// module utils
-import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
-import {ModuleGrant} from "src/lib/module/ModuleGrant.sol";
-import {ModuleFeeV2} from "src/lib/module/ModuleFeeV2.sol";
 // use SafeERC20: https://soliditydeveloper.com/safe-erc20
 import {SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IERC721Mage} from "mage/cores/ERC721/interface/IERC721Mage.sol";
+import {IPermissions} from "mage/access/permissions/interface/IPermissions.sol";
+import {Operations} from "mage/lib/Operations.sol";
+
+import {ModuleSetup} from "src/v2/lib/module/ModuleSetup.sol";
+import {ModuleGrant} from "src/v2/lib/module/ModuleGrant.sol";
+import {ModuleFee} from "src/v2/lib/module/ModuleFee.sol";
+import {PayoutAddressExtension} from "src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 
 /// @title Station Network StablecoinPurchaseModuleV2 Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg)
-/// @notice Mint membership tokens when users pay a fixed amount of a stablecoin
+/// @notice Mint membership tokens when users pay a fixed quantity of a stablecoin
 /// @dev Storage is designed to minimize costs for accepting multiple stablecoins as
 /// payment by packing all data into 1 slot. Updating the price for N stablecoins has
 /// constant G(1) gas complexity. Additionally, it is guaranteed that all stablecoins
 /// will use the same price value and can never get out of sync. Deploy one instance
 /// of this module per currency, per chain (e.g. USD, EUR, BTC).
 
-contract StablecoinPurchaseModule is ModuleFeeV2, ModuleSetup, ModuleGrant {
+contract StablecoinPurchaseModule is ModuleSetup, ModuleGrant, ModuleFee {
     using SafeERC20 for IERC20Metadata;
 
     /// @dev Struct of collection price data
@@ -64,14 +66,18 @@ contract StablecoinPurchaseModule is ModuleFeeV2, ModuleSetup, ModuleGrant {
         CONFIG
     ============*/
 
-    /// @param _owner The owner of the ModuleFeeV2, an address managed by Station Network
+    /// @param _owner The owner of the ModuleFee, an address managed by Station Network
     /// @param _feeManager The FeeManager module's address
     /// @param _decimals The decimals value for this module's supported stablecoin payments
     /// @param _currency The type of currency managed by this module
-    /// @param stablecoins An array of stablecoin addresses to initialize to state on deployment 
-    constructor(address _owner, address _feeManager, uint8 _decimals, string memory _currency, address[] memory stablecoins)
-        ModuleFeeV2(_owner, _feeManager)
-    {
+    /// @param stablecoins An array of stablecoin addresses to initialize to state on deployment
+    constructor(
+        address _owner,
+        address _feeManager,
+        uint8 _decimals,
+        string memory _currency,
+        address[] memory stablecoins
+    ) ModuleFee(_owner, _feeManager) {
         decimals = _decimals;
         currency = _currency;
         for (uint256 i; i < stablecoins.length; i++) {
@@ -124,9 +130,9 @@ contract StablecoinPurchaseModule is ModuleFeeV2, ModuleSetup, ModuleGrant {
     /// @param collection The new collection to configure
     /// @param price The price in a stablecoin currency for this collection's mints
     /// @param enabledCoins The stablecoin addresses to be supported for this collection's mints
-    /// @param enforceGrants A boolean to represent whether this collection will repeal or support grant functionality 
+    /// @param enforceGrants A boolean to represent whether this collection will repeal or support grant functionality
     function setUp(address collection, uint128 price, address[] memory enabledCoins, bool enforceGrants)
-        external
+        public
         canSetUp(collection)
     {
         require(price > 0, "ZERO_PRICE");
@@ -135,6 +141,11 @@ contract StablecoinPurchaseModule is ModuleFeeV2, ModuleSetup, ModuleGrant {
             _repealGrants[collection] = !enforceGrants;
         }
         emit SetUp(collection, price, enabledCoins, enforceGrants);
+    }
+
+    /// @dev note that this relies on the canSetUp modifier being used in the public function
+    function setUp(uint128 price, address[] memory enabledCoins, bool enforceGrants) external {
+        setUp(msg.sender, price, enabledCoins, enforceGrants);
     }
 
     /*===================
@@ -206,7 +217,7 @@ contract StablecoinPurchaseModule is ModuleFeeV2, ModuleSetup, ModuleGrant {
         if (stablecoinDecimals == decimals) {
             return price;
         } else if (stablecoinDecimals > decimals) {
-            // pad zeros to input amount
+            // pad zeros to input quantity
             return price * 10 ** (stablecoinDecimals - decimals);
         } else {
             // reduce price precision
@@ -227,86 +238,58 @@ contract StablecoinPurchaseModule is ModuleFeeV2, ModuleSetup, ModuleGrant {
     ==========*/
 
     /// @dev Function to mint a single collection token to the caller, ie a user
-    function mint(address collection, address paymentCoin) external payable returns (uint256 tokenId) {
-        (tokenId,) = _batchMint(collection, paymentCoin, msg.sender, 1);
+    function mint(address collection, address paymentCoin) external payable {
+        _batchMint(collection, paymentCoin, msg.sender, 1);
     }
 
     /// @dev Function to mint a single collection token to a specified recipient
-    function mintTo(address collection, address paymentCoin, address recipient)
-        external
-        payable
-        returns (uint256 tokenId)
-    {
-        (tokenId,) = _batchMint(collection, paymentCoin, recipient, 1);
+    function mintTo(address collection, address paymentCoin, address recipient) external payable {
+        _batchMint(collection, paymentCoin, recipient, 1);
     }
 
     /// @dev Function to mint collection tokens in batches to the caller, ie a user
     /// @notice returned tokenId range is inclusive
-    function batchMint(address collection, address paymentCoin, uint256 amount)
-        external
-        payable
-        returns (uint256 startTokenId, uint256 endTokenId)
-    {
-        return _batchMint(collection, paymentCoin, msg.sender, amount);
+    function batchMint(address collection, address paymentCoin, uint256 quantity) external payable {
+        _batchMint(collection, paymentCoin, msg.sender, quantity);
     }
 
     /// @dev Function to mint collection tokens in batches to a specified recipient
     /// @notice returned tokenId range is inclusive
-    function batchMintTo(address collection, address paymentCoin, address recipient, uint256 amount)
+    function batchMintTo(address collection, address paymentCoin, address recipient, uint256 quantity)
         external
         payable
-        returns (uint256 startTokenId, uint256 endTokenId)
     {
-        return _batchMint(collection, paymentCoin, recipient, amount);
+        _batchMint(collection, paymentCoin, recipient, quantity);
     }
 
     /// @dev Internal function to which all external user + client facing mint functions are routed.
     /// @param collection The token collection to mint from
     /// @param paymentCoin The stablecoin address being used for payment
     /// @param recipient The recipient of successfully minted tokens
-    /// @param amount The amount of tokens to mint  
+    /// @param quantity The quantity of tokens to mint
     /// @notice returned tokenId range is inclusive
-    function _batchMint(address collection, address paymentCoin, address recipient, uint256 amount)
+    function _batchMint(address collection, address paymentCoin, address recipient, uint256 quantity)
         internal
         enableGrants(abi.encode(collection))
-        returns (uint256 startTokenId, uint256 endTokenId)
     {
-        require(amount > 0, "ZERO_AMOUNT");
+        require(quantity > 0, "ZERO_AMOUNT");
         Parameters memory params = _parameters[collection];
         require(_stablecoinEnabled(params.enabledCoins, paymentCoin), "STABLECOIN_NOT_ENABLED");
         // get decimals-formatted price
         uint256 formattedPrice = mintPriceToStablecoinAmount(params.price, paymentCoin);
 
         // take total incl fee
-        uint256 paidFee = _registerFeeBatch(
-            collection,
-            paymentCoin,
-            recipient,
-            amount,
-            formattedPrice
-        );
+        uint256 paidFee = _registerFeeBatch(collection, paymentCoin, recipient, quantity, formattedPrice);
 
         // collect fees; approval must have been made prior to top-level mint call;
         IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, address(this), paidFee);
-        address paymentCollector = IMembership(collection).paymentCollector();
+        address payoutAddress = PayoutAddressExtension(collection).payoutAddress();
         // prevent accidentally unset payment collector
-        require(paymentCollector != address(0), "MISSING_PAYMENT_COLLECTOR");
+        require(payoutAddress != address(0), "MISSING_PAYOUT_ADDRESS");
         // forward subtotal to collector using SafeERC20 for covering USDT no-return and other transfer issues
-        IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, paymentCollector, formattedPrice * amount);
+        IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, payoutAddress, formattedPrice * quantity);
 
-        // perform batch mint
-        for (uint256 i; i < amount; i++) {
-            // mint token
-            (uint256 tokenId) = IMembership(collection).mintTo(recipient);
-            // prevent unsuccessful mint
-            require(tokenId > 0, "MINT_FAILED");
-            // set startTokenId on first mint
-            if (startTokenId == 0) {
-                startTokenId = tokenId;
-            }
-        }
-
-        return (startTokenId, startTokenId + amount - 1); // purely inclusive set
+        IERC721Mage(collection).mintTo(recipient, quantity);
     }
 
     /// @dev Function to withdraw ERC20 fees accrued by this contract to the owner.
@@ -330,7 +313,7 @@ contract StablecoinPurchaseModule is ModuleFeeV2, ModuleSetup, ModuleGrant {
         returns (bool)
     {
         address collection = abi.decode(callContext, (address));
-        return (grantInProgress && Permissions(collection).hasPermission(signer, Permissions.Operation.GRANT))
+        return (grantInProgress && IPermissions(collection).hasPermission(Operations.MINT_PERMIT, signer))
             || (!grantsEnforced(collection));
     }
 

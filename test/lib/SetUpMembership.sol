@@ -41,9 +41,15 @@ abstract contract SetUpMembership is Helpers {
             IPayoutAddressExtensionExternal.updatePayoutAddress.selector,
             address(payoutAddressExtension)
         );
-        bytes[] memory calls = new bytes[](2);
+        bytes memory addRemovePayoutAddressExtension = abi.encodeWithSelector(
+            IExtensions.addExtension.selector,
+            IPayoutAddressExtensionExternal.removePayoutAddress.selector,
+            address(payoutAddressExtension)
+        );
+        bytes[] memory calls = new bytes[](3);
         calls[0] = addPayoutAddressExtension;
         calls[1] = addUpdatePayoutAddressExtension;
+        calls[2] = addRemovePayoutAddressExtension;
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, calls);
 
         proxy = ERC721Mage(payable(membershipFactory.create(owner, "Test", "TEST", initData)));
