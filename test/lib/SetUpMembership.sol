@@ -31,19 +31,19 @@ abstract contract SetUpMembership is Helpers {
 
     function create() public returns (ERC721Mage proxy) {
         // add payout address extension to proxy, to be replaced with extension beacon
-        bytes memory addPayoutAddress = abi.encodeWithSelector(
+        bytes memory addPayoutAddressExtension = abi.encodeWithSelector(
             IExtensions.addExtension.selector,
             IPayoutAddressExtensionInternal.payoutAddress.selector,
             address(payoutAddressExtension)
         );
-        bytes memory addUpdatePayoutAddress = abi.encodeWithSelector(
+        bytes memory addUpdatePayoutAddressExtension = abi.encodeWithSelector(
             IExtensions.addExtension.selector,
             IPayoutAddressExtensionExternal.updatePayoutAddress.selector,
             address(payoutAddressExtension)
         );
         bytes[] memory calls = new bytes[](2);
-        calls[0] = addPayoutAddress;
-        calls[1] = addUpdatePayoutAddress;
+        calls[0] = addPayoutAddressExtension;
+        calls[1] = addUpdatePayoutAddressExtension;
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, calls);
 
         proxy = ERC721Mage(payable(membershipFactory.create(owner, "Test", "TEST", initData)));
