@@ -2,18 +2,19 @@
 pragma solidity ^0.8.13;
 
 import {IERC721Mage} from "mage/cores/ERC721/interface/IERC721Mage.sol";
-import {Permissions} from "src/lib/Permissions.sol";
+import {IPermissions} from "mage/access/permissions/interface/IPermissions.sol";
+import {Operations} from "mage/lib/Operations.sol";
 // module utils
-import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
-import {ModuleGrant} from "src/lib/module/ModuleGrant.sol";
-import {ModuleFeeV2} from "src/lib/module/ModuleFeeV2.sol";
+import {ModuleSetup} from "src/v2/lib/module/ModuleSetup.sol";
+import {ModuleGrant} from "src/v2/lib/module/ModuleGrant.sol";
+import {ModuleFee} from "src/v2/lib/module/ModuleFee.sol";
 
 /// @title Station Network FreeMintModuleV3 Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg), 👦🏻👦🏻.eth
 /// @dev Provides a modular contract to handle collections who wish for their membership mints to be
 /// free of charge, save for Station Network's base fee
 
-contract FreeMintModule is ModuleSetup, ModuleGrant, ModuleFeeV2 {
+contract FreeMintModule is ModuleSetup, ModuleGrant, ModuleFee {
     /*=============
         STORAGE
     =============*/
@@ -33,7 +34,7 @@ contract FreeMintModule is ModuleSetup, ModuleGrant, ModuleFeeV2 {
 
     /// @param _newOwner The owner of the ModuleFeeV2, an address managed by Station Network
     /// @param _feeManager The FeeManager's address
-    constructor(address _newOwner, address _feeManager) ModuleGrant() ModuleFeeV2(_newOwner, _feeManager) {}
+    constructor(address _newOwner, address _feeManager) ModuleGrant() ModuleFee(_newOwner, _feeManager) {}
 
     /// @dev Function to set up and configure a new collection
     /// @param collection The new collection to configure
@@ -106,7 +107,7 @@ contract FreeMintModule is ModuleSetup, ModuleGrant, ModuleFeeV2 {
         returns (bool)
     {
         address collection = abi.decode(callContext, (address));
-        return (grantInProgress && Permissions(collection).hasPermission(signer, Permissions.Operation.GRANT))
+        return (grantInProgress && IPermissions(collection).hasPermission(Operations.MINT_PERMIT, signer))
             || (!grantsEnforced(collection));
     }
 

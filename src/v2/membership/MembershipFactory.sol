@@ -5,7 +5,7 @@ import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.so
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
 import {Owner} from "mage/access/owner/Owner.sol";
 import {Initializer} from "mage/lib/Initializer/Initializer.sol";
-import {IMageToken} from "mage/cores/IMageToken.sol";
+import {IERC721Mage} from "mage/cores/ERC721/interface/IERC721Mage.sol";
 
 import {IMembershipFactory} from "./interface/IMembershipFactory.sol";
 
@@ -29,10 +29,10 @@ contract MembershipFactory is Initializer, Owner, UUPSUpgradeable, IMembershipFa
         public
         returns (address membership)
     {
-        bytes memory initialization =
-            abi.encodeWithSelector(IMageToken(membershipImpl).initialize.selector, owner, name, symbol, initData);
-        membership = address(new ERC1967Proxy(membershipImpl, initialization));
-
+        membership = address(new ERC1967Proxy(membershipImpl, bytes("")));
+        // initializer relies on self-delegatecall which does not work when passed through a proxy's constructor
+        // make a separate call to initialize after deploying new proxy
+        IERC721Mage(membership).initialize(owner, name, symbol, initData);
         emit MembershipCreated(membership);
     }
 

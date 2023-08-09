@@ -11,11 +11,10 @@ import {ModuleFeeV2} from "src/lib/module/ModuleFeeV2.sol";
 
 /// @title Station Network GasCoinPurchaseModuleV2 Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg), 👦🏻👦🏻.eth
-/// @dev Provides a modular contract to handle collections who wish for their membership mints to be 
+/// @dev Provides a modular contract to handle collections who wish for their membership mints to be
 /// paid in the native currency of the chain this contract is deployed to
 
 contract GasCoinPurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup {
-
     /*=============
         STORAGE
     =============*/
@@ -42,7 +41,7 @@ contract GasCoinPurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup {
     /// @dev Function to set up and configure a new collection's purchase prices
     /// @param collection The new collection to configure
     /// @param price The price in this chain's native currency for this collection's mints
-    /// @param enforceGrants A boolean to represent whether this collection will repeal or support grant functionality 
+    /// @param enforceGrants A boolean to represent whether this collection will repeal or support grant functionality
     function setUp(address collection, uint256 price, bool enforceGrants) external canSetUp(collection) {
         if (prices[collection] != price) {
             prices[collection] = price;
@@ -94,7 +93,6 @@ contract GasCoinPurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup {
         return _batchMint(collection, recipient, amount);
     }
 
-
     /*===============
         INTERNALS
     ===============*/
@@ -111,16 +109,11 @@ contract GasCoinPurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup {
         uint256 price = priceOf(collection);
 
         // get total invoice incl fees and register to ModuleFeeV2 storage
-        _registerFee(
-            collection, 
-            address(0x0), 
-            recipient, 
-            price
-        );
+        _registerFee(collection, address(0x0), recipient, price);
 
         // send payment
         address paymentCollector = Membership(collection).paymentCollector();
-        (bool success,) = paymentCollector.call{ value: price }("");
+        (bool success,) = paymentCollector.call{value: price}("");
         require(success, "PAYMENT_FAIL");
 
         tokenId = IMembership(collection).mintTo(recipient);
@@ -129,7 +122,7 @@ contract GasCoinPurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup {
     /// @dev Internal function to which all external user + client facing batchMint functions are routed.
     /// @param collection The token collection to mint from
     /// @param recipient The recipient of successfully minted tokens
-    /// @param amount The amount of tokens to mint  
+    /// @param amount The amount of tokens to mint
     /// @notice returned tokenId range is inclusive
     function _batchMint(address collection, address recipient, uint256 amount)
         internal
@@ -142,17 +135,11 @@ contract GasCoinPurchaseModule is ModuleGrant, ModuleFeeV2, ModuleSetup {
         uint256 price = priceOf(collection);
 
         // take fee and register to ModuleFeeV2 storage
-        _registerFeeBatch(
-            collection,
-            address(0x0),
-            recipient,
-            amount,
-            price
-        );
+        _registerFeeBatch(collection, address(0x0), recipient, amount, price);
 
         // send payment
         address paymentCollector = Membership(collection).paymentCollector();
-        (bool success,) = paymentCollector.call{ value: price * amount }("");
+        (bool success,) = paymentCollector.call{value: price * amount}("");
         require(success, "PAYMENT_FAIL");
 
         // perform mints
