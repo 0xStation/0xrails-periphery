@@ -3,13 +3,13 @@ pragma solidity ^0.8.13;
 
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
-import {Owner} from "mage/access/owner/Owner.sol";
+import {Ownable} from "mage/access/ownable/Ownable.sol";
 import {Initializer} from "mage/lib/Initializer/Initializer.sol";
 import {IERC721Mage} from "mage/cores/ERC721/interface/IERC721Mage.sol";
 
 import {IMembershipFactory} from "./interface/IMembershipFactory.sol";
 
-contract MembershipFactory is Initializer, Owner, UUPSUpgradeable, IMembershipFactory {
+contract MembershipFactory is Initializer, Ownable, UUPSUpgradeable, IMembershipFactory {
     address public membershipImpl;
 
     function initialize(address membershipImpl_, address owner_) external initializer {

@@ -21,7 +21,7 @@
       "MetadataRouter": "0x1c11dd6a807ab1b0a1dca434d614ba2646c7cf51",
       "MetadataURIExtension": "0xD130547Bfcb52f66d0233F0206A6C427d89F81ED",
       "PayoutAddressExtension": "0x52Db1fa1B82B63842513Da4482Cd41b26c1Bc307",
-      "ERC721Mage (impl)": "0xcade55923e5106bb6d8d67d914e5bcb8444cdfb3",
+      "ERC721Mage (impl)": "0x7cb71e61843a4e567ff6da9a02e1e8c55ff2b473",
       "MembershipFactory (impl)": "0xd7b9c9c2aede444accb7c7a00b8d6cb99178fa69",
       "MembershipFactory (proxy)": "0x08300cfDcF6dD1A6870FC2B1594804C0Be8076eC"
     },

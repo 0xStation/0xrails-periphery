@@ -11,10 +11,9 @@ import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.so
 
 // forge script --keystores $ETH_KEYSTORE --sender $ETH_FROM --broadcast --fork-url $GOERLI_RPC_URL script/membership/DeployTestCollection.s.sol:DeployTestCollection
 contract DeployTestCollection is Script {
-    string public name = "Everland ID";
-    string public symbol = "EVERLAND";
+    string public name = "Myosin Passport";
+    string public symbol = "MYO PASSPORT";
 
-    address public user = 0x7B3A9BCd2Ae893975166aa6f7c96869453FED434; // gel
 
     address public turnkey = 0xBb942519A1339992630b13c3252F04fCB09D4841;
     address public mintModule = 0x37CDd35d650c3f88C1E2F011a2d9FfE295f23132; // Free mint v2
@@ -22,6 +21,8 @@ contract DeployTestCollection is Script {
     address public sym = 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d;
     address public paprika = 0x4b8c47aE2e5083EE6AA9aE2884E8051c2e4741b1;
 
+    address public user = paprika;
+    
     address public owner = sym;
 
     address public renderer = 0xf8A31352e237af670D5DC6e9b75a4401A37BaD0E; // goerli
@@ -59,16 +60,16 @@ contract DeployTestCollection is Script {
         bytes memory permitSymUpgrade = abi.encodeWithSelector(
             Permissions.permit.selector, sym, operationPermissions(Permissions.Operation.UPGRADE)
         );
-        // bytes memory permitUserUpgrade = abi.encodeWithSelector(
-        //     Permissions.permit.selector, user, operationPermissions(Permissions.Operation.UPGRADE)
-        // );
+        bytes memory permitUserUpgrade = abi.encodeWithSelector(
+            Permissions.permit.selector, user, operationPermissions(Permissions.Operation.UPGRADE)
+        );
 
-        bytes[] memory setupCalls = new bytes[](4);
+        bytes[] memory setupCalls = new bytes[](5);
         setupCalls[0] = permitTurnkeyGrant;
         setupCalls[1] = permitModuleMint;
         setupCalls[2] = permitFrogUpgrade;
         setupCalls[3] = permitSymUpgrade;
-        // setupCalls[4] = permitUserUpgrade;
+        setupCalls[4] = permitUserUpgrade;
 
         // make atomic batch call, using permission as owner to do anything
         Batch(proxy).batch(true, setupCalls);

@@ -27,23 +27,23 @@ contract Deploy is Script {
 
         /// @dev first deploy ERC721Mage from the mage repo and update the address in `deployMembershipFactory`!
 
-        address feeManager = deployFeeManager(owner);
-        address freeMintModule = deployFreeMintModule(owner, feeManager);
-        address gasCoinPurchaseModule = deployGasCoinPurchaseModule(owner, feeManager);
-        address stablecoinPurchaseModule = deployStablecoinPurchaseModule(owner, feeManager);
+        address feeManager = deployFeeManager();
+        address freeMintModule = deployFreeMintModule(feeManager);
+        address gasCoinPurchaseModule = deployGasCoinPurchaseModule(feeManager);
+        address stablecoinPurchaseModule = deployStablecoinPurchaseModule(feeManager);
 
-        address metadataRouter = deployMetadataRouter(owner);
+        address metadataRouter = deployMetadataRouter();
         address metadataURIExtension = deployMetadataURIExtension(metadataRouter);
         address payoutAddressExtension = deployPayoutAddressExtension(metadataRouter);
 
-        address membershipFactory = deployMembershipFactory(owner);
+        address membershipFactory = deployMembershipFactory();
 
         // missing: OnePerAddressGuard, ExtensionBeacon
 
         vm.stopBroadcast();
     }
 
-    function deployFeeManager(address owner) internal returns (address) {
+    function deployFeeManager() internal returns (address) {
         FeeManager.Fees memory baselineFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 0, 500); // 0 base, 5% variable
         FeeManager.Fees memory ethFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 1e15, 500); // 0.001 base, 5% variable
         // FeeManager.Fees memory polygonFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 2e18, 500); // 2 base, 5% variable
@@ -51,15 +51,15 @@ contract Deploy is Script {
         return address(new FeeManager(owner, baselineFees, ethFees));
     }
 
-    function deployFreeMintModule(address owner, address feeManager) internal returns (address) {
+    function deployFreeMintModule(address feeManager) internal returns (address) {
         return address(new FreeMintModule(owner, feeManager));
     }
 
-    function deployGasCoinPurchaseModule(address owner, address feeManager) internal returns (address) {
+    function deployGasCoinPurchaseModule(address feeManager) internal returns (address) {
         return address(new GasCoinPurchaseModule(owner, feeManager));
     }
 
-    function deployStablecoinPurchaseModule(address owner, address feeManager) internal returns (address) {
+    function deployStablecoinPurchaseModule(address feeManager) internal returns (address) {
         uint8 decimals = 2;
         string memory currency = "USD";
         address[] memory stablecoins = new address[](0);
@@ -67,7 +67,7 @@ contract Deploy is Script {
         return address(new StablecoinPurchaseModule(owner, feeManager, decimals, currency, stablecoins));
     }
 
-    function deployMetadataRouter(address owner) internal returns (address) {
+    function deployMetadataRouter() internal returns (address) {
         string memory baselineURI = "https://dev.station.express/api/v1/nftMetadata";
         string[] memory contractTypes = new string[](0);
         string[] memory uris = new string[](0);
@@ -83,7 +83,7 @@ contract Deploy is Script {
         return address(new PayoutAddressExtension(metadataRouter));
     }
 
-    function deployMembershipFactory(address owner) internal returns (address) {
+    function deployMembershipFactory() internal returns (address) {
         address erc721Mage = 0xCAde55923e5106bb6d8D67d914e5BcB8444cDFb3; // goerli
         address membershipFactoryImpl = address(new MembershipFactory());
 
