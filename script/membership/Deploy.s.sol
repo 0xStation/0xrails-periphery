@@ -9,6 +9,7 @@ import {FreeMintModule} from "../../src/v2/membership/modules/FreeMintModule.sol
 import {GasCoinPurchaseModule} from "../../src/v2/membership/modules/GasCoinPurchaseModule.sol";
 import {StablecoinPurchaseModule} from "../../src/v2/membership/modules/StablecoinPurchaseModule.sol";
 import {MetadataRouter} from "../../src/v2/metadataRouter/MetadataRouter.sol";
+import {OnePerAddressGuard} from "../../src/v2/membership/guards/OnePerAddressGuard.sol";
 import {MetadataURIExtension} from "../../src/v2/membership/extensions/MetadataURI/MetadataURIExtension.sol";
 import {PayoutAddressExtension} from "../../src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {MembershipFactory} from "../../src/v2/membership/MembershipFactory.sol";
@@ -28,17 +29,18 @@ contract Deploy is Script {
         /// @dev first deploy ERC721Mage from the mage repo and update the address in `deployMembershipFactory`!
 
         address feeManager = deployFeeManager();
-        address freeMintModule = deployFreeMintModule(feeManager);
-        address gasCoinPurchaseModule = deployGasCoinPurchaseModule(feeManager);
-        address stablecoinPurchaseModule = deployStablecoinPurchaseModule(feeManager);
+        deployFreeMintModule(feeManager);
+        deployGasCoinPurchaseModule(feeManager);
+        deployStablecoinPurchaseModule(feeManager);
 
         address metadataRouter = deployMetadataRouter();
-        address metadataURIExtension = deployMetadataURIExtension(metadataRouter);
-        address payoutAddressExtension = deployPayoutAddressExtension(metadataRouter);
+        deployOnePerAddressGuard(metadataRouter);
+        deployMetadataURIExtension(metadataRouter);
+        deployPayoutAddressExtension(metadataRouter);
 
-        address membershipFactory = deployMembershipFactory();
+        deployMembershipFactory();
 
-        // missing: OnePerAddressGuard, ExtensionBeacon
+        // missing: ExtensionBeacon
 
         vm.stopBroadcast();
     }
@@ -75,6 +77,10 @@ contract Deploy is Script {
         return address(new MetadataRouter(owner, baselineURI, contractTypes, uris));
     }
 
+    function deployOnePerAddressGuard(address metadataRouter) internal returns (address) {
+        return address(new OnePerAddressGuard(metadataRouter));
+    }
+    
     function deployMetadataURIExtension(address metadataRouter) internal returns (address) {
         return address(new MetadataURIExtension(metadataRouter));
     }
