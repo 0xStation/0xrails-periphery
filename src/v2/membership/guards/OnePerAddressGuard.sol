@@ -8,7 +8,7 @@ import {ModularContractMetadata} from "../../lib/ModularContractMetadata.sol";
 
 contract OnePerAddressGuard is ModularContractMetadata, IGuard {
     error OnePerAddress(address owner, uint256 balance);
-
+    
     constructor(address metadataRouter) ModularContractMetadata(metadataRouter) {}
 
     function checkBefore(address, bytes calldata data) external view returns (bytes memory checkBeforeData) {
