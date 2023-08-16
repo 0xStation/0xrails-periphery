@@ -2,16 +2,13 @@
 pragma solidity ^0.8.13;
 
 import {Extension} from "mage/extension/Extension.sol";
+
 import {IMetadataURIExtension} from "./IMetadataURIExtension.sol";
 import {IMetadataRouter} from "../../../metadataRouter/IMetadataRouter.sol";
+import {ContractMetadata} from "../../../lib/ContractMetadata.sol";
 
-contract MetadataURIExtension is Extension {
-    /// @dev change metadataRouter constant to real address prior to deploying
-    address public immutable metadataRouter;
-
-    constructor(address router) Extension() {
-        metadataRouter = router;
-    }
+contract MetadataURIExtension is Extension, ContractMetadata {
+    constructor(address router) Extension() ContractMetadata(router) {}
 
     /*===============
         EXTENSION
