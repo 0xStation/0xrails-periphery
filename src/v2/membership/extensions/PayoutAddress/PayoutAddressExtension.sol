@@ -5,25 +5,17 @@ import {IPermissions} from "mage/access/permissions/interface/IPermissions.sol";
 import {Operations} from "mage/lib/Operations.sol";
 import {Extension} from "mage/extension/Extension.sol";
 
-import {IMetadataRouter} from "../../../metadataRouter/IMetadataRouter.sol";
+import {ContractMetadata} from "../../../lib/ContractMetadata.sol";
 import {IPayoutAddressExtensionExternal} from "./IPayoutAddressExtension.sol";
 import {PayoutAddressExtensionInternal} from "./PayoutAddressExtensionInternal.sol";
 import {PayoutAddressExtensionStorage} from "./PayoutAddressExtensionStorage.sol";
 
-contract PayoutAddressExtension is Extension, PayoutAddressExtensionInternal, IPayoutAddressExtensionExternal {
-    address public immutable metadataRouter;
-
-    constructor(address router) Extension() {
-        metadataRouter = router;
-    }
+contract PayoutAddressExtension is Extension, ContractMetadata, PayoutAddressExtensionInternal, IPayoutAddressExtensionExternal {
+    constructor(address router) Extension() ContractMetadata(router) {}
 
     /*===============
         EXTENSION
     ===============*/
-
-    function contractURI() public view override returns (string memory uri) {
-        return IMetadataRouter(metadataRouter).contractURI(address(this));
-    }
 
     function getAllSelectors() public pure override returns (bytes4[] memory selectors) {
         selectors = new bytes4[](2);

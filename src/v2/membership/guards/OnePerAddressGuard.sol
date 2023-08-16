@@ -4,12 +4,12 @@ pragma solidity ^0.8.13;
 import {IGuard} from "lib/mage/src/guard/interface/IGuard.sol";
 import {IERC721} from "lib/mage/src/cores/ERC721/IERC721.sol";
 
-import {ModularContractMetadata} from "../../lib/ModularContractMetadata.sol";
+import {ContractMetadata} from "../../lib/ContractMetadata.sol";
 
-contract OnePerAddressGuard is ModularContractMetadata, IGuard {
+contract OnePerAddressGuard is ContractMetadata, IGuard {
     error OnePerAddress(address owner, uint256 balance);
     
-    constructor(address metadataRouter) ModularContractMetadata(metadataRouter) {}
+    constructor(address metadataRouter) ContractMetadata(metadataRouter) {}
 
     function checkBefore(address, bytes calldata data) external view returns (bytes memory checkBeforeData) {
         // (address from, address to, uint256 startTokenId, uint256 quantity)
