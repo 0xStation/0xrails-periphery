@@ -11,7 +11,6 @@ import {PayoutAddressExtensionInternal} from "./PayoutAddressExtensionInternal.s
 import {PayoutAddressExtensionStorage} from "./PayoutAddressExtensionStorage.sol";
 
 contract PayoutAddressExtension is Extension, PayoutAddressExtensionInternal, IPayoutAddressExtensionExternal {
-    /// @dev change metadataRouter constant to real address prior to deploying
     address public immutable metadataRouter;
 
     constructor(address router) Extension() {
