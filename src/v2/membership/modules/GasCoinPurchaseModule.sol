@@ -70,12 +70,12 @@ contract GasCoinPurchaseModule is ModuleSetup, ModulePermit, ModuleFee {
     }
 
     /// @dev Function to mint a single collection token to the caller, ie a user
-    function mint(address collection) external payable returns (uint256 tokenId) {
+    function mint(address collection) external payable {
         _batchMint(collection, msg.sender, 1);
     }
 
     /// @dev Function to mint a single collection token to a specified recipient
-    function mintTo(address collection, address recipient) external payable returns (uint256 tokenId) {
+    function mintTo(address collection, address recipient) external payable {
         _batchMint(collection, recipient, 1);
     }
 

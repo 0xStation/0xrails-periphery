@@ -88,7 +88,6 @@ contract FreeMintModule is ModuleSetup, ModulePermit, ModuleFee {
     function _batchMint(address collection, address recipient, uint256 quantity)
         internal
         usePermits(_encodePermitContext(collection))
-        returns (uint256 startTokenId, uint256 endTokenId)
     {
         require(quantity > 0, "ZERO_AMOUNT");
 

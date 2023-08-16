@@ -32,17 +32,17 @@ abstract contract SetUpMembership is Helpers {
     function create() public returns (ERC721Mage proxy) {
         // add payout address extension to proxy, to be replaced with extension beacon
         bytes memory addPayoutAddressExtension = abi.encodeWithSelector(
-            IExtensions.addExtension.selector,
+            IExtensions.setExtension.selector,
             IPayoutAddressExtensionInternal.payoutAddress.selector,
             address(payoutAddressExtension)
         );
         bytes memory addUpdatePayoutAddressExtension = abi.encodeWithSelector(
-            IExtensions.addExtension.selector,
+            IExtensions.setExtension.selector,
             IPayoutAddressExtensionExternal.updatePayoutAddress.selector,
             address(payoutAddressExtension)
         );
         bytes memory addRemovePayoutAddressExtension = abi.encodeWithSelector(
-            IExtensions.addExtension.selector,
+            IExtensions.setExtension.selector,
             IPayoutAddressExtensionExternal.removePayoutAddress.selector,
             address(payoutAddressExtension)
         );

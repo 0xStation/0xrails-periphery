@@ -188,7 +188,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // set up ADMIN permission
         vm.prank(owner);
-        proxy.grantPermission(Operations.ADMIN, admin);
+        proxy.addPermission(Operations.ADMIN, admin);
 
         address[] memory stablecoins = new address[](1);
         stablecoins[0] = address(stablecoin);
@@ -360,11 +360,11 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
             abi.encodeWithSignature("setUp(uint128,address[],bool)", price, stablecoins, false);
         bytes memory executeModuleSetUpData =
             abi.encodeWithSelector(proxy.execute.selector, address(stablecoinModule), 0, setUpModuleData);
-        bytes memory grantPermissionData =
-            abi.encodeWithSelector(proxy.grantPermission.selector, Operations.MINT, address(stablecoinModule));
+        bytes memory addPermissionData =
+            abi.encodeWithSelector(proxy.addPermission.selector, Operations.MINT, address(stablecoinModule));
 
         bytes[] memory calls = new bytes[](2);
-        calls[0] = grantPermissionData;
+        calls[0] = addPermissionData;
         calls[1] = executeModuleSetUpData;
 
         vm.prank(owner);
@@ -805,7 +805,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // set guard to reject all mints
         vm.prank(owner);
-        proxy.addGuard(Operations.MINT, 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF);
+        proxy.setGuard(Operations.MINT, 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF);
 
         vm.prank(buyer);
         vm.expectRevert(
@@ -842,7 +842,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // disable module
         vm.prank(owner);
-        proxy.revokePermission(Operations.MINT, address(stablecoinModule));
+        proxy.removePermission(Operations.MINT, address(stablecoinModule));
 
         vm.prank(buyer);
         vm.expectRevert(
@@ -1086,7 +1086,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         // enable grants in module config setup and give module mint permission on proxy
         vm.startPrank(owner);
         stablecoinModule.setUp(address(proxy), price, stablecoins, false);
-        proxy.grantPermission(Operations.MINT, address(stablecoinModule));
+        proxy.addPermission(Operations.MINT, address(stablecoinModule));
         vm.stopPrank();
     }
 

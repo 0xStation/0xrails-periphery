@@ -3,11 +3,11 @@ pragma solidity ^0.8.13;
 
 import {Strings} from "openzeppelin-contracts/utils/Strings.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
-import {Owner} from "mage/access/owner/Owner.sol";
+import {Ownable} from "mage/access/ownable/Ownable.sol";
 
 import {IMetadataRouter} from "./IMetadataRouter.sol";
 
-contract MetadataRouter is Owner, UUPSUpgradeable, IMetadataRouter {
+contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
     using Strings for uint256;
 
     string constant _CONTRACT = "contract";

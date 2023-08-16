@@ -41,7 +41,7 @@ contract FreeMintModuleTest is Test, SetUpMembership {
         // enable grants in module config setup and give module mint permission on proxy
         vm.startPrank(owner);
         module.setUp(address(proxy), false);
-        proxy.grantPermission(Operations.MINT, address(module));
+        proxy.addPermission(Operations.MINT, address(module));
         vm.stopPrank();
     }
 
