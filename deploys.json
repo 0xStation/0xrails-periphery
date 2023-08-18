@@ -6,11 +6,17 @@
     }
   },
   "137": {
-    "Membership": "0x06507c449b1e8ebb8247f44b715f9fe4e51b365a",
-    "PublicFreeMintModule": "0x82baf7980a57a5cc25221f893330d801e2be0308",
-    "partners": {
-      "Polygon d.Camp": "0x83140Ce709401cd069c822Da74C9167335D5cBb8"
-    }
+    "ERC721Mage (impl)": "0x97b45f3ce999ac79607f11b47da761da8c8450b4",
+    "FeeManager": "0xc0935a7284859199c016Aa4F66704CEB501013E6",
+    "FreeMintModule": "0xa562A22B1acEDB3D7B534FBb1dDd4ac0669b4443",
+    "GasCoinPurchaseModule": "",
+    "StablecoinPurchaseModule": "",
+    "MetadataRouter": "0xdC5eED391bB6F4a246ADAf281347a61A5Da37f06",
+    "OnePerAddressGuard": "0xC4748Fb528Bcf583144225e3F3d0b765B413383A",
+    "MetadataURIExtension": "0xd3113b1Af3b09196EAc3f938857C2eA0195D24bE",
+    "PayoutAddressExtension": "",
+    "MembershipFactory (impl)": "0xC259EeF52A74527dcE52f4e9D5C45EaE9d54ebbf",
+    "MembershipFactory (proxy)": "0x0a16ae1C053152500fB74F7aDEdcda1a3F9BaA9F"
   },
   "5": {
     "v2": {
@@ -21,9 +27,10 @@
       "MetadataRouter": "0x1c11dd6a807ab1b0a1dca434d614ba2646c7cf51",
       "MetadataURIExtension": "0xD130547Bfcb52f66d0233F0206A6C427d89F81ED",
       "PayoutAddressExtension": "0x52Db1fa1B82B63842513Da4482Cd41b26c1Bc307",
-      "ERC721Mage (impl)": "0x7cb71e61843a4e567ff6da9a02e1e8c55ff2b473",
+      "ERC721Mage (impl)": "0x97b45f3ce999ac79607f11b47da761da8c8450b4",
       "MembershipFactory (impl)": "0xd7b9c9c2aede444accb7c7a00b8d6cb99178fa69",
-      "MembershipFactory (proxy)": "0x08300cfDcF6dD1A6870FC2B1594804C0Be8076eC"
+      "MembershipFactory (proxy)": "0x08300cfDcF6dD1A6870FC2B1594804C0Be8076eC",
+      "OnePerAddressGuard": "0x829Ef7D0C2F050126f1E18e19a4A122DF4EA8e3D"
     },
     "Renderer": "0xf8A31352e237af670D5DC6e9b75a4401A37BaD0E",
     "Membership": "0x7B9e83E1Fc68378a9FA9e4FFE2ff47318f1ECcfb",

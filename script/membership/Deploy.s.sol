@@ -30,13 +30,13 @@ contract Deploy is Script {
 
         address feeManager = deployFeeManager();
         deployFreeMintModule(feeManager);
-        deployGasCoinPurchaseModule(feeManager);
-        deployStablecoinPurchaseModule(feeManager);
+        // deployGasCoinPurchaseModule(feeManager);
+        // deployStablecoinPurchaseModule(feeManager);
 
         address metadataRouter = deployMetadataRouter();
         deployOnePerAddressGuard(metadataRouter);
         deployMetadataURIExtension(metadataRouter);
-        deployPayoutAddressExtension(metadataRouter);
+        // deployPayoutAddressExtension(metadataRouter);
 
         deployMembershipFactory();
 
@@ -47,10 +47,10 @@ contract Deploy is Script {
 
     function deployFeeManager() internal returns (address) {
         FeeManager.Fees memory baselineFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 0, 500); // 0 base, 5% variable
-        FeeManager.Fees memory ethFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 1e15, 500); // 0.001 base, 5% variable
-        // FeeManager.Fees memory polygonFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 2e18, 500); // 2 base, 5% variable
+        // FeeManager.Fees memory ethFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 1e15, 500); // 0.001 base, 5% variable
+        FeeManager.Fees memory polygonFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 2e18, 500); // 2 base, 5% variable
 
-        return address(new FeeManager(owner, baselineFees, ethFees));
+        return address(new FeeManager(owner, baselineFees, polygonFees));
     }
 
     function deployFreeMintModule(address feeManager) internal returns (address) {
@@ -70,7 +70,7 @@ contract Deploy is Script {
     }
 
     function deployMetadataRouter() internal returns (address) {
-        string memory baselineURI = "https://dev.station.express/api/v1/nftMetadata";
+        string memory baselineURI = "https://groupos.xyz/api/v1/nftMetadata";
         string[] memory contractTypes = new string[](0);
         string[] memory uris = new string[](0);
 
@@ -90,7 +90,8 @@ contract Deploy is Script {
     }
 
     function deployMembershipFactory() internal returns (address) {
-        address erc721Mage = 0xCAde55923e5106bb6d8D67d914e5BcB8444cDFb3; // goerli
+        // address erc721Mage = 0xCAde55923e5106bb6d8D67d914e5BcB8444cDFb3; // goerli
+        address erc721Mage = 0x72B7817075AC3263783296f33c8F053e848594a3; // polygon
         address membershipFactoryImpl = address(new MembershipFactory());
 
         bytes memory initFactory =
