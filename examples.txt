@@ -22,6 +22,7 @@ forge verify-contract --chain 137 --etherscan-api-key $POLYSCAN_API_KEY --constr
 
 # Verify GasCoinPurchaseModule
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d [FeeManager]) [ADDRESS] src/v2/membership/modules/GasCoinPurchaseModule.sol:GasCoinPurchaseModule
+forge verify-contract --chain 137 --etherscan-api-key $POLYSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0xc0935a7284859199c016Aa4F66704CEB501013E6) 0x284aF8FAEc61fa5275544db2082465152BfFE945 src/v2/membership/modules/GasCoinPurchaseModule.sol:GasCoinPurchaseModule
 
 # Verify StablecoinPurchaseModule
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address,uint8,string,address[])" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0xd2cC2c9E347DacbA6AE3c0ab65F07CC5241797da 2 "USD" "[]") 0x83A68751B50C75d8a92e12B98a781Dd566890CE5 src/v2/membership/modules/StablecoinPurchaseModule.sol:StablecoinPurchaseModule
@@ -51,3 +52,12 @@ forge create --private-key $PRIVATE_KEY --verify --chain-id 5 --rpc-url $GOERLI_
 
 # Deploy and verify OnePerAddressGuard
 forge create --private-key $PRIVATE_KEY --verify --chain-id 5 --rpc-url $GOERLI_RPC_URL --api-key $ETHERSCAN_API_KEY src/v2/membership/guards/OnePerAddressGuard.sol:OnePerAddressGuard --constructor-args 0x1c11dd6a807ab1b0a1dca434d614ba2646c7cf51
+
+# Deploy and verify PayoutAddressExtension
+forge create --private-key $PRIVATE_KEY --verify --chain-id 137 --rpc-url $POLYGON_RPC_URL --api-key $POLYSCAN_API_KEY src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol:PayoutAddressExtension --constructor-args 0xdC5eED391bB6F4a246ADAf281347a61A5Da37f06
+
+# Deploy and verify GasCoinPurchaseModule
+forge create --private-key $PRIVATE_KEY --verify --chain-id 137 --rpc-url $POLYGON_RPC_URL --api-key $POLYSCAN_API_KEY src/v2/membership/modules/GasCoinPurchaseModule.sol:GasCoinPurchaseModule --constructor-args 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0xc0935a7284859199c016Aa4F66704CEB501013E6
+
+# Deploy and verify StablecoinPurchaseModule
+forge create --private-key $PRIVATE_KEY --verify --chain-id 137 --rpc-url $POLYGON_RPC_URL --api-key $POLYSCAN_API_KEY src/v2/membership/modules/StablecoinPurchaseModule.sol:StablecoinPurchaseModule --constructor-args 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0xc0935a7284859199c016Aa4F66704CEB501013E6 2 "USD" "[0x2791bca1f2de4661ed88a30c99a7a9449aa84174]"
