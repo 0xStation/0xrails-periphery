@@ -6,22 +6,18 @@ import {Multicall} from "openzeppelin-contracts/utils/Multicall.sol";
 import {Permissions} from "mage/access/permissions/Permissions.sol";
 import {PermissionsStorage} from "mage/access/permissions/PermissionsStorage.sol";
 import {Operations} from "mage/lib/Operations.sol";
-import {IExtensionsExternal as IExtensions} from "mage/extension/interface/IExtensions.sol";
+import {IExtensions} from "mage/extension/interface/IExtensions.sol";
 
 import {FeeManager} from "../../src/lib/module/FeeManager.sol";
-import {FreeMintModule} from "../../src/v2/membership/modules/FreeMintModule.sol";
-import {GasCoinPurchaseModule} from "../../src/v2/membership/modules/GasCoinPurchaseModule.sol";
-import {StablecoinPurchaseModule} from "../../src/v2/membership/modules/StablecoinPurchaseModule.sol";
-import {MetadataRouter} from "../../src/v2/metadataRouter/MetadataRouter.sol";
-import {MetadataURIExtension} from "../../src/v2/membership/extensions/MetadataURI/MetadataURIExtension.sol";
-import {PayoutAddressExtension} from "../../src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
-import {MembershipFactory} from "../../src/v2/membership/MembershipFactory.sol";
-import {PayoutAddressExtension} from "src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
-import {
-    IPayoutAddressExtensionInternal,
-    IPayoutAddressExtensionExternal
-} from "src/v2/membership/extensions/PayoutAddress/IPayoutAddressExtension.sol";
-import {IMetadataURIExtension} from "src/v2/membership/extensions/MetadataURI/IMetadataURIExtension.sol";
+import {FreeMintModule} from "../../src/membership/modules/FreeMintModule.sol";
+import {GasCoinPurchaseModule} from "../../src/membership/modules/GasCoinPurchaseModule.sol";
+import {StablecoinPurchaseModule} from "../../src/membership/modules/StablecoinPurchaseModule.sol";
+import {MetadataRouter} from "../../src/metadataRouter/MetadataRouter.sol";
+import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
+import {MembershipFactory} from "../../src/membership/factory/MembershipFactory.sol";
+import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
+import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
+import {INFTMetadata} from "src/membership/extensions/NFTMetadataRouter/INFTMetadata.sol";
 
 contract Create is Script {
     string public name = "Symmetry Testing";
@@ -51,29 +47,23 @@ contract Create is Script {
 
         // EXTENSIONS
         bytes memory addPayoutAddressExtension = abi.encodeWithSelector(
-            IExtensions.setExtension.selector,
-            IPayoutAddressExtensionInternal.payoutAddress.selector,
-            address(payoutAddressExtension)
+            IExtensions.setExtension.selector, IPayoutAddress.payoutAddress.selector, address(payoutAddressExtension)
         );
         bytes memory addUpdatePayoutAddressExtension = abi.encodeWithSelector(
             IExtensions.setExtension.selector,
-            IPayoutAddressExtensionExternal.updatePayoutAddress.selector,
+            IPayoutAddress.updatePayoutAddress.selector,
             address(payoutAddressExtension)
         );
         bytes memory addRemovePayoutAddressExtension = abi.encodeWithSelector(
             IExtensions.setExtension.selector,
-            IPayoutAddressExtensionExternal.removePayoutAddress.selector,
+            IPayoutAddress.removePayoutAddress.selector,
             address(payoutAddressExtension)
         );
         bytes memory addTokenURIExtension = abi.encodeWithSelector(
-            IExtensions.setExtension.selector,
-            IMetadataURIExtension.ext_tokenURI.selector,
-            address(metadataURIExtension)
+            IExtensions.setExtension.selector, INFTMetadata.ext_tokenURI.selector, address(metadataURIExtension)
         );
         bytes memory addContractURIExtension = abi.encodeWithSelector(
-            IExtensions.setExtension.selector,
-            IMetadataURIExtension.ext_contractURI.selector,
-            address(metadataURIExtension)
+            IExtensions.setExtension.selector, INFTMetadata.ext_contractURI.selector, address(metadataURIExtension)
         );
 
         // PERMISSIONS
@@ -83,8 +73,7 @@ contract Create is Script {
             abi.encodeWithSelector(Permissions.addPermission.selector, Operations.MINT, mintModule);
         bytes memory permitFrogAdmin =
             abi.encodeWithSelector(Permissions.addPermission.selector, Operations.ADMIN, frog);
-        bytes memory permitSymAdmin =
-            abi.encodeWithSelector(Permissions.addPermission.selector, Operations.ADMIN, sym);
+        bytes memory permitSymAdmin = abi.encodeWithSelector(Permissions.addPermission.selector, Operations.ADMIN, sym);
 
         // INIT
         bytes[] memory initCalls = new bytes[](9);

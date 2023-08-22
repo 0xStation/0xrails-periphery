@@ -6,19 +6,36 @@
     }
   },
   "137": {
-    "ERC721Mage (impl)": "0x97b45f3ce999ac79607f11b47da761da8c8450b4", // 4,587,170 gas
-    "FeeManager": "0xc0935a7284859199c016Aa4F66704CEB501013E6", // 860,578 gas
-    "FreeMintModule": "0xa562A22B1acEDB3D7B534FBb1dDd4ac0669b4443", // 1,490,420 gas
-    "GasCoinPurchaseModule": "0x284aF8FAEc61fa5275544db2082465152BfFE945", // 1,609,839 gas
-    "StablecoinPurchaseModule": "0x59Fe857F837bcD56D612bdbEf75eDAA4eF9322D3", // 2,715,600 gas
-    "MetadataRouter": "0xdC5eED391bB6F4a246ADAf281347a61A5Da37f06", // 1,731,810 gas
-    "OnePerAddressGuard": "0xC4748Fb528Bcf583144225e3F3d0b765B413383A", // 402,295 gas
-    "MetadataURIExtension": "0xd3113b1Af3b09196EAc3f938857C2eA0195D24bE", // 914,274 gas
-    "PayoutAddressExtension": "0x8626BFA8dc92262d98A96A9a5CE8CCFDB0c59cB7", // 573,703 gas
-    "MembershipFactory (impl)": "0xC259EeF52A74527dcE52f4e9D5C45EaE9d54ebbf", // 1,350,500 gas
-    "MembershipFactory (proxy)": "0x0a16ae1C053152500fB74F7aDEdcda1a3F9BaA9F" // 211,012 gas
+    "latest": {
+      "ERC721Mage (impl)": "0x1fc83981028ca43ed0a95d166b7d201abe6e8195",
+      "MetadataRouter (impl)": "0xf6296dc515cc5b7c997a0c7cee4718fde9c53db9",
+      "MetadataRouter (proxy)": "0xd71a3a06c8af65f8d7a3a65b96a4a1c8b9d19840",
+      "OnePerAddressGuard": "0xc6f64d2b4692830b38e5e89069efe2b918dc83dd",
+      "NFTMetadataRouterExtension": "0xaef84a7d3e6da9ad12ca0b371949e3f1333208bb",
+      "PayoutAddressExtension": "0x311777d76846149dba88154e5106c0578efb0543",
+      "FeeManager": "0x654ee5b1db9b6e3851c233c4454e9efdcc30c6dc",
+      "FreeMintModule": "0xc20338917dafa4494bd43f7574e7f0018841ade5",
+      "GasCoinPurchaseModule": "0x9caf253f0c8a9b0755793de191fb48c2aa9683fb",
+      "StablecoinPurchaseModule": "0xdce33b64d8403b2c5ca9e63a277a577d013f0e0b",
+      "MembershipFactory (impl)": "0x279ac1bc84db013c00487a272c49bc778e7bed7a",
+      "MembershipFactory (proxy)": "0x666260835741238f4d39509c3ea5b9b6a3c4ff9d"
+    }
   },
   "5": {
+    "latest": {
+      "ERC721Mage (impl)": "0x1fc83981028ca43ed0a95d166b7d201abe6e8195",
+      "MetadataRouter (impl)": "0xf6296dc515cc5b7c997a0c7cee4718fde9c53db9",
+      "MetadataRouter (proxy)": "0xd71a3a06c8af65f8d7a3a65b96a4a1c8b9d19840",
+      "OnePerAddressGuard": "0xc6f64d2b4692830b38e5e89069efe2b918dc83dd",
+      "NFTMetadataRouterExtension": "0xaef84a7d3e6da9ad12ca0b371949e3f1333208bb",
+      "PayoutAddressExtension": "0x311777d76846149dba88154e5106c0578efb0543",
+      "FeeManager": "0x654ee5b1db9b6e3851c233c4454e9efdcc30c6dc",
+      "FreeMintModule": "0xc20338917dafa4494bd43f7574e7f0018841ade5",
+      "GasCoinPurchaseModule": "0x9caf253f0c8a9b0755793de191fb48c2aa9683fb",
+      "StablecoinPurchaseModule": "0xdce33b64d8403b2c5ca9e63a277a577d013f0e0b",
+      "MembershipFactory (impl)": "0x279ac1bc84db013c00487a272c49bc778e7bed7a",
+      "MembershipFactory (proxy)": "0x666260835741238f4d39509c3ea5b9b6a3c4ff9d"
+    },
     "v2": {
       "ERC721Mage (impl)": "0x97b45f3ce999ac79607f11b47da761da8c8450b4",
       "FeeManager": "0xd2cC2c9E347DacbA6AE3c0ab65F07CC5241797da",

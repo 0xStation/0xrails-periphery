@@ -14,7 +14,13 @@ abstract contract NonceBitMap {
         EVENTS
     ============*/
 
-    event UseNonce(address indexed account, uint256 indexed nonce);
+    event NonceUsed(address indexed account, uint256 indexed nonce);
+
+    /*===========
+        ERROS
+    ===========*/
+
+    error NonceAlreadyUsed(address account, uint256 nonce);
 
     /*==================
         VERIFICATION
@@ -27,9 +33,9 @@ abstract contract NonceBitMap {
 
     function _useNonce(address account, uint256 nonce) internal {
         (uint256 wordId, uint256 word, uint256 mask) = _split(account, nonce);
-        require(word & mask == 0, "NONCE_USED");
+        if (word & mask != 0) revert NonceAlreadyUsed(account, nonce);
         _usedNonces[account][wordId] = word | mask;
-        emit UseNonce(account, nonce);
+        emit NonceUsed(account, nonce);
     }
 
     function _split(address account, uint256 nonce) private view returns (uint256 wordId, uint256 word, uint256 mask) {

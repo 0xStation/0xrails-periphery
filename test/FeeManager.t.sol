@@ -34,175 +34,174 @@ contract FeeManagerTest is Test, SetUpMembership {
         // assert owner was set
         assertEq(feeManager.owner(), address(0xbeefbabe));
 
-        FeeManager.Fees memory exampleFees =
-            FeeManager.Fees(FeeManager.FeeSetting.Set, testParams.baseFee, testParams.variableFee);
-        // assert baselineFees were set
-        FeeManager.Fees memory baselineFees = feeManager.getBaselineFees();
-        assertEq(uint8(baselineFees.setting), uint8(exampleFees.setting));
-        assertEq(baselineFees.baseFee, exampleFees.baseFee);
-        assertEq(baselineFees.variableFee, exampleFees.variableFee);
+        FeeManager.Fees memory exampleFees = FeeManager.Fees(true, testParams.baseFee, testParams.variableFee);
+        // assert defaultFees were set
+        FeeManager.Fees memory defaultFees = feeManager.getDefaultFees();
+        assertTrue(defaultFees.exist);
+        assertEq(defaultFees.baseFee, exampleFees.baseFee);
+        assertEq(defaultFees.variableFee, exampleFees.variableFee);
 
-        FeeManager.Fees memory ethFees =
-            FeeManager.Fees(FeeManager.FeeSetting.Set, testParams.ethBaseFee, testParams.ethVariableFee);
+        FeeManager.Fees memory ethFees = FeeManager.Fees(true, testParams.ethBaseFee, testParams.ethVariableFee);
         // assert ethFees were set
-        FeeManager.Fees memory defaultFees = feeManager.getDefaultFees(address(0x0));
-        assertEq(uint8(defaultFees.setting), uint8(ethFees.setting));
-        assertEq(defaultFees.baseFee, ethFees.baseFee);
-        assertEq(defaultFees.variableFee, ethFees.variableFee);
+        FeeManager.Fees memory tokenFees = feeManager.getTokenFees(address(0x0));
+        assertTrue(tokenFees.exist);
+        assertEq(tokenFees.baseFee, ethFees.baseFee);
+        assertEq(tokenFees.variableFee, ethFees.variableFee);
     }
 
-    function test_setBaselineFees(TestParams memory testParams) public {
+    function test_setDefaultFees(TestParams memory testParams) public {
         deployWithFuzz(testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee);
 
-        FeeManager.Fees memory freeMintFees = FeeManager.Fees(FeeManager.FeeSetting.Free, 0, 0);
         vm.prank(feeManager.owner());
-        feeManager.setBaselineFees(freeMintFees);
+        feeManager.setDefaultFees(0, 0);
 
-        FeeManager.Fees memory newFees = feeManager.getBaselineFees();
-        assertEq(uint8(newFees.setting), uint8(freeMintFees.setting));
-        assertEq(newFees.baseFee, freeMintFees.baseFee);
-        assertEq(newFees.variableFee, freeMintFees.variableFee);
+        FeeManager.Fees memory newFees = feeManager.getDefaultFees();
+        assertTrue(newFees.exist);
+        assertEq(newFees.baseFee, 0);
+        assertEq(newFees.variableFee, 0);
     }
 
-    function test_setBaselineFeesRevertOnlyOwner(TestParams memory testParams) public {
+    function test_setDefaultFeesRevertOnlyOwner(TestParams memory testParams) public {
         deployWithFuzz(testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee);
 
-        FeeManager.Fees memory freeMintFees = FeeManager.Fees(FeeManager.FeeSetting.Free, 0, 0);
         err = bytes("Ownable: caller is not the owner");
         vm.expectRevert(err);
-        feeManager.setBaselineFees(freeMintFees);
+        feeManager.setDefaultFees(0, 0);
     }
 
-    function test_setDefaultFees(TestParams memory testParams, address tokenAddress) public {
+    function test_setTokenFees(TestParams memory testParams, address tokenAddress) public {
         vm.assume(tokenAddress != address(0x0));
         deployWithFuzz(testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee);
 
-        // ensure defaultFees are not set for tokenAddress
+        // ensure tokenFees are not set for tokenAddress
         err = abi.encodeWithSelector(FeesNotSet.selector);
         vm.expectRevert(err);
-        feeManager.getDefaultFees(tokenAddress);
+        feeManager.getTokenFees(tokenAddress);
 
         // set token fees and change eth fees
-        FeeManager.Fees memory mintFees =
-            FeeManager.Fees(FeeManager.FeeSetting.Set, testParams.baseFee, testParams.variableFee);
+        FeeManager.Fees memory mintFees = FeeManager.Fees(true, testParams.baseFee, testParams.variableFee);
         vm.startPrank(feeManager.owner());
-        feeManager.setDefaultFees(tokenAddress, mintFees);
-        feeManager.setDefaultFees(address(0x0), mintFees);
+        feeManager.setTokenFees(tokenAddress, testParams.baseFee, testParams.variableFee);
+        feeManager.setTokenFees(address(0x0), testParams.baseFee, testParams.variableFee);
 
-        FeeManager.Fees memory newFees = feeManager.getDefaultFees(tokenAddress);
-        assertEq(uint8(newFees.setting), uint8(mintFees.setting));
+        FeeManager.Fees memory newFees = feeManager.getTokenFees(tokenAddress);
+        assertTrue(newFees.exist);
         assertEq(newFees.baseFee, mintFees.baseFee);
         assertEq(newFees.variableFee, mintFees.variableFee);
 
-        FeeManager.Fees memory newEthFees = feeManager.getDefaultFees(address(0x0));
-        assertEq(uint8(newEthFees.setting), uint8(mintFees.setting));
+        FeeManager.Fees memory newEthFees = feeManager.getTokenFees(address(0x0));
+        assertTrue(newEthFees.exist);
         assertEq(newEthFees.baseFee, mintFees.baseFee);
         assertEq(newEthFees.variableFee, mintFees.variableFee);
     }
 
-    function test_setDefaultFeesRevertOnlyOwner(TestParams memory testParams, address tokenAddress) public {
+    function test_setTokenFeesRevertOnlyOwner(TestParams memory testParams, address tokenAddress) public {
         vm.assume(tokenAddress != address(0x0));
         deployWithFuzz(testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee);
 
-        // ensure defaultFees are not set for tokenAddress
+        // ensure tokenFees are not set for tokenAddress
         err = abi.encodeWithSelector(FeesNotSet.selector);
         vm.expectRevert(err);
-        feeManager.getDefaultFees(tokenAddress);
+        feeManager.getTokenFees(tokenAddress);
 
-        FeeManager.Fees memory defaultFees =
-            FeeManager.Fees(FeeManager.FeeSetting.Set, testParams.baseFee, testParams.variableFee);
+        FeeManager.Fees memory tokenFees = FeeManager.Fees(true, testParams.baseFee, testParams.variableFee);
 
         err = bytes("Ownable: caller is not the owner");
         vm.expectRevert(err);
-        feeManager.setDefaultFees(tokenAddress, defaultFees);
+        feeManager.setTokenFees(tokenAddress, testParams.baseFee, testParams.variableFee);
         vm.expectRevert(err);
-        feeManager.setDefaultFees(address(0x0), defaultFees);
+        feeManager.setTokenFees(address(0x0), testParams.baseFee, testParams.variableFee);
     }
 
-    function test_getDefaultFeesRevertNotSet(TestParams memory testParams, address tokenAddress) public {
-        vm.assume(tokenAddress != address(0x0)); // eth defaultFees are set in constructor
+    function test_getTokenFeesRevertNotSet(TestParams memory testParams, address tokenAddress) public {
+        vm.assume(tokenAddress != address(0x0)); // eth tokenFees are set in constructor
         deployWithFuzz(testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee);
 
-        // ensure defaultFees are not set for tokenAddress and a random neighbor address
+        // ensure tokenFees are not set for tokenAddress and a random neighbor address
         err = abi.encodeWithSelector(FeesNotSet.selector);
         vm.expectRevert(err);
-        feeManager.getDefaultFees(tokenAddress);
+        feeManager.getTokenFees(tokenAddress);
         vm.expectRevert(err);
-        feeManager.getDefaultFees(address(uint160(tokenAddress) + 1));
+        feeManager.getTokenFees(address(uint160(tokenAddress) + 1));
     }
 
-    function test_setOverrideFees(TestParams memory testParams, TestParams memory overrideParams, address tokenAddress)
-        public
-    {
-        deployWithFuzz(testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee);
-
-        // ensure overrideFees are not set for tokenAddress or eth
-        err = abi.encodeWithSelector(FeesNotSet.selector);
-        vm.expectRevert(err);
-        feeManager.getOverrideFees(address(proxy), tokenAddress);
-        vm.expectRevert(err);
-        feeManager.getOverrideFees(address(proxy), address(0x0));
-
-        // set token fees and eth fees
-        FeeManager.Fees memory overrideFees =
-            FeeManager.Fees(FeeManager.FeeSetting.Set, overrideParams.baseFee, overrideParams.variableFee);
-        vm.startPrank(feeManager.owner());
-        feeManager.setOverrideFees(address(proxy), tokenAddress, overrideFees);
-        feeManager.setOverrideFees(address(proxy), address(0x0), overrideFees);
-
-        FeeManager.Fees memory newOverrideFees = feeManager.getOverrideFees(address(proxy), tokenAddress);
-        assertEq(uint8(newOverrideFees.setting), uint8(overrideFees.setting));
-        assertEq(newOverrideFees.baseFee, overrideFees.baseFee);
-        assertEq(newOverrideFees.variableFee, overrideFees.variableFee);
-
-        FeeManager.Fees memory newEthOverrideFees = feeManager.getOverrideFees(address(proxy), address(0x0));
-        assertEq(uint8(newEthOverrideFees.setting), uint8(overrideFees.setting));
-        assertEq(newEthOverrideFees.baseFee, overrideFees.baseFee);
-        assertEq(newEthOverrideFees.variableFee, overrideFees.variableFee);
-    }
-
-    function test_setOverrideFeesRevertOnlyOwner(
+    function test_setCollectionFees(
         TestParams memory testParams,
-        TestParams memory overrideParams,
+        TestParams memory collectionParams,
         address tokenAddress
     ) public {
         deployWithFuzz(testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee);
 
-        // ensure overrideFees are not set for tokenAddress or eth
+        // ensure collectionFees are not set for tokenAddress or eth
         err = abi.encodeWithSelector(FeesNotSet.selector);
         vm.expectRevert(err);
-        feeManager.getOverrideFees(address(proxy), tokenAddress);
+        feeManager.getCollectionFees(address(proxy), tokenAddress);
         vm.expectRevert(err);
-        feeManager.getOverrideFees(address(proxy), address(0x0));
+        feeManager.getCollectionFees(address(proxy), address(0x0));
 
-        FeeManager.Fees memory overrideFees =
-            FeeManager.Fees(FeeManager.FeeSetting.Set, overrideParams.baseFee, overrideParams.variableFee);
+        // set token fees and eth fees
+        vm.startPrank(feeManager.owner());
+        feeManager.setCollectionFees(
+            address(proxy), tokenAddress, collectionParams.baseFee, collectionParams.variableFee
+        );
+        feeManager.setCollectionFees(
+            address(proxy), address(0x0), collectionParams.baseFee, collectionParams.variableFee
+        );
+
+        FeeManager.Fees memory newCollectionFees = feeManager.getCollectionFees(address(proxy), tokenAddress);
+        assertTrue(newCollectionFees.exist);
+        assertEq(newCollectionFees.baseFee, collectionParams.baseFee);
+        assertEq(newCollectionFees.variableFee, collectionParams.variableFee);
+
+        FeeManager.Fees memory newEthCollectionFees = feeManager.getCollectionFees(address(proxy), address(0x0));
+        assertTrue(newEthCollectionFees.exist);
+        assertEq(newEthCollectionFees.baseFee, collectionParams.baseFee);
+        assertEq(newEthCollectionFees.variableFee, collectionParams.variableFee);
+    }
+
+    function test_setCollectionFeesRevertOnlyOwner(
+        TestParams memory testParams,
+        TestParams memory collectionParams,
+        address tokenAddress
+    ) public {
+        deployWithFuzz(testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee);
+
+        // ensure collectionFees are not set for tokenAddress or eth
+        err = abi.encodeWithSelector(FeesNotSet.selector);
+        vm.expectRevert(err);
+        feeManager.getCollectionFees(address(proxy), tokenAddress);
+        vm.expectRevert(err);
+        feeManager.getCollectionFees(address(proxy), address(0x0));
 
         err = bytes("Ownable: caller is not the owner");
         vm.expectRevert(err);
-        feeManager.setOverrideFees(address(proxy), tokenAddress, overrideFees);
+        feeManager.setCollectionFees(
+            address(proxy), tokenAddress, collectionParams.baseFee, collectionParams.variableFee
+        );
         vm.expectRevert(err);
-        feeManager.setOverrideFees(address(proxy), address(0x0), overrideFees);
+        feeManager.setCollectionFees(
+            address(proxy), address(0x0), collectionParams.baseFee, collectionParams.variableFee
+        );
     }
 
-    function test_getOverrideFeesRevertNotSet(TestParams memory testParams, address tokenAddress) public {
+    function test_getCollectionFeesRevertNotSet(TestParams memory testParams, address tokenAddress) public {
         deployWithFuzz(testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee);
 
-        // ensure overrideFees are not set for tokenAddress, a neighboring address, or eth
+        // ensure collectionFees are not set for tokenAddress, a neighboring address, or eth
         err = abi.encodeWithSelector(FeesNotSet.selector);
         vm.expectRevert(err);
-        feeManager.getOverrideFees(address(proxy), tokenAddress);
+        feeManager.getCollectionFees(address(proxy), tokenAddress);
         vm.expectRevert(err);
-        feeManager.getOverrideFees(address(proxy), address(uint160(tokenAddress) + 1));
+        feeManager.getCollectionFees(address(proxy), address(uint160(tokenAddress) + 1));
         vm.expectRevert(err);
-        feeManager.getOverrideFees(address(proxy), address(0x0));
+        feeManager.getCollectionFees(address(proxy), address(0x0));
     }
 
     // getFeeTotals tests split into 3 for `stack too deep` errors
     function test_getFeeTotalsBaseline(
         TestParams memory testParams,
-        TestParams memory defaultParams,
-        TestParams memory overrideParams,
+        TestParams memory tokenParams,
+        TestParams memory collectionParams,
         address tokenAddress,
         uint16 quantity,
         uint96 unitPrice
@@ -212,14 +211,17 @@ contract FeeManagerTest is Test, SetUpMembership {
             testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee
         );
         _constrainFuzzInputs(
-            overrideParams.baseFee, overrideParams.variableFee, overrideParams.ethBaseFee, overrideParams.ethVariableFee
+            collectionParams.baseFee,
+            collectionParams.variableFee,
+            collectionParams.ethBaseFee,
+            collectionParams.ethVariableFee
         );
 
         deployWithFuzz(testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee);
 
         address someRecipient = address(0xdeadbeef);
 
-        // calculate feeTotal using baselineFees
+        // calculate feeTotal using defaultFees
         uint256 erc20FeeTotal =
             feeManager.getFeeTotals(address(proxy), tokenAddress, someRecipient, quantity, unitPrice);
         // cast to prevent overflow
@@ -230,8 +232,8 @@ contract FeeManagerTest is Test, SetUpMembership {
 
     function test_getFeeTotalsDefault(
         TestParams memory testParams,
-        TestParams memory defaultParams,
-        TestParams memory overrideParams,
+        TestParams memory tokenParams,
+        TestParams memory collectionParams,
         address tokenAddress,
         uint16 quantity,
         uint96 unitPrice
@@ -241,39 +243,40 @@ contract FeeManagerTest is Test, SetUpMembership {
             testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee
         );
         _constrainFuzzInputs(
-            overrideParams.baseFee, overrideParams.variableFee, overrideParams.ethBaseFee, overrideParams.ethVariableFee
+            collectionParams.baseFee,
+            collectionParams.variableFee,
+            collectionParams.ethBaseFee,
+            collectionParams.ethVariableFee
         );
 
         deployWithFuzz(testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee);
 
         address someRecipient = address(0xdeadbeef);
 
-        // calculate feeTotal using eth defaultFees
+        // calculate feeTotal using eth tokenFees
         uint256 ethFeeTotal = feeManager.getFeeTotals(address(proxy), address(0x0), someRecipient, quantity, unitPrice);
         // cast to prevent overflow
         uint256 expectedEthFeeTotal = uint256(quantity) * uint256(testParams.ethBaseFee)
             + (uint256(unitPrice) * uint256(quantity) * uint256(testParams.ethVariableFee) / 10_000);
         assertEq(ethFeeTotal, expectedEthFeeTotal);
 
-        // set erc20 defaultFees
-        FeeManager.Fees memory defaultFees =
-            FeeManager.Fees(FeeManager.FeeSetting.Set, defaultParams.baseFee, defaultParams.variableFee);
+        // set erc20 tokenFees
         vm.prank(feeManager.owner());
-        feeManager.setDefaultFees(tokenAddress, defaultFees);
+        feeManager.setTokenFees(tokenAddress, tokenParams.baseFee, tokenParams.variableFee);
 
-        // calculate feeTotal using erc20 defaultFees
+        // calculate feeTotal using erc20 tokenFees
         uint256 erc20DefaultFeeTotal =
             feeManager.getFeeTotals(address(proxy), tokenAddress, someRecipient, quantity, unitPrice);
         // cast to prevent overflow
-        uint256 expectedErc20DefaultFeeTotal = uint256(quantity) * uint256(defaultParams.baseFee)
-            + (uint256(unitPrice) * uint256(quantity) * uint256(defaultParams.variableFee) / 10_000);
+        uint256 expectedErc20DefaultFeeTotal = uint256(quantity) * uint256(tokenParams.baseFee)
+            + (uint256(unitPrice) * uint256(quantity) * uint256(tokenParams.variableFee) / 10_000);
         assertEq(erc20DefaultFeeTotal, expectedErc20DefaultFeeTotal);
     }
 
-    function test_getFeeTotalsOverride(
+    function test_getFeeTotalsCollection(
         TestParams memory testParams,
-        TestParams memory defaultParams,
-        TestParams memory overrideParams,
+        TestParams memory tokenParams,
+        TestParams memory collectionParams,
         address tokenAddress,
         uint16 quantity,
         uint96 unitPrice
@@ -283,40 +286,41 @@ contract FeeManagerTest is Test, SetUpMembership {
             testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee
         );
         _constrainFuzzInputs(
-            overrideParams.baseFee, overrideParams.variableFee, overrideParams.ethBaseFee, overrideParams.ethVariableFee
+            collectionParams.baseFee,
+            collectionParams.variableFee,
+            collectionParams.ethBaseFee,
+            collectionParams.ethVariableFee
         );
 
         deployWithFuzz(testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee);
 
         address someRecipient = address(0xdeadbeef);
 
-        // set erc20 overrideFees
-        FeeManager.Fees memory erc20OverrideFees =
-            FeeManager.Fees(FeeManager.FeeSetting.Set, overrideParams.baseFee, overrideParams.variableFee);
+        // set erc20 collectionFees
+        FeeManager.Fees memory erc20CollectionFees =
+            FeeManager.Fees(true, collectionParams.baseFee, collectionParams.variableFee);
         vm.prank(feeManager.owner());
-        feeManager.setDefaultFees(tokenAddress, erc20OverrideFees);
+        feeManager.setTokenFees(tokenAddress, collectionParams.baseFee, collectionParams.variableFee);
 
-        // calculate feeTotal using erc20 overrideFees
-        uint256 erc20OverrideFeeTotal =
+        // calculate feeTotal using erc20 collectionFees
+        uint256 erc20CollectionFeeTotal =
             feeManager.getFeeTotals(address(proxy), tokenAddress, someRecipient, quantity, unitPrice);
         // cast to prevent overflow
-        uint256 expectedErc20OverrideFeeTotal = uint256(quantity) * uint256(overrideParams.baseFee)
-            + (uint256(unitPrice) * uint256(quantity) * uint256(overrideParams.variableFee) / 10_000);
-        assertEq(erc20OverrideFeeTotal, expectedErc20OverrideFeeTotal);
+        uint256 expectedErc20CollectionFeeTotal = uint256(quantity) * uint256(collectionParams.baseFee)
+            + (uint256(unitPrice) * uint256(quantity) * uint256(collectionParams.variableFee) / 10_000);
+        assertEq(erc20CollectionFeeTotal, expectedErc20CollectionFeeTotal);
 
-        // set eth overrideFees
-        FeeManager.Fees memory ethOverrideFees =
-            FeeManager.Fees(FeeManager.FeeSetting.Set, overrideParams.ethBaseFee, overrideParams.ethVariableFee);
+        // set eth collectionFees
         vm.prank(feeManager.owner());
-        feeManager.setDefaultFees(tokenAddress, ethOverrideFees);
+        feeManager.setTokenFees(tokenAddress, collectionParams.ethBaseFee, collectionParams.ethVariableFee);
 
-        // calculate feeTotal using eth overrideFees
-        uint256 ethOverrideFeeTotal =
+        // calculate feeTotal using eth collectionFees
+        uint256 ethCollectionFeeTotal =
             feeManager.getFeeTotals(address(proxy), tokenAddress, someRecipient, quantity, unitPrice);
         // cast to prevent overflow
-        uint256 expectedEthOverrideFeeTotal = uint256(quantity) * uint256(overrideParams.ethBaseFee)
-            + (uint256(unitPrice) * uint256(quantity) * uint256(overrideParams.ethVariableFee) / 10_000);
-        assertEq(ethOverrideFeeTotal, expectedEthOverrideFeeTotal);
+        uint256 expectedEthCollectionFeeTotal = uint256(quantity) * uint256(collectionParams.ethBaseFee)
+            + (uint256(unitPrice) * uint256(quantity) * uint256(collectionParams.ethVariableFee) / 10_000);
+        assertEq(ethCollectionFeeTotal, expectedEthCollectionFeeTotal);
     }
 
     /*============
@@ -325,11 +329,7 @@ contract FeeManagerTest is Test, SetUpMembership {
 
     function deployWithFuzz(uint120 baseFee, uint120 variableFee, uint120 ethBaseFee, uint120 ethVariableFee) public {
         address owner = address(0xbeefbabe);
-        // instantiate feeManager with fuzzed base and variable fees as baseline
-        FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Set, baseFee, variableFee);
-        FeeManager.Fees memory ethFees = FeeManager.Fees(FeeManager.FeeSetting.Set, ethBaseFee, ethVariableFee);
-
-        feeManager = new FeeManager(owner, exampleFees, ethFees);
+        feeManager = new FeeManager(owner, baseFee, variableFee, ethBaseFee, ethVariableFee);
     }
 
     // function to constrain fuzzed test values to realistic values for performance

@@ -5,14 +5,15 @@ import {Script} from "forge-std/Script.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import {FeeManager} from "../../src/lib/module/FeeManager.sol";
-import {FreeMintModule} from "../../src/v2/membership/modules/FreeMintModule.sol";
-import {GasCoinPurchaseModule} from "../../src/v2/membership/modules/GasCoinPurchaseModule.sol";
-import {StablecoinPurchaseModule} from "../../src/v2/membership/modules/StablecoinPurchaseModule.sol";
-import {MetadataRouter} from "../../src/v2/metadataRouter/MetadataRouter.sol";
-import {OnePerAddressGuard} from "../../src/v2/membership/guards/OnePerAddressGuard.sol";
-import {MetadataURIExtension} from "../../src/v2/membership/extensions/MetadataURI/MetadataURIExtension.sol";
-import {PayoutAddressExtension} from "../../src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
-import {MembershipFactory} from "../../src/v2/membership/MembershipFactory.sol";
+import {FreeMintModule} from "../../src/membership/modules/FreeMintModule.sol";
+import {GasCoinPurchaseModule} from "../../src/membership/modules/GasCoinPurchaseModule.sol";
+import {StablecoinPurchaseModule} from "../../src/membership/modules/StablecoinPurchaseModule.sol";
+import {MetadataRouter} from "../../src/metadataRouter/MetadataRouter.sol";
+import {OnePerAddressGuard} from "../../src/membership/guards/OnePerAddressGuard.sol";
+import {NFTMetadataRouterExtension} from
+    "../../src/membership/extensions/NFTMetadataRouter/NFTMetadataRouterExtension.sol";
+import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
+import {MembershipFactory} from "../../src/membership/factory/MembershipFactory.sol";
 
 contract Deploy is Script {
     address public turnkey = 0xBb942519A1339992630b13c3252F04fCB09D4841;
@@ -28,15 +29,15 @@ contract Deploy is Script {
 
         /// @dev first deploy ERC721Mage from the mage repo and update the address in `deployMembershipFactory`!
 
-        address feeManager = deployFeeManager();
-        deployFreeMintModule(feeManager);
-        // deployGasCoinPurchaseModule(feeManager);
-        // deployStablecoinPurchaseModule(feeManager);
-
         address metadataRouter = deployMetadataRouter();
         deployOnePerAddressGuard(metadataRouter);
-        deployMetadataURIExtension(metadataRouter);
-        // deployPayoutAddressExtension(metadataRouter);
+        deployNFTMetadataRouterExtension(metadataRouter);
+        deployPayoutAddressExtension(metadataRouter);
+
+        address feeManager = deployFeeManager();
+        deployFreeMintModule(feeManager, metadataRouter);
+        deployGasCoinPurchaseModule(feeManager, metadataRouter);
+        deployStablecoinPurchaseModule(feeManager, metadataRouter);
 
         deployMembershipFactory();
 
@@ -45,53 +46,64 @@ contract Deploy is Script {
         vm.stopBroadcast();
     }
 
-    function deployFeeManager() internal returns (address) {
-        FeeManager.Fees memory baselineFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 0, 500); // 0 base, 5% variable
-        // FeeManager.Fees memory ethFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 1e15, 500); // 0.001 base, 5% variable
-        FeeManager.Fees memory polygonFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 2e18, 500); // 2 base, 5% variable
-
-        return address(new FeeManager(owner, baselineFees, polygonFees));
-    }
-
-    function deployFreeMintModule(address feeManager) internal returns (address) {
-        return address(new FreeMintModule(owner, feeManager));
-    }
-
-    function deployGasCoinPurchaseModule(address feeManager) internal returns (address) {
-        return address(new GasCoinPurchaseModule(owner, feeManager));
-    }
-
-    function deployStablecoinPurchaseModule(address feeManager) internal returns (address) {
-        uint8 decimals = 2;
-        string memory currency = "USD";
-        address[] memory stablecoins = new address[](0);
-
-        return address(new StablecoinPurchaseModule(owner, feeManager, decimals, currency, stablecoins));
-    }
-
     function deployMetadataRouter() internal returns (address) {
-        string memory baselineURI = "https://groupos.xyz/api/v1/nftMetadata";
-        string[] memory contractTypes = new string[](0);
-        string[] memory uris = new string[](0);
+        string memory defaultURI = "https://groupos.xyz/api/v1/contractMetadata";
+        string[] memory routes = new string[](1);
+        routes[0] = "token";
+        string[] memory uris = new string[](1);
+        uris[0] = "https://groupos.xyz/api/v1/nftMetadata";
 
-        return address(new MetadataRouter(owner, baselineURI, contractTypes, uris));
+        address metadataRouterImpl = address(new MetadataRouter());
+
+        bytes memory initData = abi.encodeWithSelector(
+            MetadataRouter(metadataRouterImpl).initialize.selector, owner, defaultURI, routes, uris
+        );
+        return address(new ERC1967Proxy(metadataRouterImpl, initData));
     }
 
     function deployOnePerAddressGuard(address metadataRouter) internal returns (address) {
         return address(new OnePerAddressGuard(metadataRouter));
     }
-    
-    function deployMetadataURIExtension(address metadataRouter) internal returns (address) {
-        return address(new MetadataURIExtension(metadataRouter));
+
+    function deployNFTMetadataRouterExtension(address metadataRouter) internal returns (address) {
+        return address(new NFTMetadataRouterExtension(metadataRouter));
     }
 
     function deployPayoutAddressExtension(address metadataRouter) internal returns (address) {
         return address(new PayoutAddressExtension(metadataRouter));
     }
 
+    function deployFeeManager() internal returns (address) {
+        // uint120 ethBaseFee = 1e15; // 0.001 ETH
+        uint120 polygonBaseFee = 2e18; // 2 MATIC
+        uint120 defaultBaseFee = 0;
+        uint120 defaultVariableFee = 500; // 5%
+
+        return address(new FeeManager(owner, defaultBaseFee, defaultVariableFee, polygonBaseFee, defaultVariableFee));
+    }
+
+    function deployFreeMintModule(address feeManager, address metadataRouter) internal returns (address) {
+        return address(new FreeMintModule(owner, feeManager, metadataRouter));
+    }
+
+    function deployGasCoinPurchaseModule(address feeManager, address metadataRouter) internal returns (address) {
+        return address(new GasCoinPurchaseModule(owner, feeManager, metadataRouter));
+    }
+
+    function deployStablecoinPurchaseModule(address feeManager, address metadataRouter) internal returns (address) {
+        uint8 decimals = 2;
+        string memory currency = "USD";
+        address[] memory stablecoins = new address[](1);
+        // stablecoins[0] = 0xD478219fDca296699A6511f28BA93a265E3E9a1b; // goerli
+        stablecoins[0] = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174; // polygon
+        // stablecoins[0] = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // ethereum
+
+        return address(new StablecoinPurchaseModule(owner, feeManager, decimals, currency, stablecoins, metadataRouter));
+    }
+
     function deployMembershipFactory() internal returns (address) {
-        // address erc721Mage = 0xCAde55923e5106bb6d8D67d914e5BcB8444cDFb3; // goerli
-        address erc721Mage = 0x72B7817075AC3263783296f33c8F053e848594a3; // polygon
+        // address erc721Mage = 0x1FC83981028ca43Ed0a95d166B7d201ABe6E8195; // goerli
+        address erc721Mage = 0x1FC83981028ca43Ed0a95d166B7d201ABe6E8195; // polygon
         address membershipFactoryImpl = address(new MembershipFactory());
 
         bytes memory initFactory =

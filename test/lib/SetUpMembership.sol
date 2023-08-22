@@ -2,29 +2,30 @@
 pragma solidity ^0.8.13;
 
 import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
-import {IExtensionsExternal as IExtensions} from "mage/extension/interface/IExtensions.sol";
+import {IExtensions} from "mage/extension/interface/IExtensions.sol";
 import {Multicall} from "openzeppelin-contracts/utils/Multicall.sol";
+import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import {MembershipFactory} from "src/v2/membership/MembershipFactory.sol";
-import {PayoutAddressExtension} from "src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
-import {
-    IPayoutAddressExtensionInternal,
-    IPayoutAddressExtensionExternal
-} from "src/v2/membership/extensions/PayoutAddress/IPayoutAddressExtension.sol";
+import {MembershipFactory} from "src/membership/factory/MembershipFactory.sol";
+import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
+import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
 import {Helpers} from "test/lib/Helpers.sol";
 
 abstract contract SetUpMembership is Helpers {
     address public owner;
     address public payoutAddress;
     ERC721Mage public membershipImpl;
+    MembershipFactory public membershipFactoryImpl;
     MembershipFactory public membershipFactory;
     PayoutAddressExtension public payoutAddressExtension;
+    address public metadataRouter = address(0);
 
     function setUp() public virtual {
         owner = createAccount();
         payoutAddress = createAccount();
         membershipImpl = new ERC721Mage();
-        membershipFactory = new MembershipFactory();
+        membershipFactoryImpl = new MembershipFactory();
+        membershipFactory = MembershipFactory(address(new ERC1967Proxy(address(membershipFactoryImpl), bytes(""))));
         membershipFactory.initialize(address(membershipImpl), owner);
         payoutAddressExtension = new PayoutAddressExtension(address(0));
     }
@@ -32,18 +33,16 @@ abstract contract SetUpMembership is Helpers {
     function create() public returns (ERC721Mage proxy) {
         // add payout address extension to proxy, to be replaced with extension beacon
         bytes memory addPayoutAddressExtension = abi.encodeWithSelector(
-            IExtensions.setExtension.selector,
-            IPayoutAddressExtensionInternal.payoutAddress.selector,
-            address(payoutAddressExtension)
+            IExtensions.setExtension.selector, IPayoutAddress.payoutAddress.selector, address(payoutAddressExtension)
         );
         bytes memory addUpdatePayoutAddressExtension = abi.encodeWithSelector(
             IExtensions.setExtension.selector,
-            IPayoutAddressExtensionExternal.updatePayoutAddress.selector,
+            IPayoutAddress.updatePayoutAddress.selector,
             address(payoutAddressExtension)
         );
         bytes memory addRemovePayoutAddressExtension = abi.encodeWithSelector(
             IExtensions.setExtension.selector,
-            IPayoutAddressExtensionExternal.removePayoutAddress.selector,
+            IPayoutAddress.removePayoutAddress.selector,
             address(payoutAddressExtension)
         );
         bytes[] memory calls = new bytes[](3);
