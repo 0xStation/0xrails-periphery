@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-interface IPayoutAddressExtensionInternal {
+interface IPayoutAddress {
     // events
     event PayoutAddressUpdated(address oldPayoutAddress, address newPayoutAddress);
 
@@ -10,12 +10,8 @@ interface IPayoutAddressExtensionInternal {
 
     // views
     function payoutAddress() external view returns (address);
-}
 
-interface IPayoutAddressExtensionExternal {
     // setters
-    function updatePayoutAddress(address payoutAddress) external;
+    function setPayoutAddress(address payoutAddress) external;
     function removePayoutAddress() external;
 }
-
-interface IPayoutAddressExtension is IPayoutAddressExtensionInternal, IPayoutAddressExtensionExternal {}

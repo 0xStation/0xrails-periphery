@@ -17,10 +17,7 @@ import {NFTMetadataExtension} from "../../src/membership/extensions/NFTMetadata/
 import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {MembershipFactory} from "../../src/membership/MembershipFactory.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
-import {
-    IPayoutAddressExtensionInternal,
-    IPayoutAddressExtensionExternal
-} from "src/membership/extensions/PayoutAddress/IPayoutAddressExtension.sol";
+import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
 import {INFTMetadata} from "src/membership/extensions/NFTMetadata/INFTMetadata.sol";
 
 contract Create is Script {
@@ -52,17 +49,17 @@ contract Create is Script {
         // EXTENSIONS
         bytes memory addPayoutAddressExtension = abi.encodeWithSelector(
             IExtensions.setExtension.selector,
-            IPayoutAddressExtensionInternal.payoutAddress.selector,
+            IPayoutAddress.payoutAddress.selector,
             address(payoutAddressExtension)
         );
-        bytes memory addUpdatePayoutAddressExtension = abi.encodeWithSelector(
+        bytes memory addSetPayoutAddressExtension = abi.encodeWithSelector(
             IExtensions.setExtension.selector,
-            IPayoutAddressExtensionExternal.updatePayoutAddress.selector,
+            IPayoutAddress.setPayoutAddress.selector,
             address(payoutAddressExtension)
         );
         bytes memory addRemovePayoutAddressExtension = abi.encodeWithSelector(
             IExtensions.setExtension.selector,
-            IPayoutAddressExtensionExternal.removePayoutAddress.selector,
+            IPayoutAddress.removePayoutAddress.selector,
             address(payoutAddressExtension)
         );
         bytes memory addTokenURIExtension = abi.encodeWithSelector(
@@ -89,7 +86,7 @@ contract Create is Script {
         // INIT
         bytes[] memory initCalls = new bytes[](9);
         initCalls[0] = addPayoutAddressExtension;
-        initCalls[1] = addUpdatePayoutAddressExtension;
+        initCalls[1] = addSetPayoutAddressExtension;
         initCalls[2] = addRemovePayoutAddressExtension;
         initCalls[3] = addTokenURIExtension;
         initCalls[4] = addContractURIExtension;

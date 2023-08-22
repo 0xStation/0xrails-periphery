@@ -39,7 +39,7 @@ contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
         vm.startPrank(owner);
         gasCoinModule.setUp(address(proxy), price, false);
         proxy.addPermission(Operations.MINT, address(gasCoinModule));
-        PayoutAddressExtension(address(proxy)).updatePayoutAddress(payoutAddress);
+        PayoutAddressExtension(address(proxy)).setPayoutAddress(payoutAddress);
         vm.stopPrank();
     }
 

@@ -13,7 +13,7 @@ import {IGuardsInternal as IGuards} from "mage/guard/interface/IGuards.sol";
 import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
 import {StablecoinPurchaseModule} from "src/membership/modules/StablecoinPurchaseModule.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
-import {IPayoutAddressExtensionExternal} from "src/membership/extensions/PayoutAddress/IPayoutAddressExtension.sol";
+import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
 // test
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 import {FakeERC20} from "test/utils/FakeERC20.sol";
@@ -636,7 +636,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // remove payout address
         vm.prank(owner);
-        IPayoutAddressExtensionExternal(address(proxy)).removePayoutAddress();
+        IPayoutAddress(address(proxy)).removePayoutAddress();
 
         vm.prank(buyer);
         vm.expectRevert("MISSING_PAYOUT_ADDRESS");
@@ -1110,7 +1110,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.startPrank(owner);
         stablecoinModule.setUp(address(proxy), price, stablecoins, false);
         // set payment collector
-        IPayoutAddressExtensionExternal(address(proxy)).updatePayoutAddress(payoutAddress);
+        IPayoutAddress(address(proxy)).setPayoutAddress(payoutAddress);
 
         vm.stopPrank();
 

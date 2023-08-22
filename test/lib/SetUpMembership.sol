@@ -7,10 +7,7 @@ import {Multicall} from "openzeppelin-contracts/utils/Multicall.sol";
 
 import {MembershipFactory} from "src/membership/MembershipFactory.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
-import {
-    IPayoutAddressExtensionInternal,
-    IPayoutAddressExtensionExternal
-} from "src/membership/extensions/PayoutAddress/IPayoutAddressExtension.sol";
+import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
 import {Helpers} from "test/lib/Helpers.sol";
 
 abstract contract SetUpMembership is Helpers {
@@ -33,22 +30,22 @@ abstract contract SetUpMembership is Helpers {
         // add payout address extension to proxy, to be replaced with extension beacon
         bytes memory addPayoutAddressExtension = abi.encodeWithSelector(
             IExtensions.setExtension.selector,
-            IPayoutAddressExtensionInternal.payoutAddress.selector,
+            IPayoutAddress.payoutAddress.selector,
             address(payoutAddressExtension)
         );
-        bytes memory addUpdatePayoutAddressExtension = abi.encodeWithSelector(
+        bytes memory addSetPayoutAddressExtension = abi.encodeWithSelector(
             IExtensions.setExtension.selector,
-            IPayoutAddressExtensionExternal.updatePayoutAddress.selector,
+            IPayoutAddress.setPayoutAddress.selector,
             address(payoutAddressExtension)
         );
         bytes memory addRemovePayoutAddressExtension = abi.encodeWithSelector(
             IExtensions.setExtension.selector,
-            IPayoutAddressExtensionExternal.removePayoutAddress.selector,
+            IPayoutAddress.removePayoutAddress.selector,
             address(payoutAddressExtension)
         );
         bytes[] memory calls = new bytes[](3);
         calls[0] = addPayoutAddressExtension;
-        calls[1] = addUpdatePayoutAddressExtension;
+        calls[1] = addSetPayoutAddressExtension;
         calls[2] = addRemovePayoutAddressExtension;
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, calls);
 
