@@ -10,37 +10,30 @@ import {IMetadataRouter} from "./IMetadataRouter.sol";
 contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
     using Strings for uint256;
 
-    string constant _CONTRACT = "contract";
-    string constant _MODULE = "module";
-    string constant _GUARD = "guard";
-    string constant _EXTENSION = "extension";
-    string constant _COLLECTION = "collection";
-    string constant _TOKEN = "token";
-
     /*=============
         STORAGE
     ==============*/
 
-    string public baselineURI;
-    mapping(string => string) public defaultURI;
-    mapping(string => mapping(address => string)) public customURI;
+    string public defaultURI;
+    mapping(string => string) public routeURI;
+    mapping(string => mapping(address => string)) public contractRouteURI;
 
     /*====================
         INITIALIZATION
     ====================*/
 
     /// @dev todo: change to initializer and use public functions to emit events
-    constructor(address _owner, string memory baselineURI_, string[] memory contractTypes, string[] memory uris) {
-        uint256 len = contractTypes.length;
-        if (len != uris.length) revert();
+    constructor(address _owner, string memory defaultURI_, string[] memory routes, string[] memory routeURIs) {
+        uint256 len = routes.length;
+        if (len != routeURIs.length) revert();
 
         for (uint256 i; i < len; i++) {
-            defaultURI[contractTypes[i]] = uris[i];
-            emit UpdateDefaultURI(contractTypes[i], uris[i]);
+            routeURI[routes[i]] = routeURIs[i];
+            emit RouteURIUpdated(routes[i], routeURIs[i]);
         }
 
-        baselineURI = baselineURI_;
-        emit UpdateBaselineURI(baselineURI_);
+        defaultURI = defaultURI_;
+        emit DefaultURIUpdated(defaultURI_);
 
         _transferOwnership(_owner);
     }
@@ -53,27 +46,27 @@ contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
 
     // metadata for this MetadataRouter contract
     function contractURI() external view returns (string memory uri) {
-        return contractURI(address(this));
+        return _getContractRouteURI("contract", address(this));
     }
 
-    function baseURI(string memory contractType, address contractAddress) public view returns (string memory uri) {
-        uri = customURI[contractType][contractAddress];
+    function baseURI(string memory route, address contractAddress) public view returns (string memory uri) {
+        uri = contractRouteURI[route][contractAddress];
         if (bytes(uri).length == 0) {
-            uri = defaultURI[contractType];
+            uri = routeURI[route];
             if (bytes(uri).length == 0) {
-                uri = baselineURI;
+                uri = defaultURI;
             }
         }
     }
 
-    function _getContractURI(string memory contractType, address contractAddress)
+    function _getContractRouteURI(string memory route, address contractAddress)
         internal
         view
         returns (string memory)
     {
         return string(
             abi.encodePacked(
-                baseURI(contractType, contractAddress),
+                baseURI(route, contractAddress),
                 "?chainId=",
                 Strings.toString(block.chainid),
                 "&contractAddress=",
@@ -86,49 +79,37 @@ contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
         CORE UTILITIES
     ====================*/
 
-    function updateBaselineURI(string memory uri) external onlyOwner {
-        baselineURI = uri;
-        emit UpdateBaselineURI(uri);
+    function setDefaultURI(string memory uri) external onlyOwner {
+        defaultURI = uri;
+        emit DefaultURIUpdated(uri);
     }
 
-    function updateDefaultURI(string memory contractType, string memory uri) external onlyOwner {
-        defaultURI[contractType] = uri;
-        emit UpdateDefaultURI(contractType, uri);
+    function setRouteURI(string memory route, string memory uri) external onlyOwner {
+        routeURI[route] = uri;
+        emit RouteURIUpdated(route, uri);
     }
 
-    function updateCustomURI(string memory contractType, string memory uri, address contractAddress)
+    function setContractRouteURI(string memory route, string memory uri, address contractAddress)
         external
         onlyOwner
     {
-        customURI[contractType][contractAddress] = uri;
-        emit UpdateCustomURI(contractType, uri, contractAddress);
+        contractRouteURI[route][contractAddress] = uri;
+        emit ContractRouteURIUpdated(route, uri, contractAddress);
     }
 
     /*============
         ROUTES
     ============*/
 
-    function contractURI(address contract_) public view returns (string memory) {
-        return _getContractURI(_CONTRACT, contract_);
+    function uriOf(string memory route, address contract_) public view returns (string memory) {
+        return _getContractRouteURI(route, contract_);
     }
-
-    function moduleURI(address module) public view returns (string memory) {
-        return _getContractURI(_MODULE, module);
-    }
-
-    function guardURI(address guard) public view returns (string memory) {
-        return _getContractURI(_GUARD, guard);
-    }
-
-    function extensionURI(address extension) public view returns (string memory) {
-        return _getContractURI(_EXTENSION, extension);
-    }
-
-    function collectionURI(address collection) public view returns (string memory) {
-        return _getContractURI(_COLLECTION, collection);
+    
+    function uriOf(string memory route, address contract_, string memory appendData) public view returns (string memory) {
+        return string(abi.encodePacked(_getContractRouteURI(route, contract_), appendData));
     }
 
     function tokenURI(address collection, uint256 tokenId) public view returns (string memory) {
-        return string(abi.encodePacked(_getContractURI(_TOKEN, collection), "&tokenId=", Strings.toString(tokenId)));
+        return string(abi.encodePacked(_getContractRouteURI("token", collection), "&tokenId=", Strings.toString(tokenId)));
     }
 }

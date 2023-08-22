@@ -11,6 +11,10 @@ contract ContractMetadata {
     }
 
     function contractURI() public view virtual returns (string memory uri) {
-        return IMetadataRouter(metadataRouter).contractURI(address(this));
+        return IMetadataRouter(metadataRouter).uriOf(_contractRoute(), address(this));
+    }
+
+    function _contractRoute() internal pure virtual returns (string memory route) {
+        return "contract";
     }
 }

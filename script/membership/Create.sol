@@ -13,7 +13,7 @@ import {FreeMintModule} from "../../src/membership/modules/FreeMintModule.sol";
 import {GasCoinPurchaseModule} from "../../src/membership/modules/GasCoinPurchaseModule.sol";
 import {StablecoinPurchaseModule} from "../../src/membership/modules/StablecoinPurchaseModule.sol";
 import {MetadataRouter} from "../../src/metadataRouter/MetadataRouter.sol";
-import {MetadataURIExtension} from "../../src/membership/extensions/MetadataURI/MetadataURIExtension.sol";
+import {NFTMetadataExtension} from "../../src/membership/extensions/NFTMetadata/NFTMetadataExtension.sol";
 import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {MembershipFactory} from "../../src/membership/MembershipFactory.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
@@ -21,7 +21,7 @@ import {
     IPayoutAddressExtensionInternal,
     IPayoutAddressExtensionExternal
 } from "src/membership/extensions/PayoutAddress/IPayoutAddressExtension.sol";
-import {IMetadataURIExtension} from "src/membership/extensions/MetadataURI/IMetadataURIExtension.sol";
+import {INFTMetadata} from "src/membership/extensions/NFTMetadata/INFTMetadata.sol";
 
 contract Create is Script {
     string public name = "Symmetry Testing";
@@ -67,12 +67,12 @@ contract Create is Script {
         );
         bytes memory addTokenURIExtension = abi.encodeWithSelector(
             IExtensions.setExtension.selector,
-            IMetadataURIExtension.ext_tokenURI.selector,
+            INFTMetadata.ext_tokenURI.selector,
             address(metadataURIExtension)
         );
         bytes memory addContractURIExtension = abi.encodeWithSelector(
             IExtensions.setExtension.selector,
-            IMetadataURIExtension.ext_contractURI.selector,
+            INFTMetadata.ext_contractURI.selector,
             address(metadataURIExtension)
         );
 
