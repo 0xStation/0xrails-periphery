@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
 // src
 import {Test} from "forge-std/Test.sol";
-import {FeeManager} from "src/lib/module/FeeManager.sol";
+import {FeeManager} from "src/v2/lib/module/FeeManager.sol";
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
 contract FeeManagerTest is Test, SetUpMembership {

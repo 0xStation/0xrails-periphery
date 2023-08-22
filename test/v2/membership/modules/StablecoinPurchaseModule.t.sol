@@ -9,14 +9,10 @@ import {IPermissionsInternal as IPermissions} from "mage/access/permissions/inte
 import {IGuardsInternal as IGuards} from "mage/guard/interface/IGuards.sol";
 
 // src
-import {Renderer} from "src/lib/renderer/Renderer.sol";
-import {Membership} from "src/membership/Membership.sol";
-import {Permissions} from "src/lib/Permissions.sol";
-import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
-import {ModuleFee} from "src/lib/module/ModuleFee.sol";
-import {MembershipFactory} from "src/membership/MembershipFactory.sol";
+
+import {ModuleSetup} from "src/v2/lib/module/ModuleSetup.sol";
 import {StablecoinPurchaseModule} from "src/v2/membership/modules/StablecoinPurchaseModule.sol";
-import {FeeManager} from "src/lib/module/FeeManager.sol";
+import {FeeManager} from "src/v2/lib/module/FeeManager.sol";
 import {IPayoutAddressExtensionExternal} from "src/v2/membership/extensions/PayoutAddress/IPayoutAddressExtension.sol";
 // test
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";

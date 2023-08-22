@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Script} from "forge-std/Script.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import {FeeManager} from "../../src/lib/module/FeeManager.sol";
+import {FeeManager} from "../../src/v2/lib/module/FeeManager.sol";
 import {FreeMintModule} from "../../src/v2/membership/modules/FreeMintModule.sol";
 import {GasCoinPurchaseModule} from "../../src/v2/membership/modules/GasCoinPurchaseModule.sol";
 import {StablecoinPurchaseModule} from "../../src/v2/membership/modules/StablecoinPurchaseModule.sol";

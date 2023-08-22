@@ -8,8 +8,8 @@ import {Operations} from "mage/lib/Operations.sol";
 
 import {GasCoinPurchaseModule} from "src/v2/membership/modules/GasCoinPurchaseModule.sol";
 import {FeeManager} from "src/v2/lib/module/FeeManager.sol";
-import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 import {PayoutAddressExtension} from "src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
+import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
 contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
     ERC721Mage public proxy;
@@ -31,8 +31,7 @@ contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
     // @note Not invoked as a standalone test
     function initModule(uint96 baseFee, uint96 variableFee, uint256 price) public {
         // instantiate feeManager with fuzzed base and variable fees as baseline
-        FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Set, baseFee, variableFee);
-        feeManager = new FeeManager(owner, exampleFees, exampleFees);
+        feeManager = new FeeManager(owner, baseFee, variableFee, baseFee, variableFee);
 
         gasCoinModule = new GasCoinPurchaseModule(owner, address(feeManager));
 

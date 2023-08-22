@@ -8,7 +8,7 @@ import {PermissionsStorage} from "mage/access/permissions/PermissionsStorage.sol
 import {Operations} from "mage/lib/Operations.sol";
 import {IExtensionsExternal as IExtensions} from "mage/extension/interface/IExtensions.sol";
 
-import {FeeManager} from "../../src/lib/module/FeeManager.sol";
+import {FeeManager} from "../../src/v2/lib/module/FeeManager.sol";
 import {FreeMintModule} from "../../src/v2/membership/modules/FreeMintModule.sol";
 import {GasCoinPurchaseModule} from "../../src/v2/membership/modules/GasCoinPurchaseModule.sol";
 import {StablecoinPurchaseModule} from "../../src/v2/membership/modules/StablecoinPurchaseModule.sol";
