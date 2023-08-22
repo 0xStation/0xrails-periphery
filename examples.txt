@@ -6,6 +6,9 @@ forge script --keystores $ETH_KEYSTORE --sender $ETH_FROM --broadcast --fork-url
 
 forge script --keystores $ETH_KEYSTORE --sender $ETH_FROM --broadcast --fork-url $GOERLI_RPC_URL script/membership/DeployTestCollection.s.sol:DeployTestCollection
 
+forge script --private-key $PRIVATE_KEY --broadcast --fork-url $GOERLI_RPC_URL script/membership/Deploy.s.sol:Deploy
+forge script --private-key $PRIVATE_KEY --broadcast --fork-url $POLYGON_RPC_URL script/membership/Deploy.s.sol:Deploy
+
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY 0xbf4b0f5adac0fc653410b6aaf378665f00f80ecb src/membership/Membership.sol:Membership
 
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,uint256)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 1000000000000000) 0xf025fef0226c9c1fc04c11011f57c5e8f2401d18 src/membership/modules/EthPurchaseModuleV2.sol:EthPurchaseModuleV2
@@ -21,11 +24,11 @@ forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constru
 forge verify-contract --chain 137 --etherscan-api-key $POLYSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0xc0935a7284859199c016Aa4F66704CEB501013E6) 0xa562A22B1acEDB3D7B534FBb1dDd4ac0669b4443 src/membership/modules/FreeMintModule.sol:FreeMintModule
 
 # Verify GasCoinPurchaseModule
-forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d [FeeManager]) [ADDRESS] src/membership/modules/GasCoinPurchaseModule.sol:GasCoinPurchaseModule
+forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address,address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0x654ee5b1db9b6e3851c233c4454e9efdcc30c6dc 0xd71a3a06c8af65f8d7a3a65b96a4a1c8b9d19840) 0x9caf253f0c8a9b0755793de191fb48c2aa9683fb src/membership/modules/GasCoinPurchaseModule.sol:GasCoinPurchaseModule
 forge verify-contract --chain 137 --etherscan-api-key $POLYSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0xc0935a7284859199c016Aa4F66704CEB501013E6) 0x284aF8FAEc61fa5275544db2082465152BfFE945 src/membership/modules/GasCoinPurchaseModule.sol:GasCoinPurchaseModule
 
 # Verify StablecoinPurchaseModule
-forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address,uint8,string,address[])" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0xd2cC2c9E347DacbA6AE3c0ab65F07CC5241797da 2 "USD" "[]") 0x83A68751B50C75d8a92e12B98a781Dd566890CE5 src/membership/modules/StablecoinPurchaseModule.sol:StablecoinPurchaseModule
+forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address,uint8,string,address[],address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0x654ee5b1db9b6e3851c233c4454e9efdcc30c6dc 2 "USD" "[]" 0xd71a3a06c8af65f8d7a3a65b96a4a1c8b9d19840) 0xdce33b64d8403b2c5ca9e63a277a577d013f0e0b src/membership/modules/StablecoinPurchaseModule.sol:StablecoinPurchaseModule
 
 # Verify MetadataRouter
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,string,string[],string[])" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d "https://dev.station.express/api/v1/nftMetadata" "[]" "[]") 0x1C11Dd6a807aB1B0a1DcA434D614BA2646c7cf51 src/metadataRouter/MetadataRouter.sol:MetadataRouter

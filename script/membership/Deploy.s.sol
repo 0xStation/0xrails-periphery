@@ -55,8 +55,9 @@ contract Deploy is Script {
 
         address metadataRouterImpl = address(new MetadataRouter());
 
-        bytes memory initData =
-            abi.encodeWithSelector(MetadataRouter(metadataRouterImpl).initialize.selector, owner, defaultURI, routes, uris);
+        bytes memory initData = abi.encodeWithSelector(
+            MetadataRouter(metadataRouterImpl).initialize.selector, owner, defaultURI, routes, uris
+        );
         return address(new ERC1967Proxy(metadataRouterImpl, initData));
     }
 
@@ -73,12 +74,12 @@ contract Deploy is Script {
     }
 
     function deployFeeManager() internal returns (address) {
-        uint120 ethBaseFee = 1e15; // 0.001 ETH
-        // uint120 polygonBaseFee = 2e18; // 2 MATIC
+        // uint120 ethBaseFee = 1e15; // 0.001 ETH
+        uint120 polygonBaseFee = 2e18; // 2 MATIC
         uint120 defaultBaseFee = 0;
         uint120 defaultVariableFee = 500; // 5%
 
-        return address(new FeeManager(owner, defaultBaseFee, defaultVariableFee, ethBaseFee, defaultVariableFee));
+        return address(new FeeManager(owner, defaultBaseFee, defaultVariableFee, polygonBaseFee, defaultVariableFee));
     }
 
     function deployFreeMintModule(address feeManager, address metadataRouter) internal returns (address) {
@@ -92,14 +93,17 @@ contract Deploy is Script {
     function deployStablecoinPurchaseModule(address feeManager, address metadataRouter) internal returns (address) {
         uint8 decimals = 2;
         string memory currency = "USD";
-        address[] memory stablecoins = new address[](0);
+        address[] memory stablecoins = new address[](1);
+        // stablecoins[0] = 0xD478219fDca296699A6511f28BA93a265E3E9a1b; // goerli
+        stablecoins[0] = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174; // polygon
+        // stablecoins[0] = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // ethereum
 
         return address(new StablecoinPurchaseModule(owner, feeManager, decimals, currency, stablecoins, metadataRouter));
     }
 
     function deployMembershipFactory() internal returns (address) {
-        // address erc721Mage = 0xCAde55923e5106bb6d8D67d914e5BcB8444cDFb3; // goerli
-        address erc721Mage = 0x72B7817075AC3263783296f33c8F053e848594a3; // polygon
+        // address erc721Mage = 0x1FC83981028ca43Ed0a95d166B7d201ABe6E8195; // goerli
+        address erc721Mage = 0x1FC83981028ca43Ed0a95d166B7d201ABe6E8195; // polygon
         address membershipFactoryImpl = address(new MembershipFactory());
 
         bytes memory initFactory =

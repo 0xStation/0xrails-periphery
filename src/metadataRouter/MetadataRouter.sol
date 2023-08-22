@@ -18,7 +18,10 @@ contract MetadataRouter is Initializable, Ownable, UUPSUpgradeable, IMetadataRou
 
     constructor() Initializable() {}
 
-    function initialize(address _owner, string memory defaultURI_, string[] memory routes, string[] memory routeURIs) external initializer {
+    function initialize(address _owner, string memory defaultURI_, string[] memory routes, string[] memory routeURIs)
+        external
+        initializer
+    {
         uint256 len = routes.length;
         if (len != routeURIs.length) revert();
 
@@ -61,11 +64,11 @@ contract MetadataRouter is Initializable, Ownable, UUPSUpgradeable, IMetadataRou
     function defaultURI() external view returns (string memory) {
         return MetadataRouterStorage.layout().defaultURI;
     }
-    
+
     function routeURI(string memory route) external view returns (string memory) {
         MetadataRouterStorage.layout().routeURI[route];
     }
-    
+
     function contractRouteURI(string memory route, address contractAddress) external view returns (string memory) {
         MetadataRouterStorage.layout().contractRouteURI[route][contractAddress];
     }
