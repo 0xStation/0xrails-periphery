@@ -5,7 +5,7 @@ import {INFTMetadata} from "./INFTMetadata.sol";
 import {IMetadataRouter} from "../../../metadataRouter/IMetadataRouter.sol";
 import {ContractMetadata} from "../../../lib/ContractMetadata.sol";
 
-contract NFTMetadata is ContractMetadata, INFTMetadata {
+contract NFTMetadataRouter is ContractMetadata, INFTMetadata {
 
     constructor(address router) ContractMetadata(router) {}
 

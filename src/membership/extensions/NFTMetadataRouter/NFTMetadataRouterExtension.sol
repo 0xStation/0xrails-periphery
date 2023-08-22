@@ -3,15 +3,15 @@ pragma solidity ^0.8.13;
 
 import {Extension} from "mage/extension/Extension.sol";
 
-import {NFTMetadata} from "./NFTMetadata.sol";
+import {NFTMetadataRouter} from "./NFTMetadataRouter.sol";
 
-contract NFTMetadataExtension is NFTMetadata, Extension {
+contract NFTMetadataRouterExtension is NFTMetadataRouter, Extension {
 
     /*=======================
         CONTRACT METADATA
     =======================*/
 
-    constructor(address router) Extension() NFTMetadata(router) {}
+    constructor(address router) Extension() NFTMetadataRouter(router) {}
 
     function _contractRoute() internal pure override returns (string memory route) {
         return "extension";

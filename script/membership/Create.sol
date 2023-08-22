@@ -13,12 +13,11 @@ import {FreeMintModule} from "../../src/membership/modules/FreeMintModule.sol";
 import {GasCoinPurchaseModule} from "../../src/membership/modules/GasCoinPurchaseModule.sol";
 import {StablecoinPurchaseModule} from "../../src/membership/modules/StablecoinPurchaseModule.sol";
 import {MetadataRouter} from "../../src/metadataRouter/MetadataRouter.sol";
-import {NFTMetadataExtension} from "../../src/membership/extensions/NFTMetadata/NFTMetadataExtension.sol";
 import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {MembershipFactory} from "../../src/membership/factory/MembershipFactory.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
-import {INFTMetadata} from "src/membership/extensions/NFTMetadata/INFTMetadata.sol";
+import {INFTMetadata} from "src/membership/extensions/NFTMetadataRouter/INFTMetadata.sol";
 
 contract Create is Script {
     string public name = "Symmetry Testing";
