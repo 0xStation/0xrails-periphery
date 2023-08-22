@@ -6,8 +6,8 @@ import {console} from "forge-std/console.sol";
 import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
 import {Operations} from "mage/lib/Operations.sol";
 
-import {FreeMintModule} from "src/v2/membership/modules/FreeMintModule.sol";
-import {OnePerAddressGuard} from "src/v2/membership/guards/OnePerAddressGuard.sol";
+import {FreeMintModule} from "src/membership/modules/FreeMintModule.sol";
+import {OnePerAddressGuard} from "src/membership/guards/OnePerAddressGuard.sol";
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
 contract OnePerAddressGuardTest is Test, SetUpMembership {

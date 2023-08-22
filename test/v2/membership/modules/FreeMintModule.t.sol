@@ -6,8 +6,8 @@ import {console} from "forge-std/console.sol";
 import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
 import {Operations} from "mage/lib/Operations.sol";
 
-import {FreeMintModule} from "src/v2/membership/modules/FreeMintModule.sol";
-import {FeeManager} from "src/v2/lib/module/FeeManager.sol";
+import {FreeMintModule} from "src/membership/modules/FreeMintModule.sol";
+import {FeeManager} from "src/lib/module/FeeManager.sol";
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
 contract FreeMintModuleTest is Test, SetUpMembership {

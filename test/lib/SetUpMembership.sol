@@ -5,12 +5,12 @@ import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
 import {IExtensionsExternal as IExtensions} from "mage/extension/interface/IExtensions.sol";
 import {Multicall} from "openzeppelin-contracts/utils/Multicall.sol";
 
-import {MembershipFactory} from "src/v2/membership/MembershipFactory.sol";
-import {PayoutAddressExtension} from "src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
+import {MembershipFactory} from "src/membership/MembershipFactory.sol";
+import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {
     IPayoutAddressExtensionInternal,
     IPayoutAddressExtensionExternal
-} from "src/v2/membership/extensions/PayoutAddress/IPayoutAddressExtension.sol";
+} from "src/membership/extensions/PayoutAddress/IPayoutAddressExtension.sol";
 import {Helpers} from "test/lib/Helpers.sol";
 
 abstract contract SetUpMembership is Helpers {

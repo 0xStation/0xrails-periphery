@@ -10,10 +10,10 @@ import {IGuardsInternal as IGuards} from "mage/guard/interface/IGuards.sol";
 
 // src
 
-import {ModuleSetup} from "src/v2/lib/module/ModuleSetup.sol";
-import {StablecoinPurchaseModule} from "src/v2/membership/modules/StablecoinPurchaseModule.sol";
-import {FeeManager} from "src/v2/lib/module/FeeManager.sol";
-import {IPayoutAddressExtensionExternal} from "src/v2/membership/extensions/PayoutAddress/IPayoutAddressExtension.sol";
+import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
+import {StablecoinPurchaseModule} from "src/membership/modules/StablecoinPurchaseModule.sol";
+import {FeeManager} from "src/lib/module/FeeManager.sol";
+import {IPayoutAddressExtensionExternal} from "src/membership/extensions/PayoutAddress/IPayoutAddressExtension.sol";
 // test
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 import {FakeERC20} from "test/utils/FakeERC20.sol";

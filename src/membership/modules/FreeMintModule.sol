@@ -5,9 +5,9 @@ import {IERC721Mage} from "mage/cores/ERC721/interface/IERC721Mage.sol";
 import {IPermissions} from "mage/access/permissions/interface/IPermissions.sol";
 import {Operations} from "mage/lib/Operations.sol";
 // module utils
-import {ModuleSetup} from "src/v2/lib/module/ModuleSetup.sol";
-import {ModulePermit} from "src/v2/lib/module/ModulePermit.sol";
-import {ModuleFee} from "src/v2/lib/module/ModuleFee.sol";
+import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
+import {ModulePermit} from "src/lib/module/ModulePermit.sol";
+import {ModuleFee} from "src/lib/module/ModuleFee.sol";
 
 /// @title Station Network FreeMintModuleV3 Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg), 👦🏻👦🏻.eth

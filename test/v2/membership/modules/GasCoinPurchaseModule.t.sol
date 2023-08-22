@@ -6,9 +6,9 @@ import {console} from "forge-std/console.sol";
 import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
 import {Operations} from "mage/lib/Operations.sol";
 
-import {GasCoinPurchaseModule} from "src/v2/membership/modules/GasCoinPurchaseModule.sol";
-import {FeeManager} from "src/v2/lib/module/FeeManager.sol";
-import {PayoutAddressExtension} from "src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
+import {GasCoinPurchaseModule} from "src/membership/modules/GasCoinPurchaseModule.sol";
+import {FeeManager} from "src/lib/module/FeeManager.sol";
+import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
 contract GasCoinPurchaseModuleTest is Test, SetUpMembership {

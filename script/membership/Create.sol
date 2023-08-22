@@ -8,20 +8,20 @@ import {PermissionsStorage} from "mage/access/permissions/PermissionsStorage.sol
 import {Operations} from "mage/lib/Operations.sol";
 import {IExtensionsExternal as IExtensions} from "mage/extension/interface/IExtensions.sol";
 
-import {FeeManager} from "../../src/v2/lib/module/FeeManager.sol";
-import {FreeMintModule} from "../../src/v2/membership/modules/FreeMintModule.sol";
-import {GasCoinPurchaseModule} from "../../src/v2/membership/modules/GasCoinPurchaseModule.sol";
-import {StablecoinPurchaseModule} from "../../src/v2/membership/modules/StablecoinPurchaseModule.sol";
-import {MetadataRouter} from "../../src/v2/metadataRouter/MetadataRouter.sol";
-import {MetadataURIExtension} from "../../src/v2/membership/extensions/MetadataURI/MetadataURIExtension.sol";
-import {PayoutAddressExtension} from "../../src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
-import {MembershipFactory} from "../../src/v2/membership/MembershipFactory.sol";
-import {PayoutAddressExtension} from "src/v2/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
+import {FeeManager} from "../../src/lib/module/FeeManager.sol";
+import {FreeMintModule} from "../../src/membership/modules/FreeMintModule.sol";
+import {GasCoinPurchaseModule} from "../../src/membership/modules/GasCoinPurchaseModule.sol";
+import {StablecoinPurchaseModule} from "../../src/membership/modules/StablecoinPurchaseModule.sol";
+import {MetadataRouter} from "../../src/metadataRouter/MetadataRouter.sol";
+import {MetadataURIExtension} from "../../src/membership/extensions/MetadataURI/MetadataURIExtension.sol";
+import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
+import {MembershipFactory} from "../../src/membership/MembershipFactory.sol";
+import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {
     IPayoutAddressExtensionInternal,
     IPayoutAddressExtensionExternal
-} from "src/v2/membership/extensions/PayoutAddress/IPayoutAddressExtension.sol";
-import {IMetadataURIExtension} from "src/v2/membership/extensions/MetadataURI/IMetadataURIExtension.sol";
+} from "src/membership/extensions/PayoutAddress/IPayoutAddressExtension.sol";
+import {IMetadataURIExtension} from "src/membership/extensions/MetadataURI/IMetadataURIExtension.sol";
 
 contract Create is Script {
     string public name = "Symmetry Testing";
