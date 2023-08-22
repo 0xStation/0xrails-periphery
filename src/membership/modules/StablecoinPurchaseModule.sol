@@ -12,6 +12,7 @@ import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
 import {ModulePermit} from "src/lib/module/ModulePermit.sol";
 import {ModuleFee} from "src/lib/module/ModuleFee.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
+import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 
 /// @title Station Network StablecoinPurchaseModuleV2 Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg)
@@ -22,7 +23,7 @@ import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/Pa
 /// will use the same price value and can never get out of sync. Deploy one instance
 /// of this module per currency, per chain (e.g. USD, EUR, BTC).
 
-contract StablecoinPurchaseModule is ModuleSetup, ModulePermit, ModuleFee {
+contract StablecoinPurchaseModule is ModuleSetup, ModulePermit, ModuleFee, ContractMetadata {
     using SafeERC20 for IERC20Metadata;
 
     /// @dev Struct of collection price data
@@ -32,6 +33,14 @@ contract StablecoinPurchaseModule is ModuleSetup, ModulePermit, ModuleFee {
     struct Parameters {
         uint128 price;
         bytes16 enabledCoins;
+    }
+
+    /*=======================
+        CONTRACT METADATA
+    =======================*/
+
+    function _contractRoute() internal pure override returns (string memory route) {
+        return "module";
     }
 
     /*=============
@@ -75,8 +84,9 @@ contract StablecoinPurchaseModule is ModuleSetup, ModulePermit, ModuleFee {
         address _feeManager,
         uint8 _decimals,
         string memory _currency,
-        address[] memory stablecoins
-    ) ModulePermit() ModuleFee(_owner, _feeManager) {
+        address[] memory stablecoins,
+        address metadataRouter
+    ) ModulePermit() ModuleFee(_owner, _feeManager) ContractMetadata(metadataRouter) {
         decimals = _decimals;
         currency = _currency;
         for (uint256 i; i < stablecoins.length; i++) {

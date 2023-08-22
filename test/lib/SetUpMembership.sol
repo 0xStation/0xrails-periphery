@@ -5,7 +5,7 @@ import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
 import {IExtensionsExternal as IExtensions} from "mage/extension/interface/IExtensions.sol";
 import {Multicall} from "openzeppelin-contracts/utils/Multicall.sol";
 
-import {MembershipFactory} from "src/membership/MembershipFactory.sol";
+import {MembershipFactory} from "src/membership/factory/MembershipFactory.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
 import {Helpers} from "test/lib/Helpers.sol";
@@ -16,6 +16,7 @@ abstract contract SetUpMembership is Helpers {
     ERC721Mage public membershipImpl;
     MembershipFactory public membershipFactory;
     PayoutAddressExtension public payoutAddressExtension;
+    address public metadataRouter = address(0);
 
     function setUp() public virtual {
         owner = createAccount();
@@ -49,6 +50,6 @@ abstract contract SetUpMembership is Helpers {
         calls[2] = addRemovePayoutAddressExtension;
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, calls);
 
-        proxy = ERC721Mage(payable(membershipFactory.create(owner, "Test", "TEST", initData)));
+        proxy = ERC721Mage(payable(membershipFactory.createMembership(owner, "Test", "TEST", initData)));
     }
 }

@@ -9,7 +9,7 @@ interface IMembershipFactory {
 
     function initialize(address membershipImpl_, address owner_) external;
 
-    function create(address owner, string memory name, string memory symbol, bytes calldata initData)
+    function createMembership(address owner, string memory name, string memory symbol, bytes calldata initData)
         external
         returns (address membership);
 }

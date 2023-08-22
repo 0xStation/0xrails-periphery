@@ -12,7 +12,7 @@ import {MetadataRouter} from "../../src/metadataRouter/MetadataRouter.sol";
 import {OnePerAddressGuard} from "../../src/membership/guards/OnePerAddressGuard.sol";
 import {NFTMetadataExtension} from "../../src/membership/extensions/NFTMetadata/NFTMetadataExtension.sol";
 import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
-import {MembershipFactory} from "../../src/membership/MembershipFactory.sol";
+import {MembershipFactory} from "../../src/membership/factory/MembershipFactory.sol";
 
 contract Deploy is Script {
     address public turnkey = 0xBb942519A1339992630b13c3252F04fCB09D4841;
@@ -28,15 +28,16 @@ contract Deploy is Script {
 
         /// @dev first deploy ERC721Mage from the mage repo and update the address in `deployMembershipFactory`!
 
-        address feeManager = deployFeeManager();
-        deployFreeMintModule(feeManager);
-        // deployGasCoinPurchaseModule(feeManager);
-        // deployStablecoinPurchaseModule(feeManager);
-
         address metadataRouter = deployMetadataRouter();
         deployOnePerAddressGuard(metadataRouter);
         deployNFTMetadataExtension(metadataRouter);
-        // deployPayoutAddressExtension(metadataRouter);
+        deployPayoutAddressExtension(metadataRouter);
+
+        address feeManager = deployFeeManager();
+        deployFreeMintModule(feeManager, metadataRouter);
+        deployGasCoinPurchaseModule(feeManager, metadataRouter);
+        deployStablecoinPurchaseModule(feeManager, metadataRouter);
+
 
         deployMembershipFactory();
 
@@ -54,20 +55,20 @@ contract Deploy is Script {
         return address(new FeeManager(owner, defaultBaseFee, defaultVariableFee, ethBaseFee, defaultVariableFee));
     }
 
-    function deployFreeMintModule(address feeManager) internal returns (address) {
-        return address(new FreeMintModule(owner, feeManager));
+    function deployFreeMintModule(address feeManager, address metadataRouter) internal returns (address) {
+        return address(new FreeMintModule(owner, feeManager, metadataRouter));
     }
 
-    function deployGasCoinPurchaseModule(address feeManager) internal returns (address) {
-        return address(new GasCoinPurchaseModule(owner, feeManager));
+    function deployGasCoinPurchaseModule(address feeManager, address metadataRouter) internal returns (address) {
+        return address(new GasCoinPurchaseModule(owner, feeManager, metadataRouter));
     }
 
-    function deployStablecoinPurchaseModule(address feeManager) internal returns (address) {
+    function deployStablecoinPurchaseModule(address feeManager, address metadataRouter) internal returns (address) {
         uint8 decimals = 2;
         string memory currency = "USD";
         address[] memory stablecoins = new address[](0);
 
-        return address(new StablecoinPurchaseModule(owner, feeManager, decimals, currency, stablecoins));
+        return address(new StablecoinPurchaseModule(owner, feeManager, decimals, currency, stablecoins, metadataRouter));
     }
 
     function deployMetadataRouter() internal returns (address) {

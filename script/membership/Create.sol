@@ -15,7 +15,7 @@ import {StablecoinPurchaseModule} from "../../src/membership/modules/StablecoinP
 import {MetadataRouter} from "../../src/metadataRouter/MetadataRouter.sol";
 import {NFTMetadataExtension} from "../../src/membership/extensions/NFTMetadata/NFTMetadataExtension.sol";
 import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
-import {MembershipFactory} from "../../src/membership/MembershipFactory.sol";
+import {MembershipFactory} from "../../src/membership/factory/MembershipFactory.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
 import {INFTMetadata} from "src/membership/extensions/NFTMetadata/INFTMetadata.sol";
@@ -97,7 +97,7 @@ contract Create is Script {
 
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, initCalls);
 
-        MembershipFactory(membershipFactory).create(owner, name, symbol, initData);
+        MembershipFactory(membershipFactory).createMembership(owner, name, symbol, initData);
 
         vm.stopBroadcast();
     }

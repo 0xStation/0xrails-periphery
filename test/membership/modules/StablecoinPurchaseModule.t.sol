@@ -226,7 +226,8 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
             address(feeManager), 
             moduleDecimals,
             "USD",
-            stablecoins
+            stablecoins,
+            address(metadataRouter)
         );
 
         address[] memory setupStablecoins = new address[](1);
@@ -264,7 +265,8 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
             address(feeManager), 
             moduleDecimals,
             "USD",
-            stablecoins
+            stablecoins,
+            address(metadataRouter)
         );
 
         address[] memory setupStablecoins = new address[](1);
@@ -340,7 +342,8 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
             address(feeManager), 
             moduleDecimals,
             "USD",
-            new address[](0)
+            new address[](0),
+            address(metadataRouter)
         );
 
         vm.prank(owner);
@@ -1072,7 +1075,8 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
             address(feeManager), 
             moduleDecimals,
             "USD",
-            stablecoins
+            stablecoins,
+            address(metadataRouter)
         );
 
         // enable grants in module config setup and give module mint permission on proxy

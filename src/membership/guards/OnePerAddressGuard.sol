@@ -7,9 +7,21 @@ import {IERC721} from "lib/mage/src/cores/ERC721/IERC721.sol";
 import {ContractMetadata} from "../../lib/ContractMetadata.sol";
 
 contract OnePerAddressGuard is ContractMetadata, IGuard {
-    error OnePerAddress(address owner, uint256 balance);
-    
+    error OnePerAddress(address owner, uint256 balance);   
+
+    /*=======================
+        CONTRACT METADATA
+    =======================*/
+
     constructor(address metadataRouter) ContractMetadata(metadataRouter) {}
+
+    function _contractRoute() internal pure override returns (string memory route) {
+        return "guard";
+    }
+
+    /*===========
+        VIEWS
+    ===========*/
 
     function checkBefore(address, bytes calldata data) external view returns (bytes memory checkBeforeData) {
         // (address from, address to, uint256 startTokenId, uint256 quantity)

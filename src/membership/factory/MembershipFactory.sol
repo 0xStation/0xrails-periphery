@@ -7,10 +7,12 @@ import {Ownable} from "mage/access/ownable/Ownable.sol";
 import {Initializable} from "mage/lib/initializable/Initializable.sol";
 import {IERC721Mage} from "mage/cores/ERC721/interface/IERC721Mage.sol";
 
-import {IMembershipFactory} from "./interface/IMembershipFactory.sol";
+import {IMembershipFactory} from "./IMembershipFactory.sol";
 
 contract MembershipFactory is Initializable, Ownable, UUPSUpgradeable, IMembershipFactory {
     address public membershipImpl;
+
+    // todo: disable initializer in constructor
 
     function initialize(address membershipImpl_, address owner_) external initializer {
         membershipImpl = membershipImpl_;
@@ -25,7 +27,7 @@ contract MembershipFactory is Initializable, Ownable, UUPSUpgradeable, IMembersh
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    function create(address owner, string memory name, string memory symbol, bytes calldata initData)
+    function createMembership(address owner, string memory name, string memory symbol, bytes calldata initData)
         public
         returns (address membership)
     {
