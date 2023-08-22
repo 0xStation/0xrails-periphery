@@ -2,8 +2,9 @@
 pragma solidity ^0.8.13;
 
 import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
-import {IExtensionsExternal as IExtensions} from "mage/extension/interface/IExtensions.sol";
+import {IExtensions} from "mage/extension/interface/IExtensions.sol";
 import {Multicall} from "openzeppelin-contracts/utils/Multicall.sol";
+import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import {MembershipFactory} from "src/membership/factory/MembershipFactory.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
@@ -14,6 +15,7 @@ abstract contract SetUpMembership is Helpers {
     address public owner;
     address public payoutAddress;
     ERC721Mage public membershipImpl;
+    MembershipFactory public membershipFactoryImpl;
     MembershipFactory public membershipFactory;
     PayoutAddressExtension public payoutAddressExtension;
     address public metadataRouter = address(0);
@@ -22,7 +24,8 @@ abstract contract SetUpMembership is Helpers {
         owner = createAccount();
         payoutAddress = createAccount();
         membershipImpl = new ERC721Mage();
-        membershipFactory = new MembershipFactory();
+        membershipFactoryImpl = new MembershipFactory();
+        membershipFactory = MembershipFactory(address(new ERC1967Proxy(address(membershipFactoryImpl), bytes(""))));
         membershipFactory.initialize(address(membershipImpl), owner);
         payoutAddressExtension = new PayoutAddressExtension(address(0));
     }

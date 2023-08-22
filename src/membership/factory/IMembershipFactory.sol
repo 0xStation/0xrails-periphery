@@ -5,6 +5,8 @@ interface IMembershipFactory {
     event MembershipUpdated(address indexed membershipImpl);
     event MembershipCreated(address indexed membership);
 
+    error InvalidImplementation();
+
     function membershipImpl() external view returns (address);
 
     function initialize(address membershipImpl_, address owner_) external;

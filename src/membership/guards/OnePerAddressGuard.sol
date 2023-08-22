@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {IGuard} from "lib/mage/src/guard/interface/IGuard.sol";
-import {IERC721} from "lib/mage/src/cores/ERC721/IERC721.sol";
+import {IERC721} from "lib/mage/src/cores/ERC721/interface/IERC721.sol";
 
 import {ContractMetadata} from "../../lib/ContractMetadata.sol";
 

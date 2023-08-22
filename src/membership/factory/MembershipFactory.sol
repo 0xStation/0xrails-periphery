@@ -8,34 +8,51 @@ import {Initializable} from "mage/lib/initializable/Initializable.sol";
 import {IERC721Mage} from "mage/cores/ERC721/interface/IERC721Mage.sol";
 
 import {IMembershipFactory} from "./IMembershipFactory.sol";
+import {MembershipFactoryStorage} from "./MembershipFactoryStorage.sol";
 
 contract MembershipFactory is Initializable, Ownable, UUPSUpgradeable, IMembershipFactory {
-    address public membershipImpl;
 
-    // todo: disable initializer in constructor
+    /*============
+        SET UP
+    ============*/
+
+    constructor() Initializable() {}
 
     function initialize(address membershipImpl_, address owner_) external initializer {
-        membershipImpl = membershipImpl_;
-        emit MembershipUpdated(membershipImpl_);
+        _updateMembershipImpl(membershipImpl_);
         _transferOwnership(owner_);
     }
 
-    function updateMembershipImpl(address newImpl) external onlyOwner {
-        membershipImpl = newImpl;
+    function membershipImpl() public view returns (address) {
+        return MembershipFactoryStorage.layout().membershipImpl;
+    }
+
+    function setMembershipImpl(address newImpl) external onlyOwner {
+        _updateMembershipImpl(newImpl);
+    }
+
+    function _updateMembershipImpl(address newImpl) internal {
+        if (newImpl == address(0)) revert InvalidImplementation();
+        MembershipFactoryStorage.Layout storage layout = MembershipFactoryStorage.layout();
+        layout.membershipImpl = newImpl;
         emit MembershipUpdated(newImpl);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
+    /*============
+        CREATE
+    ============*/
+
     function create(address owner, string memory name, string memory symbol, bytes calldata initData)
         public
         returns (address membership)
     {
-        membership = address(new ERC1967Proxy(membershipImpl, bytes("")));
+        membership = address(new ERC1967Proxy(membershipImpl(), bytes("")));
+        emit MembershipCreated(membership); // put MembershipCreated before initialization events for indexer convenience
         // initializer relies on self-delegatecall which does not work when passed through a proxy's constructor
         // make a separate call to initialize after deploying new proxy
         IERC721Mage(membership).initialize(owner, name, symbol, initData);
-        emit MembershipCreated(membership);
     }
 
     // non-payable fallback to reject accidental inbound ETH transfer

@@ -6,7 +6,7 @@ import {Multicall} from "openzeppelin-contracts/utils/Multicall.sol";
 import {Permissions} from "mage/access/permissions/Permissions.sol";
 import {PermissionsStorage} from "mage/access/permissions/PermissionsStorage.sol";
 import {Operations} from "mage/lib/Operations.sol";
-import {IExtensionsExternal as IExtensions} from "mage/extension/interface/IExtensions.sol";
+import {IExtensions} from "mage/extension/interface/IExtensions.sol";
 
 import {FeeManager} from "../../src/lib/module/FeeManager.sol";
 import {FreeMintModule} from "../../src/membership/modules/FreeMintModule.sol";
