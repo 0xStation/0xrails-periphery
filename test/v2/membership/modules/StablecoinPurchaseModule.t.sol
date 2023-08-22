@@ -220,8 +220,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         // following code is identical to initModuleAndErc20() but w/out calling module.setUp(proxy) and proxy.permit
         // instantiate feeManager with fuzzed base and variable fees as baseline
         vm.assume(baseFee != 0); // since this test file tests stablecoins, FeeSetting.Set is used and baseFee should != 0
-        FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Set, baseFee, variableFee);
-        feeManager = new FeeManager(owner, exampleFees, exampleFees);
+        feeManager = new FeeManager(owner, baseFee, variableFee, baseFee, variableFee);
 
         stablecoin = new FakeERC20(coinDecimals);
         address[] memory stablecoins = new address[](0);
@@ -259,8 +258,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.assume(baseFee != 0); // since this test file tests stablecoins, FeeSetting.Set is used and baseFee should != 0
         // following code is identical to initModuleAndErc20() but w/out calling module.setUp(proxy) and proxy.permit
         // instantiate feeManager with fuzzed base and variable fees as baseline
-        FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Set, baseFee, variableFee);
-        feeManager = new FeeManager(owner, exampleFees, exampleFees);
+        feeManager = new FeeManager(owner, baseFee, variableFee, baseFee, variableFee);
 
         stablecoin = new FakeERC20(coinDecimals);
         address[] memory stablecoins = new address[](0);
@@ -335,8 +333,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         _constrainFuzzInputs(coinDecimals, moduleDecimals, baseFee, variableFee, price);
         vm.assume(baseFee != 0); // since this test file tests stablecoins, FeeSetting.Set is used and baseFee should != 0
         // instantiate feeManager with fuzzed base and variable fees as baseline
-        FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Set, baseFee, variableFee);
-        feeManager = new FeeManager(owner, exampleFees, exampleFees);
+        feeManager = new FeeManager(owner, baseFee, variableFee, baseFee, variableFee);
 
         // deploy fake stablecoin but not include it in stablecoinModule constructor
         stablecoin = new FakeERC20(coinDecimals);
@@ -1067,8 +1064,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     ) public {
         vm.assume(baseFee != 0); // since this test file tests stablecoins, FeeSetting.Set is used and baseFee should != 0
         // instantiate feeManager with fuzzed base and variable fees as baseline
-        FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Set, baseFee, variableFee);
-        feeManager = new FeeManager(owner, exampleFees, exampleFees);
+        feeManager = new FeeManager(owner, baseFee, variableFee, baseFee, variableFee);
 
         // deploy fake stablecoin but not include it in stablecoinModule constructor
         stablecoin = new FakeERC20(coinDecimals);

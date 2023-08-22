@@ -33,8 +33,7 @@ contract FreeMintModuleTest is Test, SetUpMembership {
     // @note Not invoked as a standalone test
     function initModule(uint96 baseFee, uint96 variableFee) public {
         // instantiate feeManager with fuzzed base and variable fees as baseline
-        FeeManager.Fees memory exampleFees = FeeManager.Fees(FeeManager.FeeSetting.Free, baseFee, variableFee);
-        feeManager = new FeeManager(owner, exampleFees, exampleFees);
+        feeManager = new FeeManager(owner, baseFee, variableFee, baseFee, variableFee);
 
         module = new FreeMintModule(owner, address(feeManager));
 

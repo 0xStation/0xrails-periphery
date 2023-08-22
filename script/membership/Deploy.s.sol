@@ -46,11 +46,12 @@ contract Deploy is Script {
     }
 
     function deployFeeManager() internal returns (address) {
-        FeeManager.Fees memory baselineFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 0, 500); // 0 base, 5% variable
-        // FeeManager.Fees memory ethFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 1e15, 500); // 0.001 base, 5% variable
-        FeeManager.Fees memory polygonFees = FeeManager.Fees(FeeManager.FeeSetting.Set, 2e18, 500); // 2 base, 5% variable
+        uint120 ethBaseFee = 1e15; // 0.001 ETH
+        // uint120 polygonBaseFee = 2e18; // 2 MATIC
+        uint120 defaultBaseFee = 0;
+        uint120 defaultVariableFee = 500; // 5%
 
-        return address(new FeeManager(owner, baselineFees, polygonFees));
+        return address(new FeeManager(owner, defaultBaseFee, defaultVariableFee, ethBaseFee, defaultVariableFee));
     }
 
     function deployFreeMintModule(address feeManager) internal returns (address) {
