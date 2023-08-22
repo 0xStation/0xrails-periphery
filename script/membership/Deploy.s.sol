@@ -46,6 +46,32 @@ contract Deploy is Script {
         vm.stopBroadcast();
     }
 
+    function deployMetadataRouter() internal returns (address) {
+        string memory defaultURI = "https://groupos.xyz/api/v1/contractMetadata";
+        string[] memory routes = new string[](1);
+        routes[0] = "token";
+        string[] memory uris = new string[](1);
+        uris[0] = "https://groupos.xyz/api/v1/nftMetadata";
+
+        address metadataRouterImpl = address(new MetadataRouter());
+
+        bytes memory initData =
+            abi.encodeWithSelector(MetadataRouter(metadataRouterImpl).initialize.selector, owner, defaultURI, routes, uris);
+        return address(new ERC1967Proxy(metadataRouterImpl, initData));
+    }
+
+    function deployOnePerAddressGuard(address metadataRouter) internal returns (address) {
+        return address(new OnePerAddressGuard(metadataRouter));
+    }
+
+    function deployNFTMetadataRouterExtension(address metadataRouter) internal returns (address) {
+        return address(new NFTMetadataRouterExtension(metadataRouter));
+    }
+
+    function deployPayoutAddressExtension(address metadataRouter) internal returns (address) {
+        return address(new PayoutAddressExtension(metadataRouter));
+    }
+
     function deployFeeManager() internal returns (address) {
         uint120 ethBaseFee = 1e15; // 0.001 ETH
         // uint120 polygonBaseFee = 2e18; // 2 MATIC
@@ -69,26 +95,6 @@ contract Deploy is Script {
         address[] memory stablecoins = new address[](0);
 
         return address(new StablecoinPurchaseModule(owner, feeManager, decimals, currency, stablecoins, metadataRouter));
-    }
-
-    function deployMetadataRouter() internal returns (address) {
-        string memory baselineURI = "https://groupos.xyz/api/v1/nftMetadata";
-        string[] memory contractTypes = new string[](0);
-        string[] memory uris = new string[](0);
-
-        return address(new MetadataRouter(owner, baselineURI, contractTypes, uris));
-    }
-
-    function deployOnePerAddressGuard(address metadataRouter) internal returns (address) {
-        return address(new OnePerAddressGuard(metadataRouter));
-    }
-
-    function deployNFTMetadataRouterExtension(address metadataRouter) internal returns (address) {
-        return address(new NFTMetadataRouterExtension(metadataRouter));
-    }
-
-    function deployPayoutAddressExtension(address metadataRouter) internal returns (address) {
-        return address(new PayoutAddressExtension(metadataRouter));
     }
 
     function deployMembershipFactory() internal returns (address) {

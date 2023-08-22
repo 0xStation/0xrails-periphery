@@ -4,35 +4,32 @@ pragma solidity ^0.8.13;
 import {Strings} from "openzeppelin-contracts/utils/Strings.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
 import {Ownable} from "mage/access/ownable/Ownable.sol";
+import {Initializable} from "mage/lib/initializable/Initializable.sol";
 
 import {IMetadataRouter} from "./IMetadataRouter.sol";
+import {MetadataRouterStorage} from "./MetadataRouterStorage.sol";
 
-contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
+contract MetadataRouter is Initializable, Ownable, UUPSUpgradeable, IMetadataRouter {
     using Strings for uint256;
-
-    /*=============
-        STORAGE
-    ==============*/
-
-    string public defaultURI;
-    mapping(string => string) public routeURI;
-    mapping(string => mapping(address => string)) public contractRouteURI;
 
     /*====================
         INITIALIZATION
     ====================*/
 
-    /// @dev todo: change to initializer and use public functions to emit events
-    constructor(address _owner, string memory defaultURI_, string[] memory routes, string[] memory routeURIs) {
+    constructor() Initializable() {}
+
+    function initialize(address _owner, string memory defaultURI_, string[] memory routes, string[] memory routeURIs) external initializer {
         uint256 len = routes.length;
         if (len != routeURIs.length) revert();
 
+        MetadataRouterStorage.Layout storage layout = MetadataRouterStorage.layout();
+
         for (uint256 i; i < len; i++) {
-            routeURI[routes[i]] = routeURIs[i];
+            layout.routeURI[routes[i]] = routeURIs[i];
             emit RouteURIUpdated(routes[i], routeURIs[i]);
         }
 
-        defaultURI = defaultURI_;
+        layout.defaultURI = defaultURI_;
         emit DefaultURIUpdated(defaultURI_);
 
         _transferOwnership(_owner);
@@ -50,13 +47,27 @@ contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
     }
 
     function baseURI(string memory route, address contractAddress) public view returns (string memory uri) {
-        uri = contractRouteURI[route][contractAddress];
+        MetadataRouterStorage.Layout storage layout = MetadataRouterStorage.layout();
+        uri = layout.contractRouteURI[route][contractAddress];
         if (bytes(uri).length == 0) {
-            uri = routeURI[route];
+            uri = layout.routeURI[route];
             if (bytes(uri).length == 0) {
-                uri = defaultURI;
+                uri = layout.defaultURI;
             }
         }
+        return uri;
+    }
+
+    function defaultURI() external view returns (string memory) {
+        return MetadataRouterStorage.layout().defaultURI;
+    }
+    
+    function routeURI(string memory route) external view returns (string memory) {
+        MetadataRouterStorage.layout().routeURI[route];
+    }
+    
+    function contractRouteURI(string memory route, address contractAddress) external view returns (string memory) {
+        MetadataRouterStorage.layout().contractRouteURI[route][contractAddress];
     }
 
     function _getContractRouteURI(string memory route, address contractAddress) internal view returns (string memory) {
@@ -76,17 +87,20 @@ contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
     ====================*/
 
     function setDefaultURI(string memory uri) external onlyOwner {
-        defaultURI = uri;
+        MetadataRouterStorage.Layout storage layout = MetadataRouterStorage.layout();
+        layout.defaultURI = uri;
         emit DefaultURIUpdated(uri);
     }
 
     function setRouteURI(string memory route, string memory uri) external onlyOwner {
-        routeURI[route] = uri;
+        MetadataRouterStorage.Layout storage layout = MetadataRouterStorage.layout();
+        layout.routeURI[route] = uri;
         emit RouteURIUpdated(route, uri);
     }
 
     function setContractRouteURI(string memory route, string memory uri, address contractAddress) external onlyOwner {
-        contractRouteURI[route][contractAddress] = uri;
+        MetadataRouterStorage.Layout storage layout = MetadataRouterStorage.layout();
+        layout.contractRouteURI[route][contractAddress] = uri;
         emit ContractRouteURIUpdated(route, uri, contractAddress);
     }
 
