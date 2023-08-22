@@ -34,16 +34,14 @@ contract FeeManagerTest is Test, SetUpMembership {
         // assert owner was set
         assertEq(feeManager.owner(), address(0xbeefbabe));
 
-        FeeManager.Fees memory exampleFees =
-            FeeManager.Fees(true, testParams.baseFee, testParams.variableFee);
+        FeeManager.Fees memory exampleFees = FeeManager.Fees(true, testParams.baseFee, testParams.variableFee);
         // assert defaultFees were set
         FeeManager.Fees memory defaultFees = feeManager.getDefaultFees();
         assertTrue(defaultFees.exist);
         assertEq(defaultFees.baseFee, exampleFees.baseFee);
         assertEq(defaultFees.variableFee, exampleFees.variableFee);
 
-        FeeManager.Fees memory ethFees =
-            FeeManager.Fees(true, testParams.ethBaseFee, testParams.ethVariableFee);
+        FeeManager.Fees memory ethFees = FeeManager.Fees(true, testParams.ethBaseFee, testParams.ethVariableFee);
         // assert ethFees were set
         FeeManager.Fees memory tokenFees = feeManager.getTokenFees(address(0x0));
         assertTrue(tokenFees.exist);
@@ -81,8 +79,7 @@ contract FeeManagerTest is Test, SetUpMembership {
         feeManager.getTokenFees(tokenAddress);
 
         // set token fees and change eth fees
-        FeeManager.Fees memory mintFees =
-            FeeManager.Fees(true, testParams.baseFee, testParams.variableFee);
+        FeeManager.Fees memory mintFees = FeeManager.Fees(true, testParams.baseFee, testParams.variableFee);
         vm.startPrank(feeManager.owner());
         feeManager.setTokenFees(tokenAddress, testParams.baseFee, testParams.variableFee);
         feeManager.setTokenFees(address(0x0), testParams.baseFee, testParams.variableFee);
@@ -107,8 +104,7 @@ contract FeeManagerTest is Test, SetUpMembership {
         vm.expectRevert(err);
         feeManager.getTokenFees(tokenAddress);
 
-        FeeManager.Fees memory tokenFees =
-            FeeManager.Fees(true, testParams.baseFee, testParams.variableFee);
+        FeeManager.Fees memory tokenFees = FeeManager.Fees(true, testParams.baseFee, testParams.variableFee);
 
         err = bytes("Ownable: caller is not the owner");
         vm.expectRevert(err);
@@ -129,9 +125,11 @@ contract FeeManagerTest is Test, SetUpMembership {
         feeManager.getTokenFees(address(uint160(tokenAddress) + 1));
     }
 
-    function test_setCollectionFees(TestParams memory testParams, TestParams memory collectionParams, address tokenAddress)
-        public
-    {
+    function test_setCollectionFees(
+        TestParams memory testParams,
+        TestParams memory collectionParams,
+        address tokenAddress
+    ) public {
         deployWithFuzz(testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee);
 
         // ensure collectionFees are not set for tokenAddress or eth
@@ -143,8 +141,12 @@ contract FeeManagerTest is Test, SetUpMembership {
 
         // set token fees and eth fees
         vm.startPrank(feeManager.owner());
-        feeManager.setCollectionFees(address(proxy), tokenAddress, collectionParams.baseFee, collectionParams.variableFee);
-        feeManager.setCollectionFees(address(proxy), address(0x0), collectionParams.baseFee, collectionParams.variableFee);
+        feeManager.setCollectionFees(
+            address(proxy), tokenAddress, collectionParams.baseFee, collectionParams.variableFee
+        );
+        feeManager.setCollectionFees(
+            address(proxy), address(0x0), collectionParams.baseFee, collectionParams.variableFee
+        );
 
         FeeManager.Fees memory newCollectionFees = feeManager.getCollectionFees(address(proxy), tokenAddress);
         assertTrue(newCollectionFees.exist);
@@ -173,9 +175,13 @@ contract FeeManagerTest is Test, SetUpMembership {
 
         err = bytes("Ownable: caller is not the owner");
         vm.expectRevert(err);
-        feeManager.setCollectionFees(address(proxy), tokenAddress, collectionParams.baseFee, collectionParams.variableFee);
+        feeManager.setCollectionFees(
+            address(proxy), tokenAddress, collectionParams.baseFee, collectionParams.variableFee
+        );
         vm.expectRevert(err);
-        feeManager.setCollectionFees(address(proxy), address(0x0), collectionParams.baseFee, collectionParams.variableFee);
+        feeManager.setCollectionFees(
+            address(proxy), address(0x0), collectionParams.baseFee, collectionParams.variableFee
+        );
     }
 
     function test_getCollectionFeesRevertNotSet(TestParams memory testParams, address tokenAddress) public {
@@ -205,7 +211,10 @@ contract FeeManagerTest is Test, SetUpMembership {
             testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee
         );
         _constrainFuzzInputs(
-            collectionParams.baseFee, collectionParams.variableFee, collectionParams.ethBaseFee, collectionParams.ethVariableFee
+            collectionParams.baseFee,
+            collectionParams.variableFee,
+            collectionParams.ethBaseFee,
+            collectionParams.ethVariableFee
         );
 
         deployWithFuzz(testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee);
@@ -234,7 +243,10 @@ contract FeeManagerTest is Test, SetUpMembership {
             testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee
         );
         _constrainFuzzInputs(
-            collectionParams.baseFee, collectionParams.variableFee, collectionParams.ethBaseFee, collectionParams.ethVariableFee
+            collectionParams.baseFee,
+            collectionParams.variableFee,
+            collectionParams.ethBaseFee,
+            collectionParams.ethVariableFee
         );
 
         deployWithFuzz(testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee);
@@ -274,7 +286,10 @@ contract FeeManagerTest is Test, SetUpMembership {
             testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee
         );
         _constrainFuzzInputs(
-            collectionParams.baseFee, collectionParams.variableFee, collectionParams.ethBaseFee, collectionParams.ethVariableFee
+            collectionParams.baseFee,
+            collectionParams.variableFee,
+            collectionParams.ethBaseFee,
+            collectionParams.ethVariableFee
         );
 
         deployWithFuzz(testParams.baseFee, testParams.variableFee, testParams.ethBaseFee, testParams.ethVariableFee);

@@ -11,7 +11,6 @@ import {IMembershipFactory} from "./IMembershipFactory.sol";
 import {MembershipFactoryStorage} from "./MembershipFactoryStorage.sol";
 
 contract MembershipFactory is Initializable, Ownable, UUPSUpgradeable, IMembershipFactory {
-
     /*============
         SET UP
     ============*/

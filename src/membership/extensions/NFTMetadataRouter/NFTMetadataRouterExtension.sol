@@ -6,7 +6,6 @@ import {Extension} from "mage/extension/Extension.sol";
 import {NFTMetadataRouter} from "./NFTMetadataRouter.sol";
 
 contract NFTMetadataRouterExtension is NFTMetadataRouter, Extension {
-
     /*=======================
         CONTRACT METADATA
     =======================*/

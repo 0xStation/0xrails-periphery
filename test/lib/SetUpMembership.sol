@@ -33,11 +33,9 @@ abstract contract SetUpMembership is Helpers {
     function create() public returns (ERC721Mage proxy) {
         // add payout address extension to proxy, to be replaced with extension beacon
         bytes memory addPayoutAddressExtension = abi.encodeWithSelector(
-            IExtensions.setExtension.selector,
-            IPayoutAddress.payoutAddress.selector,
-            address(payoutAddressExtension)
+            IExtensions.setExtension.selector, IPayoutAddress.payoutAddress.selector, address(payoutAddressExtension)
         );
-        bytes memory addSetPayoutAddressExtension = abi.encodeWithSelector(
+        bytes memory addUpdatePayoutAddressExtension = abi.encodeWithSelector(
             IExtensions.setExtension.selector,
             IPayoutAddress.updatePayoutAddress.selector,
             address(payoutAddressExtension)
@@ -49,7 +47,7 @@ abstract contract SetUpMembership is Helpers {
         );
         bytes[] memory calls = new bytes[](3);
         calls[0] = addPayoutAddressExtension;
-        calls[1] = addSetPayoutAddressExtension;
+        calls[1] = addUpdatePayoutAddressExtension;
         calls[2] = addRemovePayoutAddressExtension;
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, calls);
 

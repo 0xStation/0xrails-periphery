@@ -21,7 +21,7 @@ contract OnePerAddressGuardTest is Test, SetUpMembership {
         SetUpMembership.setUp(); // implementation, factory, extensions
         guard = new OnePerAddressGuard(address(0));
         proxy = SetUpMembership.create();
-        
+
         vm.startPrank(owner);
         proxy.setGuard(Operations.MINT, address(guard));
         proxy.setGuard(Operations.TRANSFER, address(guard));
@@ -30,7 +30,7 @@ contract OnePerAddressGuardTest is Test, SetUpMembership {
 
     function test_mint() public {
         address to = owner;
-        
+
         vm.prank(owner);
         proxy.mintTo(to, 1);
 
@@ -54,28 +54,28 @@ contract OnePerAddressGuardTest is Test, SetUpMembership {
     function test_transfer() public {
         address from = owner;
         address to = createAccount();
-        
+
         vm.prank(owner);
         proxy.mintTo(from, 1);
 
         vm.prank(from);
         proxy.safeTransferFrom(from, to, 1);
-        
+
         assertEq(proxy.balanceOf(from), 0);
         assertEq(proxy.balanceOf(to), 1);
     }
-    
+
     function test_transferRevertOnePerAddress() public {
         address from = owner;
         address to = createAccount();
-        
+
         vm.startPrank(owner);
         proxy.mintTo(from, 1);
         proxy.mintTo(to, 1);
         vm.expectRevert(abi.encodeWithSelector(OnePerAddressGuard.OnePerAddress.selector, to, 2));
         proxy.safeTransferFrom(from, to, 1);
         vm.stopPrank();
-        
+
         assertEq(proxy.balanceOf(from), 1);
         assertEq(proxy.balanceOf(to), 1);
     }

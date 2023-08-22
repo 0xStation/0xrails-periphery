@@ -59,11 +59,7 @@ contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
         }
     }
 
-    function _getContractRouteURI(string memory route, address contractAddress)
-        internal
-        view
-        returns (string memory)
-    {
+    function _getContractRouteURI(string memory route, address contractAddress) internal view returns (string memory) {
         return string(
             abi.encodePacked(
                 baseURI(route, contractAddress),
@@ -89,10 +85,7 @@ contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
         emit RouteURIUpdated(route, uri);
     }
 
-    function setContractRouteURI(string memory route, string memory uri, address contractAddress)
-        external
-        onlyOwner
-    {
+    function setContractRouteURI(string memory route, string memory uri, address contractAddress) external onlyOwner {
         contractRouteURI[route][contractAddress] = uri;
         emit ContractRouteURIUpdated(route, uri, contractAddress);
     }
@@ -104,12 +97,17 @@ contract MetadataRouter is Ownable, UUPSUpgradeable, IMetadataRouter {
     function uriOf(string memory route, address contract_) public view returns (string memory) {
         return _getContractRouteURI(route, contract_);
     }
-    
-    function uriOf(string memory route, address contract_, string memory appendData) public view returns (string memory) {
+
+    function uriOf(string memory route, address contract_, string memory appendData)
+        public
+        view
+        returns (string memory)
+    {
         return string(abi.encodePacked(_getContractRouteURI(route, contract_), appendData));
     }
 
     function tokenURI(address collection, uint256 tokenId) public view returns (string memory) {
-        return string(abi.encodePacked(_getContractRouteURI("token", collection), "&tokenId=", Strings.toString(tokenId)));
+        return
+            string(abi.encodePacked(_getContractRouteURI("token", collection), "&tokenId=", Strings.toString(tokenId)));
     }
 }

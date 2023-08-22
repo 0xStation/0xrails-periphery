@@ -11,7 +11,7 @@ contract PayoutAddress is IPayoutAddress {
     /*===========
         VIEWS
     ===========*/
-    
+
     function payoutAddress() public view virtual returns (address) {
         PayoutAddressStorage.Layout storage layout = PayoutAddressStorage.layout();
         return layout.payoutAddress;

@@ -78,7 +78,7 @@ abstract contract ModuleFee is Ownable {
     /// @param paymentTokens The token addresses to call, where address(0) represent network token
     function withdrawFees(address[] calldata paymentTokens) external onlyOwner {
         address recipient = owner();
-        for(uint256 i; i<paymentTokens.length; i++) {
+        for (uint256 i; i < paymentTokens.length; i++) {
             uint256 amount;
             if (paymentTokens[i] == address(0)) {
                 amount = address(this).balance;

@@ -7,7 +7,7 @@ import {IERC721} from "lib/mage/src/cores/ERC721/interface/IERC721.sol";
 import {ContractMetadata} from "../../lib/ContractMetadata.sol";
 
 contract OnePerAddressGuard is ContractMetadata, IGuard {
-    error OnePerAddress(address owner, uint256 balance);   
+    error OnePerAddress(address owner, uint256 balance);
 
     /*=======================
         CONTRACT METADATA
@@ -25,7 +25,7 @@ contract OnePerAddressGuard is ContractMetadata, IGuard {
 
     function checkBefore(address, bytes calldata data) external view returns (bytes memory checkBeforeData) {
         // (address from, address to, uint256 startTokenId, uint256 quantity)
-        (,address owner,,uint256 quantity) = abi.decode(data, (address, address, uint256, uint256)); 
+        (, address owner,, uint256 quantity) = abi.decode(data, (address, address, uint256, uint256));
 
         uint256 balanceBefore = IERC721(msg.sender).balanceOf(owner);
         if (balanceBefore + quantity > 1) {

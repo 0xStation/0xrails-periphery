@@ -42,17 +42,17 @@ contract FeeManager is Ownable {
 
     /// @dev Denominator used to calculate variable fee on a BPS basis
     /// @dev Not actually kept in storage as it is marked `constant`, saving gas by putting its value in contract bytecode instead
-    uint256 constant private bpsDenominator = 10_000;
+    uint256 private constant bpsDenominator = 10_000;
 
     /// @dev Baseline fee struct that serves as a stand in for all token addresses that have been registered
     /// in a stablecoin purchase module but not had their default fees set
     Fees internal defaultFees;
 
     /// @dev Mapping that stores default fees associated with a given token address
-    mapping (address => Fees) internal tokenFees;
+    mapping(address => Fees) internal tokenFees;
 
     /// @dev Mapping that stores override fees associated with specific collections, i.e. for discounts
-    mapping (address => mapping (address => Fees)) internal collectionFees;
+    mapping(address => mapping(address => Fees)) internal collectionFees;
 
     /*================
         FEEMANAGER
@@ -64,7 +64,13 @@ contract FeeManager is Ownable {
     /// @param _defaultVariableFee The initialization of default variableFees for all token addresses that have not (yet) been given defaults
     /// @param _networkTokenBaseFee The initialization of default baseFees for the network's token
     /// @param _networkTokenVariableFee The initialization of default variableFees for the network's token
-    constructor(address _newOwner, uint120 _defaultBaseFee, uint120 _defaultVariableFee, uint120 _networkTokenBaseFee, uint120 _networkTokenVariableFee) {
+    constructor(
+        address _newOwner,
+        uint120 _defaultBaseFee,
+        uint120 _defaultVariableFee,
+        uint120 _networkTokenBaseFee,
+        uint120 _networkTokenVariableFee
+    ) {
         Fees memory _defaultFees = Fees(true, _defaultBaseFee, _defaultVariableFee);
         defaultFees = _defaultFees;
         emit DefaultFeesUpdated(_defaultFees);
@@ -72,7 +78,7 @@ contract FeeManager is Ownable {
         Fees memory _networkTokenFees = Fees(true, _networkTokenBaseFee, _networkTokenVariableFee);
         tokenFees[address(0x0)] = _networkTokenFees;
         emit TokenFeesUpdated(address(0x0), _networkTokenFees);
-        
+
         _transferOwnership(_newOwner);
     }
 
@@ -111,7 +117,10 @@ contract FeeManager is Ownable {
     /// @param token The token for which to set new base and variable fees
     /// @param baseFee The new baseFee to apply to the collection and token
     /// @param variableFee The new variableFee to apply to the collection and token
-    function setCollectionFees(address collection, address token, uint120 baseFee, uint120 variableFee) external onlyOwner {
+    function setCollectionFees(address collection, address token, uint120 baseFee, uint120 variableFee)
+        external
+        onlyOwner
+    {
         Fees memory fees = Fees(true, baseFee, variableFee);
         collectionFees[collection][token] = fees;
         emit CollectionFeesUpdated(collection, token, fees);
@@ -137,26 +146,22 @@ contract FeeManager is Ownable {
     /// @param recipient The address to mint to. Checked to apply discounts per user for Station Network incentives
     /// @param quantity The amount of tokens for which to compute total baseFee
     /// @param unitPrice The price of each token, used to compute subtotal on which to apply variableFee
-    /// @param feeTotal The returned total incl fees for the given collection. 
+    /// @param feeTotal The returned total incl fees for the given collection.
     function getFeeTotals(
-        address collection, 
+        address collection,
         address paymentToken,
         address recipient,
-        uint256 quantity, 
+        uint256 quantity,
         uint256 unitPrice
     ) external view returns (uint256 feeTotal) {
         // todo support recipient discounts for individual users holding a collection NFT
-        
+
         // get existing fees, first checking for override fees or discounts if they have already been set
         Fees memory fees = getFees(collection, paymentToken);
 
         // if being called in free mint context results in only base fee
-        (uint256 baseFeeTotal, uint256 variableFeeTotal) =  calculateFees(
-            fees.baseFee, 
-            fees.variableFee, 
-            quantity, 
-            unitPrice
-        );
+        (uint256 baseFeeTotal, uint256 variableFeeTotal) =
+            calculateFees(fees.baseFee, fees.variableFee, quantity, unitPrice);
         return baseFeeTotal + variableFeeTotal;
     }
 
@@ -180,22 +185,19 @@ contract FeeManager is Ownable {
         if (!fees.exist) revert FeesNotSet();
     }
 
-    /// @dev Function to evaluate whether override fees have been set for a specific collection 
+    /// @dev Function to evaluate whether override fees have been set for a specific collection
     /// and whether default fees have been set for the given token
-    function getFees(
-        address _collection,
-        address _token
-    ) public view returns (Fees memory fees) {
+    function getFees(address _collection, address _token) public view returns (Fees memory fees) {
         // if collectionFees exist, return overrides
         Fees memory collectionOverrides = collectionFees[_collection][_token];
-        if (collectionOverrides.exist) { 
-            return collectionOverrides; 
+        if (collectionOverrides.exist) {
+            return collectionOverrides;
         }
         // if tokenFees exist, return overrides
         Fees memory tokenOverrides = tokenFees[_token];
         if (tokenOverrides.exist) {
             return tokenOverrides;
-        } 
+        }
         // no overrides set, return defaults
         return defaultFees;
     }
@@ -205,12 +207,11 @@ contract FeeManager is Ownable {
     /// @param variableFee The variable fee denominated either in ETH or ERC20 tokens
     /// @param quantity The number of tokens being minted
     /// @param unitPrice The price per unit of tokens being minted
-    function calculateFees(
-        uint256 baseFee,
-        uint256 variableFee,
-        uint256 quantity, 
-        uint256 unitPrice
-    ) public pure returns (uint256 baseFeeTotal, uint256 variableFeeTotal) {
+    function calculateFees(uint256 baseFee, uint256 variableFee, uint256 quantity, uint256 unitPrice)
+        public
+        pure
+        returns (uint256 baseFeeTotal, uint256 variableFeeTotal)
+    {
         // calculate baseFee total (quantity * unitPrice), set to baseFee
         baseFeeTotal = quantity * baseFee;
         // apply variable fee on baseFee total, set to variableFee

@@ -13,7 +13,10 @@ interface IMetadataRouter {
     function contractRouteURI(string memory contractType, address contractAddress) external returns (string memory);
     function baseURI(string memory contractType, address contractAddress) external returns (string memory);
     function uriOf(string memory route, address contractAddress) external view returns (string memory);
-    function uriOf(string memory route, address contractAddress, string memory appendData) external view returns (string memory);
+    function uriOf(string memory route, address contractAddress, string memory appendData)
+        external
+        view
+        returns (string memory);
     // specific routes
     function tokenURI(address collection, uint256 tokenId) external view returns (string memory);
 

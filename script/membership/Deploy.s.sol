@@ -10,7 +10,8 @@ import {GasCoinPurchaseModule} from "../../src/membership/modules/GasCoinPurchas
 import {StablecoinPurchaseModule} from "../../src/membership/modules/StablecoinPurchaseModule.sol";
 import {MetadataRouter} from "../../src/metadataRouter/MetadataRouter.sol";
 import {OnePerAddressGuard} from "../../src/membership/guards/OnePerAddressGuard.sol";
-import {NFTMetadataRouterExtension} from "../../src/membership/extensions/NFTMetadataRouter/NFTMetadataRouterExtension.sol";
+import {NFTMetadataRouterExtension} from
+    "../../src/membership/extensions/NFTMetadataRouter/NFTMetadataRouterExtension.sol";
 import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {MembershipFactory} from "../../src/membership/factory/MembershipFactory.sol";
 
@@ -37,7 +38,6 @@ contract Deploy is Script {
         deployFreeMintModule(feeManager, metadataRouter);
         deployGasCoinPurchaseModule(feeManager, metadataRouter);
         deployStablecoinPurchaseModule(feeManager, metadataRouter);
-
 
         deployMembershipFactory();
 
@@ -82,7 +82,7 @@ contract Deploy is Script {
     function deployOnePerAddressGuard(address metadataRouter) internal returns (address) {
         return address(new OnePerAddressGuard(metadataRouter));
     }
-    
+
     function deployNFTMetadataRouterExtension(address metadataRouter) internal returns (address) {
         return address(new NFTMetadataRouterExtension(metadataRouter));
     }

@@ -17,7 +17,6 @@ import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 /// paid in the native currency of the chain this contract is deployed to
 
 contract GasCoinPurchaseModule is ModuleSetup, ModulePermit, ModuleFee, ContractMetadata {
-    
     /*=======================
         CONTRACT METADATA
     =======================*/
@@ -47,7 +46,11 @@ contract GasCoinPurchaseModule is ModuleSetup, ModulePermit, ModuleFee, Contract
 
     /// @param _newOwner The owner of the ModuleFeeV2, an address managed by Station Network
     /// @param _feeManager The FeeManager's address
-    constructor(address _newOwner, address _feeManager, address metadataRouter) ModulePermit() ModuleFee(_newOwner, _feeManager) ContractMetadata(metadataRouter) {}
+    constructor(address _newOwner, address _feeManager, address metadataRouter)
+        ModulePermit()
+        ModuleFee(_newOwner, _feeManager)
+        ContractMetadata(metadataRouter)
+    {}
 
     /// @dev Function to set up and configure a new collection's purchase prices
     /// @param collection The new collection to configure

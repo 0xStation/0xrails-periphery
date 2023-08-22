@@ -7,7 +7,6 @@ import {ContractMetadata} from "../../../lib/ContractMetadata.sol";
 import {PayoutAddress} from "./PayoutAddress.sol";
 
 contract PayoutAddressExtension is PayoutAddress, Extension, ContractMetadata {
-    
     /*=======================
         CONTRACT METADATA
     =======================*/

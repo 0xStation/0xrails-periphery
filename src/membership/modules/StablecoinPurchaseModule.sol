@@ -293,7 +293,9 @@ contract StablecoinPurchaseModule is ModuleSetup, ModulePermit, ModuleFee, Contr
         require(payoutAddress != address(0), "MISSING_PAYOUT_ADDRESS");
 
         // calculate fee, require fee sent to this contract, transfer collection's revenue to payoutAddress
-        _collectFeeAndForwardCollectionRevenue(collection, payoutAddress, paymentCoin, recipient, quantity, formattedPrice);
+        _collectFeeAndForwardCollectionRevenue(
+            collection, payoutAddress, paymentCoin, recipient, quantity, formattedPrice
+        );
 
         // mint NFTs
         IERC721Mage(collection).mintTo(recipient, quantity);

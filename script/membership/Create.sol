@@ -47,11 +47,9 @@ contract Create is Script {
 
         // EXTENSIONS
         bytes memory addPayoutAddressExtension = abi.encodeWithSelector(
-            IExtensions.setExtension.selector,
-            IPayoutAddress.payoutAddress.selector,
-            address(payoutAddressExtension)
+            IExtensions.setExtension.selector, IPayoutAddress.payoutAddress.selector, address(payoutAddressExtension)
         );
-        bytes memory addSetPayoutAddressExtension = abi.encodeWithSelector(
+        bytes memory addUpdatePayoutAddressExtension = abi.encodeWithSelector(
             IExtensions.setExtension.selector,
             IPayoutAddress.updatePayoutAddress.selector,
             address(payoutAddressExtension)
@@ -62,14 +60,10 @@ contract Create is Script {
             address(payoutAddressExtension)
         );
         bytes memory addTokenURIExtension = abi.encodeWithSelector(
-            IExtensions.setExtension.selector,
-            INFTMetadata.ext_tokenURI.selector,
-            address(metadataURIExtension)
+            IExtensions.setExtension.selector, INFTMetadata.ext_tokenURI.selector, address(metadataURIExtension)
         );
         bytes memory addContractURIExtension = abi.encodeWithSelector(
-            IExtensions.setExtension.selector,
-            INFTMetadata.ext_contractURI.selector,
-            address(metadataURIExtension)
+            IExtensions.setExtension.selector, INFTMetadata.ext_contractURI.selector, address(metadataURIExtension)
         );
 
         // PERMISSIONS
@@ -79,13 +73,12 @@ contract Create is Script {
             abi.encodeWithSelector(Permissions.addPermission.selector, Operations.MINT, mintModule);
         bytes memory permitFrogAdmin =
             abi.encodeWithSelector(Permissions.addPermission.selector, Operations.ADMIN, frog);
-        bytes memory permitSymAdmin =
-            abi.encodeWithSelector(Permissions.addPermission.selector, Operations.ADMIN, sym);
+        bytes memory permitSymAdmin = abi.encodeWithSelector(Permissions.addPermission.selector, Operations.ADMIN, sym);
 
         // INIT
         bytes[] memory initCalls = new bytes[](9);
         initCalls[0] = addPayoutAddressExtension;
-        initCalls[1] = addSetPayoutAddressExtension;
+        initCalls[1] = addUpdatePayoutAddressExtension;
         initCalls[2] = addRemovePayoutAddressExtension;
         initCalls[3] = addTokenURIExtension;
         initCalls[4] = addContractURIExtension;
