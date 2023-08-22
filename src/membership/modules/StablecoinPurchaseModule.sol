@@ -282,33 +282,21 @@ contract StablecoinPurchaseModule is ModuleSetup, ModulePermit, ModuleFee, Contr
         usePermits(_encodePermitContext(collection))
     {
         require(quantity > 0, "ZERO_AMOUNT");
+
         Parameters memory params = _parameters[collection];
         require(_stablecoinEnabled(params.enabledCoins, paymentCoin), "STABLECOIN_NOT_ENABLED");
         // get decimals-formatted price
         uint256 formattedPrice = mintPriceToStablecoinAmount(params.price, paymentCoin);
 
-        // take total incl fee
-        uint256 paidFee = _registerFeeBatch(collection, paymentCoin, recipient, quantity, formattedPrice);
-
-        // collect fees; approval must have been made prior to top-level mint call;
-        IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, address(this), paidFee);
+        // prevent accidentally unset payoutAddress
         address payoutAddress = PayoutAddressExtension(collection).payoutAddress();
-        // prevent accidentally unset payment collector
         require(payoutAddress != address(0), "MISSING_PAYOUT_ADDRESS");
-        // forward subtotal to collector using SafeERC20 for covering USDT no-return and other transfer issues
-        IERC20Metadata(paymentCoin).safeTransferFrom(msg.sender, payoutAddress, formattedPrice * quantity);
 
+        // calculate fee, require fee sent to this contract, transfer collection's revenue to payoutAddress
+        _collectFeeAndForwardCollectionRevenue(collection, payoutAddress, paymentCoin, recipient, quantity, formattedPrice);
+
+        // mint NFTs
         IERC721Mage(collection).mintTo(recipient, quantity);
-    }
-
-    /// @dev Function to withdraw ERC20 fees accrued by this contract to the owner.
-    /// @param paymentCoin The token address to call. Must previously have been enabled
-    function ownerWithdraw(address paymentCoin) external returns (bool r) {
-        // revert if key not enabled ie token not recognized
-        require(_keyOf[paymentCoin] > 0, "UNSUPPORTED_TOKEN");
-
-        uint256 balance = IERC20Metadata(paymentCoin).balanceOf(address(this));
-        r = IERC20Metadata(paymentCoin).transfer(owner(), balance);
     }
 
     /*============

@@ -116,17 +116,17 @@ contract GasCoinPurchaseModule is ModuleSetup, ModulePermit, ModuleFee, Contract
     {
         require(quantity > 0, "ZERO_QUANTITY");
 
-        // reverts if collection has not been setUp()
-        uint256 price = priceOf(collection);
-
-        // take fee and register to ModuleFeeV2 storage
-        _registerFeeBatch(collection, address(0x0), recipient, quantity, price);
-
-        // send payment
+        // prevent accidentally unset payoutAddress
         address payoutAddress = PayoutAddressExtension(collection).payoutAddress();
-        (bool success,) = payoutAddress.call{value: price * quantity}("");
-        require(success, "PAYMENT_FAIL");
+        require(payoutAddress != address(0), "MISSING_PAYOUT_ADDRESS");
 
+        // reverts if collection has not been setUp()
+        uint256 unitPrice = priceOf(collection);
+
+        // calculate fee, require fee sent to this contract, transfer collection's revenue to payoutAddress
+        _collectFeeAndForwardCollectionRevenue(collection, payoutAddress, address(0), recipient, quantity, unitPrice);
+
+        // mint NFTs
         IERC721Mage(collection).mintTo(recipient, quantity);
     }
 

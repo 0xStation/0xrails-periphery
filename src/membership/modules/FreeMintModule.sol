@@ -101,12 +101,11 @@ contract FreeMintModule is ModuleSetup, ModulePermit, ModuleFee, ContractMetadat
     {
         require(quantity > 0, "ZERO_AMOUNT");
 
-        // take baseFee (variableFee == 0 when price == 0)
-        _registerFeeBatch(collection, address(0x0), recipient, quantity, 0);
+        // calculate fee, require fee sent to this contract, transfer collection's revenue to payoutAddress
+        // however there is no payoutAddress, payment token is network token
+        _collectFeeAndForwardCollectionRevenue(collection, address(0), address(0), recipient, quantity, 0);
 
-        // no revenue transfer to collection payoutAddress because this is a free mint
-
-        // perform mints
+        // mint NFTs
         IERC721Mage(collection).mintTo(recipient, quantity);
     }
 
