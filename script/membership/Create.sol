@@ -53,7 +53,7 @@ contract Create is Script {
         );
         bytes memory addSetPayoutAddressExtension = abi.encodeWithSelector(
             IExtensions.setExtension.selector,
-            IPayoutAddress.setPayoutAddress.selector,
+            IPayoutAddress.updatePayoutAddress.selector,
             address(payoutAddressExtension)
         );
         bytes memory addRemovePayoutAddressExtension = abi.encodeWithSelector(
@@ -96,7 +96,7 @@ contract Create is Script {
 
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, initCalls);
 
-        MembershipFactory(membershipFactory).createMembership(owner, name, symbol, initData);
+        MembershipFactory(membershipFactory).create(owner, name, symbol, initData);
 
         vm.stopBroadcast();
     }

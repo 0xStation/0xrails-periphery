@@ -7,7 +7,6 @@ import {Operations} from "mage/lib/Operations.sol";
 contract ModuleSetup {
     error SetUpUnauthorized(address collection, address account);
 
-    // V2: one modifier to be used on one setUp function
     modifier canSetUp(address collection) {
         if (collection != msg.sender && !IPermissions(collection).hasPermission(Operations.ADMIN, msg.sender)) {
             revert SetUpUnauthorized(collection, msg.sender);

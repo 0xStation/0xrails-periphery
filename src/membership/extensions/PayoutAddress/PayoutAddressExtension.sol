@@ -25,7 +25,7 @@ contract PayoutAddressExtension is PayoutAddress, Extension, ContractMetadata {
     function getAllSelectors() public pure override returns (bytes4[] memory selectors) {
         selectors = new bytes4[](3);
         selectors[0] = this.payoutAddress.selector;
-        selectors[1] = this.setPayoutAddress.selector;
+        selectors[1] = this.updatePayoutAddress.selector;
         selectors[2] = this.removePayoutAddress.selector;
 
         return selectors;
@@ -34,8 +34,8 @@ contract PayoutAddressExtension is PayoutAddress, Extension, ContractMetadata {
     function signatureOf(bytes4 selector) public pure override returns (string memory) {
         if (selector == this.payoutAddress.selector) {
             return "payoutAddress()";
-        } else if (selector == this.setPayoutAddress.selector) {
-            return "setPayoutAddress(address)";
+        } else if (selector == this.updatePayoutAddress.selector) {
+            return "updatePayoutAddress(address)";
         } else if (selector == this.removePayoutAddress.selector) {
             return "removePayoutAddress()";
         } else {

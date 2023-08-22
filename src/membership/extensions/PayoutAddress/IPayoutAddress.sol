@@ -12,6 +12,6 @@ interface IPayoutAddress {
     function payoutAddress() external view returns (address);
 
     // setters
-    function setPayoutAddress(address payoutAddress) external;
+    function updatePayoutAddress(address payoutAddress) external;
     function removePayoutAddress() external;
 }

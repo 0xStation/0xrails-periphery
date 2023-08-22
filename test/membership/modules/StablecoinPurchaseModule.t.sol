@@ -1114,7 +1114,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.startPrank(owner);
         stablecoinModule.setUp(address(proxy), price, stablecoins, false);
         // set payment collector
-        IPayoutAddress(address(proxy)).setPayoutAddress(payoutAddress);
+        IPayoutAddress(address(proxy)).updatePayoutAddress(payoutAddress);
 
         vm.stopPrank();
 

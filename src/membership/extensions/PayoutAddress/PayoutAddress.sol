@@ -21,7 +21,7 @@ contract PayoutAddress is IPayoutAddress {
         SETTERS
     =============*/
 
-    function setPayoutAddress(address newPayoutAddress) external virtual {
+    function updatePayoutAddress(address newPayoutAddress) external virtual {
         _checkCanUpdatePayoutAddress();
         if (newPayoutAddress == address(0)) revert PayoutAddressIsZero();
         _updatePayoutAddress(newPayoutAddress);

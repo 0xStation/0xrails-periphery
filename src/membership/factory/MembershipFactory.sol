@@ -27,7 +27,7 @@ contract MembershipFactory is Initializable, Ownable, UUPSUpgradeable, IMembersh
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    function createMembership(address owner, string memory name, string memory symbol, bytes calldata initData)
+    function create(address owner, string memory name, string memory symbol, bytes calldata initData)
         public
         returns (address membership)
     {
