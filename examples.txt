@@ -44,7 +44,7 @@ forge verify-contract --chain 137 --etherscan-api-key $POLYSCAN_API_KEY --constr
 
 # Verify PayoutAddressExtension
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address)" 0x1c11dd6a807ab1b0a1dca434d614ba2646c7cf51) 0x52Db1fa1B82B63842513Da4482Cd41b26c1Bc307 src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol:PayoutAddressExtension
-forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address)" 0x1c11dd6a807ab1b0a1dca434d614ba2646c7cf51) 0x52Db1fa1B82B63842513Da4482Cd41b26c1Bc307 src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol:PayoutAddressExtension
+forge verify-contract --chain 137 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address)" 0x1c11dd6a807ab1b0a1dca434d614ba2646c7cf51) 0x52Db1fa1B82B63842513Da4482Cd41b26c1Bc307 src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol:PayoutAddressExtension
 
 # Verify MembershipFactory
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY 0xD7B9C9C2aedE444accb7C7A00b8d6Cb99178fa69 src/membership/MembershipFactory.sol:MembershipFactory
