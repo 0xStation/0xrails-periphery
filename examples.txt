@@ -29,6 +29,7 @@ forge verify-contract --chain 137 --etherscan-api-key $POLYSCAN_API_KEY --constr
 
 # Verify StablecoinPurchaseModule
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address,uint8,string,address[],address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0x654ee5b1db9b6e3851c233c4454e9efdcc30c6dc 2 "USD" "[]" 0xd71a3a06c8af65f8d7a3a65b96a4a1c8b9d19840) 0xdce33b64d8403b2c5ca9e63a277a577d013f0e0b src/membership/modules/StablecoinPurchaseModule.sol:StablecoinPurchaseModule
+forge verify-contract --chain 137 --etherscan-api-key $POLYSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address,uint8,string,address[],address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0x654ee5b1db9b6e3851c233c4454e9efdcc30c6dc 2 "USD" "[]" 0xd71a3a06c8af65f8d7a3a65b96a4a1c8b9d19840) 0x5aFDb2888023C01f569180C117863486c4342033 src/membership/modules/StablecoinPurchaseModule.sol:StablecoinPurchaseModule
 
 # Verify MetadataRouter
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,string,string[],string[])" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d "https://dev.station.express/api/v1/nftMetadata" "[]" "[]") 0x1C11Dd6a807aB1B0a1DcA434D614BA2646c7cf51 src/metadataRouter/MetadataRouter.sol:MetadataRouter
