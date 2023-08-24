@@ -160,9 +160,13 @@ contract MembershipFactoryTest is Test, IERC1967 {
         assertEq(newMembership.symbol(), newSymbol);
     }
 
-    function test_fallback() public {
-        (bool r,) = address(membershipFactoryProxy).call(hex'deadbeef');
+    function test_rejectUnrecognizedCalls() public {
+        (bool r,) = address(membershipFactoryProxy).call{ value: 1}('');
+        vm.expectRevert();
         require(r);
+        (bool s,) = address(membershipFactoryProxy).call(hex'deadbeef');
+        vm.expectRevert();
+        require(s);
     }
 }
   

@@ -53,7 +53,4 @@ contract MembershipFactory is Initializable, Ownable, UUPSUpgradeable, IMembersh
         // make a separate call to initialize after deploying new proxy
         IERC721Mage(membership).initialize(membershipOwner, name, symbol, initData);
     }
-
-    // non-payable fallback to reject accidental inbound ETH transfer
-    fallback() external {}
 }
