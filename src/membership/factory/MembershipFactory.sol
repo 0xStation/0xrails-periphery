@@ -43,7 +43,7 @@ contract MembershipFactory is Initializable, Ownable, UUPSUpgradeable, IMembersh
         CREATE
     ============*/
 
-    function create(address owner, string memory name, string memory symbol, bytes calldata initData)
+    function create(address membershipOwner, string memory name, string memory symbol, bytes calldata initData)
         public
         returns (address membership)
     {
@@ -51,7 +51,7 @@ contract MembershipFactory is Initializable, Ownable, UUPSUpgradeable, IMembersh
         emit MembershipCreated(membership); // put MembershipCreated before initialization events for indexer convenience
         // initializer relies on self-delegatecall which does not work when passed through a proxy's constructor
         // make a separate call to initialize after deploying new proxy
-        IERC721Mage(membership).initialize(owner, name, symbol, initData);
+        IERC721Mage(membership).initialize(membershipOwner, name, symbol, initData);
     }
 
     // non-payable fallback to reject accidental inbound ETH transfer
