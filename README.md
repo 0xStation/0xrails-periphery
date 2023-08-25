@@ -16,7 +16,7 @@ _A Solidity framework for creating complex and evolving onchain structures._
 
 ## Contract Architecture
 
-![image](https://github.com/0xStation/tokens-v1/assets/80549215/a68b8a19-4568-45a7-9d32-d5738409081e)
+<div style="text-align:center"><img src="https://github.com/0xStation/tokens-v1/assets/80549215/a68b8a19-4568-45a7-9d32-d5738409081e" width="400" ></div>
 
 ## Deployments
 
