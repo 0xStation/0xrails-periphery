@@ -1,3 +1,8 @@
+forge script --private-key $PRIVATE_KEY --broadcast --chain 1 --verifier-url https://etherscan.com/api --etherscan-api-key $ETHERSCAN_API_KEY --fork-url $MAINNET_RPC_URL script/membership/Deploy.s.sol:Deploy
+
+
+
+
 forge create --rpc-url $POLYGON_RPC_URL src/badge/Badge.sol:Badge --private-key $PRIVATE_KEY --verify --chain-id 137 --api-key $POLYSCAN_API_KEY
 
 forge create --private-key $PRIVATE_KEY --verify --chain-id 5 --rpc-url $GOERLI_RPC_URL --api-key $ETHERSCAN_API_KEY src/badge/Badge.sol:Badge
@@ -6,8 +11,9 @@ forge script --keystores $ETH_KEYSTORE --sender $ETH_FROM --broadcast --fork-url
 
 forge script --keystores $ETH_KEYSTORE --sender $ETH_FROM --broadcast --fork-url $GOERLI_RPC_URL script/membership/DeployTestCollection.s.sol:DeployTestCollection
 
-forge script --private-key $PRIVATE_KEY --broadcast --fork-url $GOERLI_RPC_URL script/membership/Deploy.s.sol:Deploy
+forge script --private-key $PRIVATE_KEY --broadcast --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --fork-url $GOERLI_RPC_URL script/membership/Deploy.s.sol:Deploy
 forge script --private-key $PRIVATE_KEY --broadcast --fork-url $POLYGON_RPC_URL script/membership/Deploy.s.sol:Deploy
+forge script --keystores $ETH_KEYSTORE --sender $ETH_FROM --broadcast --fork-url $GOERLI_RPC_URL script/points/Create.s.sol:Create
 
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY 0xbf4b0f5adac0fc653410b6aaf378665f00f80ecb src/membership/Membership.sol:Membership
 
@@ -16,39 +22,47 @@ forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constru
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,uint256,uint8,string,address[])" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 1000000000000000 2 "USD" "[0xD478219fDca296699A6511f28BA93a265E3E9a1b]") 0xbafce0738451666f43dd98bb579d59f64a91db2e src/membership/modules/StablecoinPurchaseModuleV2.sol:StablecoinPurchaseModuleV2
 
 # Verify FeeManager
+forge verify-contract --chain 1 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,uint120,uint120,uint120,uint120)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0 500 1000000000000000 500) 0x4B5f9B012842d449f84c93B1b9c85A730ea7cd7A src/lib/module/FeeManager.sol:FeeManager
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,(uint8,uint120,uint120),(uint8,uint120,uint120))" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d "(1,0,500)" "(1,2000000000000000000,500)") 0xc0935a7284859199c016Aa4F66704CEB501013E6 src/lib/module/FeeManager.sol:FeeManager
-forge verify-contract --chain 137 --etherscan-api-key $POLYGON_RPC_URL --constructor-args $(cast abi-encode "constructor(address,(uint8,uint120,uint120),(uint8,uint120,uint120))" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d "(1,0,500)" "(1,2000000000000000000,500)") 0xc0935a7284859199c016Aa4F66704CEB501013E6 src/lib/module/FeeManager.sol:FeeManager
+forge verify-contract --chain 137 --etherscan-api-key $POLYSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,uint120,uint120,uint120,uint120)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0 500 2000000000000000000 500) 0x654ee5b1db9b6e3851c233c4454e9efdcc30c6dc src/lib/module/FeeManager.sol:FeeManager
 
 # Verify FreeMintModule
+forge verify-contract --chain 1 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address,address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0x4B5f9B012842d449f84c93B1b9c85A730ea7cd7A 0xeB9359fB4154e4EF9B3Ba153aA86555F69Cd2E3E) 0x695C1E08a20fa2F9873e851e35990e81F54753f5 src/membership/modules/FreeMintModule.sol:FreeMintModule
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d [FeeManager]) [ADDRESS] src/membership/modules/FreeMintModule.sol:FreeMintModule
 forge verify-contract --chain 137 --etherscan-api-key $POLYSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0xc0935a7284859199c016Aa4F66704CEB501013E6) 0xa562A22B1acEDB3D7B534FBb1dDd4ac0669b4443 src/membership/modules/FreeMintModule.sol:FreeMintModule
 
 # Verify GasCoinPurchaseModule
+forge verify-contract --chain 1 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address,address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0x4B5f9B012842d449f84c93B1b9c85A730ea7cd7A 0xeB9359fB4154e4EF9B3Ba153aA86555F69Cd2E3E) 0x5aFDb2888023C01f569180C117863486c4342033 src/membership/modules/GasCoinPurchaseModule.sol:GasCoinPurchaseModule
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address,address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0x654ee5b1db9b6e3851c233c4454e9efdcc30c6dc 0xd71a3a06c8af65f8d7a3a65b96a4a1c8b9d19840) 0x9caf253f0c8a9b0755793de191fb48c2aa9683fb src/membership/modules/GasCoinPurchaseModule.sol:GasCoinPurchaseModule
 forge verify-contract --chain 137 --etherscan-api-key $POLYSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0xc0935a7284859199c016Aa4F66704CEB501013E6) 0x284aF8FAEc61fa5275544db2082465152BfFE945 src/membership/modules/GasCoinPurchaseModule.sol:GasCoinPurchaseModule
 
 # Verify StablecoinPurchaseModule
+forge verify-contract --chain 1 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address,uint8,string,address[],address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0x4B5f9B012842d449f84c93B1b9c85A730ea7cd7A 2 "USD" "[0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48]" 0xeB9359fB4154e4EF9B3Ba153aA86555F69Cd2E3E) 0x673003F86fFe32F7CaA3E5fcfDC711EBf8A64aeF src/membership/modules/StablecoinPurchaseModule.sol:StablecoinPurchaseModule
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address,uint8,string,address[],address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0x654ee5b1db9b6e3851c233c4454e9efdcc30c6dc 2 "USD" "[]" 0xd71a3a06c8af65f8d7a3a65b96a4a1c8b9d19840) 0xdce33b64d8403b2c5ca9e63a277a577d013f0e0b src/membership/modules/StablecoinPurchaseModule.sol:StablecoinPurchaseModule
 forge verify-contract --chain 137 --etherscan-api-key $POLYSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,address,uint8,string,address[],address)" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d 0x654ee5b1db9b6e3851c233c4454e9efdcc30c6dc 2 "USD" "[]" 0xd71a3a06c8af65f8d7a3a65b96a4a1c8b9d19840) 0x5aFDb2888023C01f569180C117863486c4342033 src/membership/modules/StablecoinPurchaseModule.sol:StablecoinPurchaseModule
 
 # Verify MetadataRouter
-forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,string,string[],string[])" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d "https://dev.station.express/api/v1/nftMetadata" "[]" "[]") 0x1C11Dd6a807aB1B0a1DcA434D614BA2646c7cf51 src/metadataRouter/MetadataRouter.sol:MetadataRouter
-forge verify-contract --chain 137 --etherscan-api-key $POLYSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,string,string[],string[])" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d "https://groupos.xyz/api/v1/nftMetadata" "[]" "[]") 0xdC5eED391bB6F4a246ADAf281347a61A5Da37f06 src/metadataRouter/MetadataRouter.sol:MetadataRouter
+forge verify-contract --chain 1 --etherscan-api-key $ETHERSCAN_API_KEY 0x88165d0cb77C807EC35D8296a20a78E0D0AfEa14 src/metadataRouter/MetadataRouter.sol:MetadataRouter
+forge verify-contract --chain 137 --etherscan-api-key $POLYSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address,string,string[],string[])" 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d "https://groupos.xyz/api/v1/contractMetadata" "['token']" "['https://groupos.xyz/api/v1/nfttMetadata']") 0xdC5eED391bB6F4a246ADAf281347a61A5Da37f06 src/metadataRouter/MetadataRouter.sol:MetadataRouter
 
 # Verify OnePerAddressGuard
+forge verify-contract --chain 1 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address)" 0xeB9359fB4154e4EF9B3Ba153aA86555F69Cd2E3E) 0xE02d1f7800409E7729F028B576634A71f590dBa4 src/membership/guards/OnePerAddressGuard.sol:OnePerAddressGuard
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address)" 0x1c11dd6a807ab1b0a1dca434d614ba2646c7cf51) [ADDRESS] src/membership/guards/OnePerAddressGuard.sol:OnePerAddressGuard
 forge verify-contract --chain 137 --etherscan-api-key $POLYSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address)" 0xdC5eED391bB6F4a246ADAf281347a61A5Da37f06) 0xC4748Fb528Bcf583144225e3F3d0b765B413383A src/membership/guards/OnePerAddressGuard.sol:OnePerAddressGuard
 
 # Verify MetadataURIExtension
+forge verify-contract --chain 1 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address)" 0xeB9359fB4154e4EF9B3Ba153aA86555F69Cd2E3E) 0xda142d7C6105aFa35CE23Fc4db5fee595D4Ebc55 src/membership/extensions/NFTMetadataRouter/NFTMetadataRouterExtension.sol:NFTMetadataRouterExtension
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address)" 0x1c11dd6a807ab1b0a1dca434d614ba2646c7cf51) 0xD130547Bfcb52f66d0233F0206A6C427d89F81ED src/membership/extensions/MetadataURI/MetadataURIExtension.sol:MetadataURIExtension
 forge verify-contract --chain 137 --etherscan-api-key $POLYSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address)" 0xdC5eED391bB6F4a246ADAf281347a61A5Da37f06) 0xd3113b1Af3b09196EAc3f938857C2eA0195D24bE src/membership/extensions/MetadataURI/MetadataURIExtension.sol:MetadataURIExtension
 
 # Verify PayoutAddressExtension
+forge verify-contract --chain 1 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address)" 0xeB9359fB4154e4EF9B3Ba153aA86555F69Cd2E3E) 0x5092d5033797cc7ac5c71e8e8bcbdDD29507093e src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol:PayoutAddressExtension
 forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address)" 0x1c11dd6a807ab1b0a1dca434d614ba2646c7cf51) 0x52Db1fa1B82B63842513Da4482Cd41b26c1Bc307 src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol:PayoutAddressExtension
 forge verify-contract --chain 137 --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cast abi-encode "constructor(address)" 0x1c11dd6a807ab1b0a1dca434d614ba2646c7cf51) 0x52Db1fa1B82B63842513Da4482Cd41b26c1Bc307 src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol:PayoutAddressExtension
 
 # Verify MembershipFactory
-forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY 0xD7B9C9C2aedE444accb7C7A00b8d6Cb99178fa69 src/membership/MembershipFactory.sol:MembershipFactory
+forge verify-contract --chain 1 --etherscan-api-key $ETHERSCAN_API_KEY 0x0e81d74FEdf54dF1B2dc1231c4C7f0Ca1348c37F src/membership/MembershipFactory.sol:MembershipFactory
+forge verify-contract --chain 5 --etherscan-api-key $ETHERSCAN_API_KEY 0x8E78f05CD6FBb7f4307826C74b52134221A76657 src/points/PointsFactory.sol:PointsFactory
 forge verify-contract --chain 137 --etherscan-api-key $POLYSCAN_API_KEY 0xC259EeF52A74527dcE52f4e9D5C45EaE9d54ebbf src/membership/MembershipFactory.sol:MembershipFactory
 
 # Deploy FreeMintModule and verify
