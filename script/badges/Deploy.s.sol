@@ -26,8 +26,7 @@ contract Deploy is Script {
     }
 
     function deployBadgesFactory() internal returns (address) {
-        address badgesImpl = 0x5195A67eBf55E6f76F6c36E017e14a807d1f4c1D; // goerli
-        // address badgesImpl = 0x5195a67ebf55e6f76f6c36e017e14a807d1f4c1d; // polygon
+        address badgesImpl = 0x0016864123d66B09bBBFfa690992196fdBDaA771; // goerli
         address badgesFactoryImpl = address(new BadgesFactory());
 
         bytes memory initFactory =

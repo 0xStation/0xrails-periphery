@@ -50,6 +50,11 @@
       "ERC20Mage (impl)": "0x5195a67ebf55e6f76f6c36e017e14a807d1f4c1d",
       "PointsFactory (impl)": "0x8e78f05cd6fbb7f4307826c74b52134221a76657",
       "PointsFactory (proxy)": "0xC727b7c9123fEc809E896C530AAfeA7Eda8fc684"
+    },
+    "badges": {
+      "ERC1155Mage (impl)": "0x0016864123d66B09bBBFfa690992196fdBDaA771",
+      "BadgesFactory (impl)": "0x0cfb5c196E6905391EFb10bcb2d059794a7f3B99",
+      "BadgesFactory (proxy)": "0x3192BF082DD537944b09Da147C5AFbAf9d6dC11C"
     }
   }
 }
