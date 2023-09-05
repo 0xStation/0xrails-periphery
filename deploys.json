@@ -29,6 +29,11 @@
       "StablecoinPurchaseModule": "0x673003f86ffe32f7caa3e5fcfdc711ebf8a64aef",
       "MembershipFactory (impl)": "0x0e81d74FEdf54dF1B2dc1231c4C7f0Ca1348c37F",
       "MembershipFactory (proxy)": "0xc59EAFF8FFed977f02361dd99329A2217AaFC0E6"
+    },
+    "badges": {
+      "ERC1155 Mage (impl)": "0xfc6eea2467f921c66063c8e2adb193c44299e869",
+      "BadgesFactory (impl)": "0x9c4969e1c585491Ac5382EeeB9BC9668f8a5788c",
+      "BadgesFactory (proxy)": "0x8B389E7756663fBEB472b60d9262759369332e4A"
     }
   },
   "5": {
