@@ -476,7 +476,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     ) public {
         (
             address buyer,
-            uint256 buyerInitialBalance,
+            ,
             uint256 buyerInitialStablecoinBalance,
             uint256 payoutAddressInitialStablecoinBalance
         ) = initModuleAndBuyer(coinDecimals, moduleDecimals, baseFee, variableFee, price, balanceOffset);
@@ -513,7 +513,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     ) public {
         (
             address buyer,
-            uint256 buyerInitialBalance,
+            ,
             uint256 buyerInitialStablecoinBalance,
             uint256 payoutAddressInitialStablecoinBalance
         ) = initModuleAndBuyer(coinDecimals, moduleDecimals, baseFee, variableFee, price, balanceOffset);
@@ -590,7 +590,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         (
             address buyer,
             uint256 buyerInitialBalance,
-            uint256 buyerInitialStablecoinBalance,
+            ,
             uint256 payoutAddressInitialStablecoinBalance
         ) = initModuleAndBuyer(coinDecimals, moduleDecimals, baseFee, variableFee, price, balanceOffset);
 
@@ -602,9 +602,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         uint256 amount = 1; // single mint
 
         uint256 priceFormattedDecimals = stablecoinModule.mintPriceToStablecoinAmount(price, address(stablecoin));
-        uint256 stablecoinFee =
-            feeManager.getFeeTotals(address(proxy), address(stablecoin), buyer, 1, priceFormattedDecimals);
-        uint256 totalInclFees = priceFormattedDecimals + stablecoinFee;
+        feeManager.getFeeTotals(address(proxy), address(stablecoin), buyer, amount, priceFormattedDecimals);
 
         // attempt mint with invalid fee ie insufficient stablecoin balance
         vm.expectRevert(bytes("ERC20: transfer amount exceeds balance"));
@@ -895,7 +893,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.assume(amount > 0);
         (
             address buyer,
-            uint256 buyerInitialBalance,
+            ,
             uint256 buyerInitialStablecoinBalance,
             uint256 payoutAddressInitialStablecoinBalance
         ) = initModuleAndBuyer(
@@ -938,7 +936,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.assume(amount > 0);
         (
             address buyer,
-            uint256 buyerInitialBalance,
+            ,
             uint256 buyerInitialStablecoinBalance,
             uint256 payoutAddressInitialStablecoinBalance
         ) = initModuleAndBuyer(

@@ -104,8 +104,6 @@ contract FeeManagerTest is Test, SetUpMembership {
         vm.expectRevert(err);
         feeManager.getTokenFees(tokenAddress);
 
-        FeeManager.Fees memory tokenFees = FeeManager.Fees(true, testParams.baseFee, testParams.variableFee);
-
         err = bytes("Ownable: caller is not the owner");
         vm.expectRevert(err);
         feeManager.setTokenFees(tokenAddress, testParams.baseFee, testParams.variableFee);
@@ -200,7 +198,6 @@ contract FeeManagerTest is Test, SetUpMembership {
     // getFeeTotals tests split into 3 for `stack too deep` errors
     function test_getFeeTotalsBaseline(
         TestParams memory testParams,
-        TestParams memory tokenParams,
         TestParams memory collectionParams,
         address tokenAddress,
         uint16 quantity,
@@ -275,7 +272,6 @@ contract FeeManagerTest is Test, SetUpMembership {
 
     function test_getFeeTotalsCollection(
         TestParams memory testParams,
-        TestParams memory tokenParams,
         TestParams memory collectionParams,
         address tokenAddress,
         uint16 quantity,
@@ -296,9 +292,6 @@ contract FeeManagerTest is Test, SetUpMembership {
 
         address someRecipient = address(0xdeadbeef);
 
-        // set erc20 collectionFees
-        FeeManager.Fees memory erc20CollectionFees =
-            FeeManager.Fees(true, collectionParams.baseFee, collectionParams.variableFee);
         vm.prank(feeManager.owner());
         feeManager.setTokenFees(tokenAddress, collectionParams.baseFee, collectionParams.variableFee);
 
