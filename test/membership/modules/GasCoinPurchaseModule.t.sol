@@ -3,8 +3,8 @@ pragma solidity ^0.8.13;
 
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
-import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
-import {Operations} from "mage/lib/Operations.sol";
+import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
+import {Operations} from "0xrails/lib/Operations.sol";
 
 import {GasCoinPurchaseModule} from "src/membership/modules/GasCoinPurchaseModule.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
@@ -12,7 +12,7 @@ import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/Pa
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
 contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
-    ERC721Mage public proxy;
+    ERC721Rails public proxy;
     GasCoinPurchaseModule public gasCoinModule;
     FeeManager public feeManager;
 

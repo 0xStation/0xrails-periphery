@@ -27,7 +27,7 @@ contract Deploy is Script {
     function run() public {
         vm.startBroadcast();
 
-        /// @dev first deploy ERC721Mage from the mage repo and update the address in `deployMembershipFactory`!
+        /// @dev first deploy ERC721Rails from the 0xrails repo and update the address in `deployMembershipFactory`!
 
         address metadataRouter = deployMetadataRouter();
         deployOnePerAddressGuard(metadataRouter);
@@ -104,11 +104,11 @@ contract Deploy is Script {
     }
 
     function deployMembershipFactory() internal returns (address) {
-        address erc721Mage = 0x7c804b088109C23d9129366a8C069448A4b219F8; // goerli, polygon, mainnet
+        address erc721Rails = 0x7c804b088109C23d9129366a8C069448A4b219F8; // goerli, polygon, mainnet
         address membershipFactoryImpl = address(new MembershipFactory());
 
         bytes memory initFactory =
-            abi.encodeWithSelector(MembershipFactory(membershipFactoryImpl).initialize.selector, erc721Mage, owner);
+            abi.encodeWithSelector(MembershipFactory(membershipFactoryImpl).initialize.selector, erc721Rails, owner);
         return address(new ERC1967Proxy(membershipFactoryImpl, initFactory));
     }
 }

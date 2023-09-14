@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
+import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
 // src
 import {Test} from "forge-std/Test.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
@@ -16,7 +16,7 @@ contract FeeManagerTest is Test, SetUpMembership {
     }
 
     FeeManager public feeManager;
-    ERC721Mage public proxy;
+    ERC721Rails public proxy;
 
     // intended to contain custom error signatures
     bytes public err;

@@ -3,8 +3,8 @@ pragma solidity ^0.8.13;
 
 import {Strings} from "openzeppelin-contracts/utils/Strings.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
-import {Ownable} from "mage/access/ownable/Ownable.sol";
-import {Initializable} from "mage/lib/initializable/Initializable.sol";
+import {Ownable} from "0xrails/access/ownable/Ownable.sol";
+import {Initializable} from "0xrails/lib/initializable/Initializable.sol";
 
 import {IMetadataRouter} from "./IMetadataRouter.sol";
 import {MetadataRouterStorage} from "./MetadataRouterStorage.sol";

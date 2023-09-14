@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {IERC721Mage} from "mage/cores/ERC721/interface/IERC721Mage.sol";
-import {IPermissions} from "mage/access/permissions/interface/IPermissions.sol";
-import {Operations} from "mage/lib/Operations.sol";
+import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
+import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
+import {Operations} from "0xrails/lib/Operations.sol";
 
 import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
 import {ModulePermit} from "src/lib/module/ModulePermit.sol";
@@ -130,7 +130,7 @@ contract GasCoinPurchaseModule is ModuleSetup, ModulePermit, ModuleFee, Contract
         _collectFeeAndForwardCollectionRevenue(collection, payoutAddress, address(0), recipient, quantity, unitPrice);
 
         // mint NFTs
-        IERC721Mage(collection).mintTo(recipient, quantity);
+        IERC721Rails(collection).mintTo(recipient, quantity);
     }
 
     /*============

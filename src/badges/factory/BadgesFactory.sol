@@ -3,9 +3,9 @@ pragma solidity ^0.8.13;
 
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
-import {Ownable} from "mage/access/ownable/Ownable.sol";
-import {Initializable} from "mage/lib/initializable/Initializable.sol";
-import {IERC721Mage} from "mage/cores/ERC721/interface/IERC721Mage.sol";
+import {Ownable} from "0xrails/access/ownable/Ownable.sol";
+import {Initializable} from "0xrails/lib/initializable/Initializable.sol";
+import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
 
 import {IBadgesFactory} from "./IBadgesFactory.sol";
 import {BadgesFactoryStorage} from "./BadgesFactoryStorage.sol";
@@ -51,6 +51,6 @@ contract BadgesFactory is Initializable, Ownable, UUPSUpgradeable, IBadgesFactor
         emit BadgesCreated(badges); // put BadgesCreated before initialization events for indexer convenience
         // initializer relies on self-delegatecall which does not work when passed through a proxy's constructor
         // make a separate call to initialize after deploying new proxy
-        IERC721Mage(badges).initialize(owner, name, symbol, initData);
+        IERC721Rails(badges).initialize(owner, name, symbol, initData);
     }
 }
