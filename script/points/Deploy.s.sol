@@ -18,7 +18,7 @@ contract Deploy is Script {
     function run() public {
         vm.startBroadcast();
 
-        /// @dev first deploy ERC20Mage from the mage repo and update the address in `deployPointsFactory`!
+        /// @dev first deploy ERC20Rails from the rails repo and update the address in `deployPointsFactory`!
 
         deployPointsFactory();
 
@@ -26,12 +26,12 @@ contract Deploy is Script {
     }
 
     function deployPointsFactory() internal returns (address) {
-        address erc20Mage = 0x5195A67eBf55E6f76F6c36E017e14a807d1f4c1D; // goerli
-        // address erc20Mage = 0x5195a67ebf55e6f76f6c36e017e14a807d1f4c1d; // polygon
+        address erc20Rails = 0x5195A67eBf55E6f76F6c36E017e14a807d1f4c1D; // goerli
+        // address erc20Rails = 0x5195a67ebf55e6f76f6c36e017e14a807d1f4c1d; // polygon
         address pointsFactoryImpl = address(new PointsFactory());
 
         bytes memory initFactory =
-            abi.encodeWithSelector(PointsFactory(pointsFactoryImpl).initialize.selector, erc20Mage, owner);
+            abi.encodeWithSelector(PointsFactory(pointsFactoryImpl).initialize.selector, erc20Rails, owner);
         return address(new ERC1967Proxy(pointsFactoryImpl, initFactory));
     }
 }

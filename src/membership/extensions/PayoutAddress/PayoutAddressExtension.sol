@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Extension} from "mage/extension/Extension.sol";
+import {Extension} from "0xrails/extension/Extension.sol";
 
 import {ContractMetadata} from "../../../lib/ContractMetadata.sol";
 import {PayoutAddress} from "./PayoutAddress.sol";

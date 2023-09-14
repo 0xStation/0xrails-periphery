@@ -3,10 +3,10 @@ pragma solidity ^0.8.13;
 
 import {Script} from "forge-std/Script.sol";
 import {Multicall} from "openzeppelin-contracts/utils/Multicall.sol";
-import {Permissions} from "mage/access/permissions/Permissions.sol";
-import {PermissionsStorage} from "mage/access/permissions/PermissionsStorage.sol";
-import {Operations} from "mage/lib/Operations.sol";
-import {IExtensions} from "mage/extension/interface/IExtensions.sol";
+import {Permissions} from "0xrails/access/permissions/Permissions.sol";
+import {PermissionsStorage} from "0xrails/access/permissions/PermissionsStorage.sol";
+import {Operations} from "0xrails/lib/Operations.sol";
+import {IExtensions} from "0xrails/extension/interface/IExtensions.sol";
 
 import {FeeManager} from "../../src/lib/module/FeeManager.sol";
 import {FreeMintModule} from "../../src/membership/modules/FreeMintModule.sol";

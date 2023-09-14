@@ -20,7 +20,7 @@ _A Solidity framework for creating complex and evolving onchain structures._
 
 ## Deployments
 
-| EVM Network | ERC721Mage Address | MembershipFactory Address |
+| EVM Network | ERC721Rails Address | MembershipFactory Address |
 | --- | --- | --- |
 | Goerli | [0x7ffb51b8b8381c094bd24da941d586cfd91b729c](https://goerli.etherscan.io/address/0x7ffb51b8b8381c094bd24da941d586cfd91b729c) | [0xc59EAFF8FFed977f02361dd99329A2217AaFC0E6](https://goerli.etherscan.io/address/0xc59EAFF8FFed977f02361dd99329A2217AaFC0E6) |
 | Polygon | [0x7ffb51b8b8381c094bd24da941d586cfd91b729c](https://polygonscan.com/address/0x7ffb51b8b8381c094bd24da941d586cfd91b729c) | [0xc59EAFF8FFed977f02361dd99329A2217AaFC0E6](https://polygonscan.com/address/0xc59EAFF8FFed977f02361dd99329A2217AaFC0E6) |
