@@ -2,11 +2,11 @@
 pragma solidity ^0.8.13;
 
 import {Test} from "forge-std/Test.sol";
-import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
-import {Operations} from "mage/lib/Operations.sol";
-import {IERC721A} from "lib/mage/lib/ERC721A/contracts/IERC721A.sol";
-import {IPermissionsInternal as IPermissions} from "mage/access/permissions/interface/IPermissions.sol";
-import {IGuardsInternal as IGuards} from "mage/guard/interface/IGuards.sol";
+import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
+import {Operations} from "0xrails/lib/Operations.sol";
+import {IERC721A} from "lib/0xrails/lib/ERC721A/contracts/IERC721A.sol";
+import {IPermissionsInternal as IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
+import {IGuardsInternal as IGuards} from "0xrails/guard/interface/IGuards.sol";
 
 // src
 
@@ -28,7 +28,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         uint128 price;
     }
 
-    ERC721Mage public proxy;
+    ERC721Rails public proxy;
     StablecoinPurchaseModule public stablecoinModule;
     FakeERC20 public stablecoin;
     FeeManager public feeManager;
@@ -355,7 +355,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         bytes memory setUpModuleData =
             abi.encodeWithSignature("setUp(uint128,address[],bool)", price, stablecoins, false);
         bytes memory executeModuleSetUpData =
-            abi.encodeWithSelector(proxy.execute.selector, address(stablecoinModule), 0, setUpModuleData);
+            abi.encodeWithSelector(proxy.executeCall.selector, address(stablecoinModule), 0, setUpModuleData);
         bytes memory addPermissionData =
             abi.encodeWithSelector(proxy.addPermission.selector, Operations.MINT, address(stablecoinModule));
 
@@ -476,7 +476,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     ) public {
         (
             address buyer,
-            uint256 buyerInitialBalance,
+            ,
             uint256 buyerInitialStablecoinBalance,
             uint256 payoutAddressInitialStablecoinBalance
         ) = initModuleAndBuyer(coinDecimals, moduleDecimals, baseFee, variableFee, price, balanceOffset);
@@ -513,7 +513,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     ) public {
         (
             address buyer,
-            uint256 buyerInitialBalance,
+            ,
             uint256 buyerInitialStablecoinBalance,
             uint256 payoutAddressInitialStablecoinBalance
         ) = initModuleAndBuyer(coinDecimals, moduleDecimals, baseFee, variableFee, price, balanceOffset);
@@ -590,7 +590,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         (
             address buyer,
             uint256 buyerInitialBalance,
-            uint256 buyerInitialStablecoinBalance,
+            ,
             uint256 payoutAddressInitialStablecoinBalance
         ) = initModuleAndBuyer(coinDecimals, moduleDecimals, baseFee, variableFee, price, balanceOffset);
 
@@ -602,9 +602,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         uint256 amount = 1; // single mint
 
         uint256 priceFormattedDecimals = stablecoinModule.mintPriceToStablecoinAmount(price, address(stablecoin));
-        uint256 stablecoinFee =
-            feeManager.getFeeTotals(address(proxy), address(stablecoin), buyer, 1, priceFormattedDecimals);
-        uint256 totalInclFees = priceFormattedDecimals + stablecoinFee;
+        feeManager.getFeeTotals(address(proxy), address(stablecoin), buyer, amount, priceFormattedDecimals);
 
         // attempt mint with invalid fee ie insufficient stablecoin balance
         vm.expectRevert(bytes("ERC20: transfer amount exceeds balance"));
@@ -895,7 +893,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.assume(amount > 0);
         (
             address buyer,
-            uint256 buyerInitialBalance,
+            ,
             uint256 buyerInitialStablecoinBalance,
             uint256 payoutAddressInitialStablecoinBalance
         ) = initModuleAndBuyer(
@@ -938,7 +936,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         vm.assume(amount > 0);
         (
             address buyer,
-            uint256 buyerInitialBalance,
+            ,
             uint256 buyerInitialStablecoinBalance,
             uint256 payoutAddressInitialStablecoinBalance
         ) = initModuleAndBuyer(

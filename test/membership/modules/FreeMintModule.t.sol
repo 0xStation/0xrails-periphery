@@ -3,15 +3,15 @@ pragma solidity ^0.8.13;
 
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
-import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
-import {Operations} from "mage/lib/Operations.sol";
+import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
+import {Operations} from "0xrails/lib/Operations.sol";
 
 import {FreeMintModule} from "src/membership/modules/FreeMintModule.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
 contract FreeMintModuleTest is Test, SetUpMembership {
-    ERC721Mage public proxy;
+    ERC721Rails public proxy;
     FreeMintModule public module;
     FeeManager public feeManager;
 

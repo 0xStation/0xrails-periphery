@@ -18,7 +18,7 @@ contract Deploy is Script {
     function run() public {
         vm.startBroadcast();
 
-        /// @dev first deploy ERC1155Mage from the mage repo and update the address in `deployBadgesFactory`!
+        /// @dev first deploy ERC1155Rails from the 0xrails repo and update the address in `deployBadgesFactory`!
 
         deployBadgesFactory();
 

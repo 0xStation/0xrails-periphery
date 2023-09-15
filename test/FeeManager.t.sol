@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
+import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
 // src
 import {Test} from "forge-std/Test.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
@@ -16,7 +16,7 @@ contract FeeManagerTest is Test, SetUpMembership {
     }
 
     FeeManager public feeManager;
-    ERC721Mage public proxy;
+    ERC721Rails public proxy;
 
     // intended to contain custom error signatures
     bytes public err;
@@ -103,8 +103,6 @@ contract FeeManagerTest is Test, SetUpMembership {
         err = abi.encodeWithSelector(FeesNotSet.selector);
         vm.expectRevert(err);
         feeManager.getTokenFees(tokenAddress);
-
-        FeeManager.Fees memory tokenFees = FeeManager.Fees(true, testParams.baseFee, testParams.variableFee);
 
         err = bytes("Ownable: caller is not the owner");
         vm.expectRevert(err);
@@ -200,7 +198,6 @@ contract FeeManagerTest is Test, SetUpMembership {
     // getFeeTotals tests split into 3 for `stack too deep` errors
     function test_getFeeTotalsBaseline(
         TestParams memory testParams,
-        TestParams memory tokenParams,
         TestParams memory collectionParams,
         address tokenAddress,
         uint16 quantity,
@@ -275,7 +272,6 @@ contract FeeManagerTest is Test, SetUpMembership {
 
     function test_getFeeTotalsCollection(
         TestParams memory testParams,
-        TestParams memory tokenParams,
         TestParams memory collectionParams,
         address tokenAddress,
         uint16 quantity,
@@ -296,9 +292,6 @@ contract FeeManagerTest is Test, SetUpMembership {
 
         address someRecipient = address(0xdeadbeef);
 
-        // set erc20 collectionFees
-        FeeManager.Fees memory erc20CollectionFees =
-            FeeManager.Fees(true, collectionParams.baseFee, collectionParams.variableFee);
         vm.prank(feeManager.owner());
         feeManager.setTokenFees(tokenAddress, collectionParams.baseFee, collectionParams.variableFee);
 

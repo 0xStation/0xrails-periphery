@@ -4,9 +4,9 @@ pragma solidity ^0.8.13;
 // use SafeERC20: https://soliditydeveloper.com/safe-erc20
 import {SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {IERC721Mage} from "mage/cores/ERC721/interface/IERC721Mage.sol";
-import {IPermissions} from "mage/access/permissions/interface/IPermissions.sol";
-import {Operations} from "mage/lib/Operations.sol";
+import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
+import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
+import {Operations} from "0xrails/lib/Operations.sol";
 
 import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
 import {ModulePermit} from "src/lib/module/ModulePermit.sol";
@@ -298,7 +298,7 @@ contract StablecoinPurchaseModule is ModuleSetup, ModulePermit, ModuleFee, Contr
         );
 
         // mint NFTs
-        IERC721Mage(collection).mintTo(recipient, quantity);
+        IERC721Rails(collection).mintTo(recipient, quantity);
     }
 
     /*============

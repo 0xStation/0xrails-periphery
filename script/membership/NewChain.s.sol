@@ -4,12 +4,12 @@ pragma solidity ^0.8.13;
 import {Script} from "forge-std/Script.sol";
 import {Multicall} from "openzeppelin-contracts/utils/Multicall.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {Permissions} from "mage/access/permissions/Permissions.sol";
-import {PermissionsStorage} from "mage/access/permissions/PermissionsStorage.sol";
-import {Operations} from "mage/lib/Operations.sol";
-import {IExtensions} from "mage/extension/interface/IExtensions.sol";
-import {ERC721Mage} from "mage/cores/ERC721/ERC721Mage.sol";
-import {IERC721Mage} from "mage/cores/ERC721/interface/IERC721Mage.sol";
+import {Permissions} from "0xrails/access/permissions/Permissions.sol";
+import {PermissionsStorage} from "0xrails/access/permissions/PermissionsStorage.sol";
+import {Operations} from "0xrails/lib/Operations.sol";
+import {IExtensions} from "0xrails/extension/interface/IExtensions.sol";
+import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
+import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
 
 import {FeeManager} from "../../src/lib/module/FeeManager.sol";
 import {FreeMintModule} from "../../src/membership/modules/FreeMintModule.sol";
@@ -69,14 +69,14 @@ contract NewChain is Script {
 
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, initCalls);
 
-        address membershipImpl = address(new ERC721Mage());
+        address membershipImpl = address(new ERC721Rails());
         address membership = address(new ERC1967Proxy(membershipImpl, ""));
 
-        IERC721Mage(membership).initialize(owner, name, symbol, initData);
+        IERC721Rails(membership).initialize(owner, name, symbol, initData);
     }
 
     function mint() public {
         address membership = 0x4D66E97536CF3433e201dA1Fc59170165Ff93Be4;
-        IERC721Mage(membership).mintTo(sym, 1);
+        IERC721Rails(membership).mintTo(sym, 1);
     }
 }
