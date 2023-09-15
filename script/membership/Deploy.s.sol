@@ -13,6 +13,7 @@ import {NFTMetadataRouterExtension} from
 import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {MembershipFactory} from "../../src/membership/factory/MembershipFactory.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {Strings} from "openzeppelin-contracts/utils/Strings.sol";
 
 contract Deploy is ScriptUtils {
 
@@ -89,6 +90,17 @@ contract Deploy is ScriptUtils {
         // missing: ExtensionBeacon
 
         vm.stopBroadcast();
+
+        writeUsedSalt(saltString, string.concat("MetaDataRouterImpl @", Strings.toHexString(address(metadataRouterImpl))));
+        writeUsedSalt(saltString, string.concat("MetaDataRouterProxy @", Strings.toHexString(address(metadataRouter))));
+        writeUsedSalt(saltString, string.concat("NFTMetadataRouterExtension @", Strings.toHexString(address(nftMetadataRouterExtension))));
+        writeUsedSalt(saltString, string.concat("PayoutAddressExtension @", Strings.toHexString(address(payoutAddressExtension))));
+        writeUsedSalt(saltString, string.concat("FeeManager @", Strings.toHexString(address(feeManager))));
+        writeUsedSalt(saltString, string.concat("FreeMintModule @", Strings.toHexString(address(freeMintModule))));
+        writeUsedSalt(saltString, string.concat("GasCoinPurchaseModule @", Strings.toHexString(address(gasCoinPurchaseModule))));
+        writeUsedSalt(saltString, string.concat("StablecoinPurchaseModule @", Strings.toHexString(address(stablecoinPurchaseModule))));
+        writeUsedSalt(saltString, string.concat("MembershipFactoryImpl @", Strings.toHexString(address(membershipFactoryImpl))));
+        writeUsedSalt(saltString, string.concat("MembershipFactoryProxy @", Strings.toHexString(address(membershipFactory))));
     }
 
     function deployMetadataRouter(address _owner, string memory _defaultURI, string[] memory _routes, string[] memory _uris, bytes32 _salt) internal returns (MetadataRouter _impl, MetadataRouter _proxy) {
