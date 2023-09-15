@@ -5,4 +5,7 @@ libs = ['lib']
 solc = "0.8.16"
 initial_balance = '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF' # == type(uint120).max for fuzz testing
 
+# Configures permissions for cheatcodes that touch the filesystem like `vm.readFile`
+fs_permissions = [{ access = "read-write", path = "./script/input" }]
+
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
