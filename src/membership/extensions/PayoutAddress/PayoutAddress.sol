@@ -48,8 +48,8 @@ contract PayoutAddress is IPayoutAddress, Permissions {
         AUTHORIZATION
     ====================*/
 
-    function _checkCanUpdatePayoutAddress() internal virtual returns (bool) {
-        return hasPermission(Operations.ADMIN, msg.sender);
+    function _checkCanUpdatePayoutAddress() internal virtual {
+        _checkCanUpdatePermissions();
     }
 
     function _checkCanUpdatePermissions() internal virtual override {
