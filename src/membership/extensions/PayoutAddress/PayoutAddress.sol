@@ -6,7 +6,7 @@ import {IPermissions} from "0xrails//access/permissions/interface/IPermissions.s
 import {IPayoutAddress} from "./IPayoutAddress.sol";
 import {PayoutAddressStorage} from "./PayoutAddressStorage.sol";
 
-contract PayoutAddress is IPayoutAddress {
+abstract contract PayoutAddress is IPayoutAddress {
 
     /*===========
         VIEWS
@@ -22,13 +22,13 @@ contract PayoutAddress is IPayoutAddress {
     =============*/
 
     function updatePayoutAddress(address newPayoutAddress) external virtual {
-        if (!_checkCanUpdatePayoutAddress()) revert CannotUpdatePayoutAddress(msg.sender);
+        _checkCanUpdatePayoutAddress();
         if (newPayoutAddress == address(0)) revert PayoutAddressIsZero();
         _updatePayoutAddress(newPayoutAddress);
     }
 
     function removePayoutAddress() external virtual {
-        if (!_checkCanUpdatePayoutAddress()) revert CannotUpdatePayoutAddress(msg.sender);
+        _checkCanUpdatePayoutAddress();
         _updatePayoutAddress(address(0));
     }
 
@@ -42,7 +42,9 @@ contract PayoutAddress is IPayoutAddress {
         AUTHORIZATION
     ====================*/
 
-    function _checkCanUpdatePayoutAddress() internal virtual returns (bool) {
-        return IPermissions(address(this)).hasPermission(Operations.ADMIN, msg.sender);
+    function _checkCanUpdatePayoutAddress() internal virtual {
+        if (!IPermissions(address(this)).hasPermission(Operations.ADMIN, msg.sender)) {
+            revert CannotUpdatePayoutAddress(msg.sender);
+        }
     }
 }
