@@ -13,7 +13,6 @@ import {MetadataRouter} from "src/metadataRouter/MetadataRouter.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
-
     PayoutAddressExtension public payoutAddressExtension;
     MetadataRouter public exampleRouterImpl;
     MetadataRouter public exampleRouterProxy;
@@ -41,9 +40,7 @@ contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
         someURI = "someURI";
         uris = new string[](1);
         uris[0] = someURI;
-        initData = abi.encodeWithSelector(
-            MetadataRouter.initialize.selector, owner_, defaultURI, routes, uris
-        );
+        initData = abi.encodeWithSelector(MetadataRouter.initialize.selector, owner_, defaultURI, routes, uris);
 
         exampleRouterImpl = new MetadataRouter();
         exampleRouterProxy = MetadataRouter(address(new ERC1967Proxy(address(exampleRouterImpl), initData)));
@@ -51,8 +48,8 @@ contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
         // deploy payoutAddressExtension as `owner` so it grants `owner` ADMIN permission
         vm.prank(owner_);
         payoutAddressExtension = new PayoutAddressExtension(address(exampleRouterProxy));
-        
-        // ERC721Rails is just used to access the `Permissions::hasPermission()` method, 
+
+        // ERC721Rails is just used to access the `Permissions::hasPermission()` method,
         // so no proxy is necessary in this test file- the impl will do
         _addPermission(Operations.ADMIN, owner_);
 
@@ -66,14 +63,13 @@ contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
         // to be reused
         payoutAddressCall = abi.encodeWithSelector(PayoutAddress.payoutAddress.selector);
         getAllSelectorsCall = abi.encodeWithSelector(PayoutAddressExtension.getAllSelectors.selector);
-
     }
 
     function test_setUp() public {
         string memory returnedURI = exampleRouterProxy.routeURI(someRoute);
         string memory expectedURI = someURI;
         assertEq(returnedURI, expectedURI);
-        
+
         string memory returnedDefault = exampleRouterProxy.defaultURI();
         string memory expectedDefault = defaultURI;
         assertEq(returnedDefault, expectedDefault);
@@ -102,19 +98,22 @@ contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
         selectors = abi.decode(ret, (bytes4[]));
 
         string memory returnedPayoutAddressSignature;
-        (, bytes memory ret1) = address(this).call(abi.encodeWithSelector(PayoutAddressExtension.signatureOf.selector, selectors[0]));
+        (, bytes memory ret1) =
+            address(this).call(abi.encodeWithSelector(PayoutAddressExtension.signatureOf.selector, selectors[0]));
         returnedPayoutAddressSignature = abi.decode(ret1, (string));
         string memory expectedPayoutAddressSignature = "payoutAddress()";
         assertEq(returnedPayoutAddressSignature, expectedPayoutAddressSignature);
 
         string memory updatePayoutSignature;
-        (, bytes memory ret2) = address(this).call(abi.encodeWithSelector(PayoutAddressExtension.signatureOf.selector, selectors[1]));
+        (, bytes memory ret2) =
+            address(this).call(abi.encodeWithSelector(PayoutAddressExtension.signatureOf.selector, selectors[1]));
         updatePayoutSignature = abi.decode(ret2, (string));
         string memory expectedUpdatePayoutSignature = "updatePayoutAddress(address)";
         assertEq(updatePayoutSignature, expectedUpdatePayoutSignature);
 
         string memory removePayoutSignature;
-        (, bytes memory ret3) = address(this).call(abi.encodeWithSelector(PayoutAddressExtension.signatureOf.selector, selectors[2]));
+        (, bytes memory ret3) =
+            address(this).call(abi.encodeWithSelector(PayoutAddressExtension.signatureOf.selector, selectors[2]));
         removePayoutSignature = abi.decode(ret3, (string));
         string memory expectedRemovePayoutSignature = "removePayoutAddress()";
         assertEq(removePayoutSignature, expectedRemovePayoutSignature);
@@ -126,7 +125,8 @@ contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
         oldPayoutAddress = abi.decode(ret, (address));
         address newPayoutAddress = createAccount();
 
-        bytes memory updatePayoutCall = abi.encodeWithSelector(PayoutAddress.updatePayoutAddress.selector, newPayoutAddress);
+        bytes memory updatePayoutCall =
+            abi.encodeWithSelector(PayoutAddress.updatePayoutAddress.selector, newPayoutAddress);
         vm.prank(owner_);
         (bool r,) = address(this).call(updatePayoutCall);
         require(r);
@@ -137,7 +137,7 @@ contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
         assertEq(updatedPayoutAddress, newPayoutAddress);
         assertFalse(updatedPayoutAddress == oldPayoutAddress);
     }
-    
+
     function test_updatePayoutAddressRevertOnlyOwner() public {
         address oldPayoutAddress;
         (, bytes memory ret) = address(this).call(payoutAddressCall);
@@ -145,7 +145,8 @@ contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
         address newPayoutAddress = createAccount();
 
         // attempt to `updatePayoutAddress()` without pranking ADMIN
-        bytes memory updatePayoutCall = abi.encodeWithSelector(PayoutAddress.updatePayoutAddress.selector, newPayoutAddress);
+        bytes memory updatePayoutCall =
+            abi.encodeWithSelector(PayoutAddress.updatePayoutAddress.selector, newPayoutAddress);
         (bool r,) = address(this).call(updatePayoutCall);
         vm.expectRevert();
         require(r);
@@ -161,7 +162,8 @@ contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
         address badPayoutAddress = address(0x0);
 
         // attempt to `updatePayoutAddress()` with `badPayoutAddress`
-        bytes memory updatePayoutCall = abi.encodeWithSelector(PayoutAddress.updatePayoutAddress.selector, badPayoutAddress);
+        bytes memory updatePayoutCall =
+            abi.encodeWithSelector(PayoutAddress.updatePayoutAddress.selector, badPayoutAddress);
         (bool r,) = address(this).call(updatePayoutCall);
         vm.expectRevert();
         require(r);
@@ -174,20 +176,22 @@ contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
         address newPayoutAddress = createAccount();
 
         // set payoutAddress
-        bytes memory updatePayoutCall = abi.encodeWithSelector(PayoutAddress.updatePayoutAddress.selector, newPayoutAddress);
+        bytes memory updatePayoutCall =
+            abi.encodeWithSelector(PayoutAddress.updatePayoutAddress.selector, newPayoutAddress);
         vm.prank(owner_);
         (bool r,) = address(this).call(updatePayoutCall);
         require(r);
 
         address updatedPayoutAddress;
         (, bytes memory ret2) = address(this).call(payoutAddressCall);
-        updatedPayoutAddress = abi.decode(ret2, (address));        
+        updatedPayoutAddress = abi.decode(ret2, (address));
         assertEq(updatedPayoutAddress, newPayoutAddress);
         assertFalse(updatedPayoutAddress == oldPayoutAddress);
 
         // remove `newPayoutAddress`
         vm.prank(owner_);
-        bytes memory removePayoutCall = abi.encodeWithSelector(PayoutAddress.removePayoutAddress.selector, newPayoutAddress);
+        bytes memory removePayoutCall =
+            abi.encodeWithSelector(PayoutAddress.removePayoutAddress.selector, newPayoutAddress);
         (bool r2,) = address(this).call(removePayoutCall);
         require(r2);
 
@@ -205,19 +209,21 @@ contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
         address newPayoutAddress = createAccount();
 
         // set payoutAddress
-        bytes memory updatePayoutCall = abi.encodeWithSelector(PayoutAddress.updatePayoutAddress.selector, newPayoutAddress);
+        bytes memory updatePayoutCall =
+            abi.encodeWithSelector(PayoutAddress.updatePayoutAddress.selector, newPayoutAddress);
         vm.prank(owner_);
         (bool r,) = address(this).call(updatePayoutCall);
         require(r);
 
         address updatedPayoutAddress;
         (, bytes memory ret2) = address(this).call(payoutAddressCall);
-        updatedPayoutAddress = abi.decode(ret2, (address));  
+        updatedPayoutAddress = abi.decode(ret2, (address));
         assertEq(updatedPayoutAddress, newPayoutAddress);
         assertFalse(updatedPayoutAddress == oldPayoutAddress);
 
         // attempt to remove `newPayoutAddress` without ADMIN permission
-        bytes memory removePayoutCall = abi.encodeWithSelector(PayoutAddress.removePayoutAddress.selector, newPayoutAddress);
+        bytes memory removePayoutCall =
+            abi.encodeWithSelector(PayoutAddress.removePayoutAddress.selector, newPayoutAddress);
         (bool r2,) = address(this).call(removePayoutCall);
         vm.expectRevert();
         require(r2);

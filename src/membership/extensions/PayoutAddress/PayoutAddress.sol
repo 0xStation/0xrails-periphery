@@ -7,7 +7,6 @@ import {IPayoutAddress} from "./IPayoutAddress.sol";
 import {PayoutAddressStorage} from "./PayoutAddressStorage.sol";
 
 abstract contract PayoutAddress is IPayoutAddress {
-
     /*===========
         VIEWS
     ===========*/
