@@ -22,13 +22,13 @@ contract PayoutAddress is IPayoutAddress {
     =============*/
 
     function updatePayoutAddress(address newPayoutAddress) external virtual {
-        _checkCanUpdatePayoutAddress();
+        if (!_checkCanUpdatePayoutAddress()) revert PermissionDoesNotExist(Operations.ADMIN, msg.sender);
         if (newPayoutAddress == address(0)) revert PayoutAddressIsZero();
         _updatePayoutAddress(newPayoutAddress);
     }
 
     function removePayoutAddress() external virtual {
-        _checkCanUpdatePayoutAddress();
+        if (!_checkCanUpdatePayoutAddress()) revert PermissionDoesNotExist(Operations.ADMIN, msg.sender);
         _updatePayoutAddress(address(0));
     }
 
