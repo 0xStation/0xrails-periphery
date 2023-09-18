@@ -154,8 +154,6 @@ contract FeeManager is Ownable {
         uint256 quantity,
         uint256 unitPrice
     ) external view returns (uint256 feeTotal) {
-        // todo support recipient discounts for individual users holding a collection NFT
-
         // get existing fees, first checking for override fees or discounts if they have already been set
         Fees memory fees = getFees(collection, paymentToken);
 

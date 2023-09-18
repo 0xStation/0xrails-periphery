@@ -11,7 +11,6 @@ import {IInitializableInternal} from "0xrails/lib/initializable/IInitializable.s
 import {IOwnable} from "0xrails/access/ownable/interface/IOwnable.sol";
 
 contract MembershipFactoryTest is Test, IERC1967 {
-
     ERC721Rails public erc721RailsImpl;
     ERC721Rails public erc721RailsProxy; // ERC1967 proxy wrapped in ERC721Rails for convenience
     MembershipFactory public membershipFactoryImpl;
@@ -34,17 +33,17 @@ contract MembershipFactoryTest is Test, IERC1967 {
         name = "Station";
         symbol = "STN";
         // include empty init data for setup
-        initData = abi.encodeWithSelector(
-            ERC721Rails.initialize.selector,
-            owner,
-            name,
-            symbol,
-            ''
+        initData = abi.encodeWithSelector(ERC721Rails.initialize.selector, owner, name, symbol, "");
+        erc721RailsProxy = ERC721Rails(
+            payable(
+                address(
+                    new ERC1967Proxy(
+                    address(erc721RailsImpl), 
+                    initData
+                    )
+                )
+            )
         );
-        erc721RailsProxy = ERC721Rails(payable(address(new ERC1967Proxy(
-            address(erc721RailsImpl), 
-            initData
-        ))));
 
         membershipFactoryImpl = new MembershipFactory();
         membershipFactoryProxy = MembershipFactory(address(new ERC1967Proxy(address(membershipFactoryImpl), '')));
@@ -54,8 +53,8 @@ contract MembershipFactoryTest is Test, IERC1967 {
         // assert erc721 impl values
         assertTrue(erc721RailsImpl.initialized());
         assertEq(erc721RailsImpl.owner(), address(0x0));
-        assertEq(erc721RailsImpl.name(), '');
-        assertEq(erc721RailsImpl.symbol(), '');
+        assertEq(erc721RailsImpl.name(), "");
+        assertEq(erc721RailsImpl.symbol(), "");
 
         // assert erc721 proxy values
         assertTrue(erc721RailsProxy.initialized());
@@ -79,7 +78,7 @@ contract MembershipFactoryTest is Test, IERC1967 {
         assertFalse(membershipFactoryProxy.initialized());
 
         membershipFactoryProxy.initialize(address(erc721RailsImpl), owner);
-        
+
         assertTrue(membershipFactoryProxy.initialized());
         assertEq(membershipFactoryProxy.owner(), owner);
         assertEq(membershipFactoryProxy.membershipImpl(), address(erc721RailsImpl));
@@ -87,7 +86,7 @@ contract MembershipFactoryTest is Test, IERC1967 {
 
     function test_initializeRevertAlreadyInitialized() public {
         membershipFactoryProxy.initialize(address(erc721RailsImpl), owner);
-        
+
         assertTrue(membershipFactoryProxy.initialized());
         assertEq(membershipFactoryProxy.owner(), owner);
         assertEq(membershipFactoryProxy.membershipImpl(), address(erc721RailsImpl));
@@ -133,7 +132,7 @@ contract MembershipFactoryTest is Test, IERC1967 {
         membershipFactoryProxy.initialize(address(erc721RailsImpl), owner);
 
         assertEq(membershipFactoryProxy.membershipImpl(), address(erc721RailsImpl));
-        
+
         // attempt upgrade to new membership implementation as not owner
         ERC721Rails newERC721RailsImpl = new ERC721Rails();
         vm.expectRevert();
@@ -144,16 +143,13 @@ contract MembershipFactoryTest is Test, IERC1967 {
         assertEq(membershipFactoryProxy.membershipImpl(), address(erc721RailsImpl));
     }
 
-    function test_create(
-        address newOwner,
-        string memory newName,
-        string memory newSymbol
-    ) public {
+    function test_create(address newOwner, string memory newName, string memory newSymbol) public {
         vm.assume(newOwner != address(0x0));
         membershipFactoryProxy.initialize(address(erc721RailsImpl), owner);
 
         address oldMembership = address(erc721RailsProxy);
-        ERC721Rails newMembership = ERC721Rails(payable(membershipFactoryProxy.create(newOwner, newName, newSymbol, '')));
+        ERC721Rails newMembership =
+            ERC721Rails(payable(membershipFactoryProxy.create(newOwner, newName, newSymbol, "")));
         assertFalse(oldMembership == address(newMembership));
         assertEq(newMembership.owner(), newOwner);
         assertEq(newMembership.name(), newName);
@@ -161,12 +157,11 @@ contract MembershipFactoryTest is Test, IERC1967 {
     }
 
     function test_rejectUnrecognizedCalls() public {
-        (bool r,) = address(membershipFactoryProxy).call{ value: 1}('');
+        (bool r,) = address(membershipFactoryProxy).call{value: 1}("");
         vm.expectRevert();
         require(r);
-        (bool s,) = address(membershipFactoryProxy).call(hex'deadbeef');
+        (bool s,) = address(membershipFactoryProxy).call(hex"deadbeef");
         vm.expectRevert();
         require(s);
     }
 }
-  

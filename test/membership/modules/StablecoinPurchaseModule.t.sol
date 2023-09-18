@@ -474,12 +474,8 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         uint128 price,
         uint64 balanceOffset
     ) public {
-        (
-            address buyer,
-            ,
-            uint256 buyerInitialStablecoinBalance,
-            uint256 payoutAddressInitialStablecoinBalance
-        ) = initModuleAndBuyer(coinDecimals, moduleDecimals, baseFee, variableFee, price, balanceOffset);
+        (address buyer,, uint256 buyerInitialStablecoinBalance, uint256 payoutAddressInitialStablecoinBalance) =
+            initModuleAndBuyer(coinDecimals, moduleDecimals, baseFee, variableFee, price, balanceOffset);
 
         uint256 amount = 1; // single mint
         uint256 priceFormattedDecimals = stablecoinModule.mintPriceToStablecoinAmount(price, address(stablecoin));
@@ -511,12 +507,8 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         uint128 price,
         uint64 balanceOffset
     ) public {
-        (
-            address buyer,
-            ,
-            uint256 buyerInitialStablecoinBalance,
-            uint256 payoutAddressInitialStablecoinBalance
-        ) = initModuleAndBuyer(coinDecimals, moduleDecimals, baseFee, variableFee, price, balanceOffset);
+        (address buyer,, uint256 buyerInitialStablecoinBalance, uint256 payoutAddressInitialStablecoinBalance) =
+            initModuleAndBuyer(coinDecimals, moduleDecimals, baseFee, variableFee, price, balanceOffset);
 
         // recipient is NOT buyer
         address recipient = createAccount();
@@ -587,12 +579,8 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         uint128 price,
         uint64 balanceOffset
     ) public {
-        (
-            address buyer,
-            uint256 buyerInitialBalance,
-            ,
-            uint256 payoutAddressInitialStablecoinBalance
-        ) = initModuleAndBuyer(coinDecimals, moduleDecimals, baseFee, variableFee, price, balanceOffset);
+        (address buyer, uint256 buyerInitialBalance,, uint256 payoutAddressInitialStablecoinBalance) =
+            initModuleAndBuyer(coinDecimals, moduleDecimals, baseFee, variableFee, price, balanceOffset);
 
         // burn all but 1 unit of stablecoin to ensure payment is invalid
         uint256 stableBalance = stablecoin.balanceOf(buyer);
@@ -891,12 +879,8 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
     function test_batchMint(TestParams calldata testParams, uint64 balanceOffset, uint8 amount) public {
         vm.assume(amount > 0);
-        (
-            address buyer,
-            ,
-            uint256 buyerInitialStablecoinBalance,
-            uint256 payoutAddressInitialStablecoinBalance
-        ) = initModuleAndBuyer(
+        (address buyer,, uint256 buyerInitialStablecoinBalance, uint256 payoutAddressInitialStablecoinBalance) =
+        initModuleAndBuyer(
             testParams.coinDecimals,
             testParams.moduleDecimals,
             testParams.baseFee,
@@ -934,12 +918,8 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
     function test_batchMintTo(TestParams calldata testParams, uint64 balanceOffset, uint8 amount) public {
         vm.assume(amount > 0);
-        (
-            address buyer,
-            ,
-            uint256 buyerInitialStablecoinBalance,
-            uint256 payoutAddressInitialStablecoinBalance
-        ) = initModuleAndBuyer(
+        (address buyer,, uint256 buyerInitialStablecoinBalance, uint256 payoutAddressInitialStablecoinBalance) =
+        initModuleAndBuyer(
             testParams.coinDecimals,
             testParams.moduleDecimals,
             testParams.baseFee,
