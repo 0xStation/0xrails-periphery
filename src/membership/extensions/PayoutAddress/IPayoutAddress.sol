@@ -7,6 +7,7 @@ interface IPayoutAddress {
 
     // errors
     error PayoutAddressIsZero();
+    error CannotUpdatePayoutAddress(address sender);
 
     // views
     function payoutAddress() external view returns (address);

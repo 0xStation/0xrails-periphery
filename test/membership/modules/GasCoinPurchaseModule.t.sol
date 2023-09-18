@@ -237,7 +237,6 @@ contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
         uint256 fee = feeManager.getFeeTotals(address(proxy), address(0x0), recipient, quantity, price);
         uint256 totalCost = price * quantity + fee;
         vm.deal(payer, totalCost);
-        uint256 initialBalance = payer.balance;
         uint256 initialSupply = proxy.totalSupply();
         uint256 startTokenId = initialSupply + 1;
         uint256 payoutInitialBalance = payoutAddress.balance;

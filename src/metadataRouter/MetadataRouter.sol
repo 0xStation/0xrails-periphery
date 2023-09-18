@@ -66,11 +66,11 @@ contract MetadataRouter is Initializable, Ownable, UUPSUpgradeable, IMetadataRou
     }
 
     function routeURI(string memory route) external view returns (string memory) {
-        MetadataRouterStorage.layout().routeURI[route];
+        return MetadataRouterStorage.layout().routeURI[route];
     }
 
     function contractRouteURI(string memory route, address contractAddress) external view returns (string memory) {
-        MetadataRouterStorage.layout().contractRouteURI[route][contractAddress];
+        return MetadataRouterStorage.layout().contractRouteURI[route][contractAddress];
     }
 
     function _getContractRouteURI(string memory route, address contractAddress) internal view returns (string memory) {

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
-
+import {IPermissions} from "0xrails//access/permissions/interface/IPermissions.sol";
 import {IPayoutAddress} from "./IPayoutAddress.sol";
 import {PayoutAddressStorage} from "./PayoutAddressStorage.sol";
 
-contract PayoutAddress is IPayoutAddress {
+abstract contract PayoutAddress is IPayoutAddress {
+
     /*===========
         VIEWS
     ===========*/
@@ -39,11 +39,12 @@ contract PayoutAddress is IPayoutAddress {
     }
 
     /*====================
-        AUTHORITZATION
+        AUTHORIZATION
     ====================*/
 
-    function _checkCanUpdatePayoutAddress() internal virtual returns (bool) {
-        IPermissions(address(this)).hasPermission(Operations.ADMIN, msg.sender);
-        return true;
+    function _checkCanUpdatePayoutAddress() internal virtual {
+        if (!IPermissions(address(this)).hasPermission(Operations.ADMIN, msg.sender)) {
+            revert CannotUpdatePayoutAddress(msg.sender);
+        }
     }
 }
