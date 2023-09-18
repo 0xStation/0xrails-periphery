@@ -1,18 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Permissions} from "0xrails/access/permissions/Permissions.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
-
+import {IPermissions} from "0xrails//access/permissions/interface/IPermissions.sol";
 import {IPayoutAddress} from "./IPayoutAddress.sol";
 import {PayoutAddressStorage} from "./PayoutAddressStorage.sol";
 
-contract PayoutAddress is IPayoutAddress, Permissions {
-
-    constructor() {
-        // grant deployer the ADMIN permission
-        _addPermission(Operations.ADMIN, msg.sender);
-    }
+contract PayoutAddress is IPayoutAddress {
 
     /*===========
         VIEWS
@@ -48,13 +42,7 @@ contract PayoutAddress is IPayoutAddress, Permissions {
         AUTHORIZATION
     ====================*/
 
-    function _checkCanUpdatePayoutAddress() internal virtual {
-        _checkCanUpdatePermissions();
-    }
-
-    function _checkCanUpdatePermissions() internal virtual override {
-        if (!hasPermission(Operations.ADMIN, msg.sender)) {
-            revert PermissionDoesNotExist(Operations.ADMIN, msg.sender);
-        }
+    function _checkCanUpdatePayoutAddress() internal virtual returns (bool) {
+        return IPermissions(address(this)).hasPermission(Operations.ADMIN, msg.sender);
     }
 }
