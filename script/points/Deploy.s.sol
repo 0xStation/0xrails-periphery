@@ -1,37 +1,41 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Script} from "forge-std/Script.sol";
+import {ScriptUtils} from "script/utils/ScriptUtils.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
-
 import {PointsFactory} from "../../src/points/factory/PointsFactory.sol";
 
-contract Deploy is Script {
-    address public turnkey = 0xBb942519A1339992630b13c3252F04fCB09D4841;
-    address public frog = 0xE7affDB964178261Df49B86BFdBA78E9d768Db6D;
-    address public sym = 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d;
+contract Deploy is ScriptUtils {
+    /*=================
+        ENVIRONMENT 
+    =================*/
 
-    address public owner = sym;
+    // The following contracts will be deployed:
+    PointsFactory pointsFactoryImpl;
+    PointsFactory pointsFactoryProxy; // proxy
 
-    function setUp() public {}
+    address public owner = ScriptUtils.stationFounderSafe;
 
     function run() public {
         vm.startBroadcast();
 
         /// @dev first deploy ERC20Rails from the rails repo and update the address in `deployPointsFactory`!
 
-        deployPointsFactory();
+        string memory saltString = ScriptUtils.readSalt("salt");
+        bytes32 salt = bytes32(bytes(saltString));
+
+        pointsFactoryProxy = deployPointsFactory(salt);
 
         vm.stopBroadcast();
     }
 
-    function deployPointsFactory() internal returns (address) {
-        address erc20Rails = 0x5195A67eBf55E6f76F6c36E017e14a807d1f4c1D; // goerli
+    function deployPointsFactory(bytes32 salt) internal returns (PointsFactory) {
+        address erc20Rails = 0x9391eD3da2645CE9B7C8d718CDB4F101fA8d9D7b; // goerli, sepolia
         // address erc20Rails = 0x5195a67ebf55e6f76f6c36e017e14a807d1f4c1d; // polygon
-        address pointsFactoryImpl = address(new PointsFactory());
+        pointsFactoryImpl = PointsFactory(address(new PointsFactory{salt: salt}()));
 
         bytes memory initFactory =
-            abi.encodeWithSelector(PointsFactory(pointsFactoryImpl).initialize.selector, erc20Rails, owner);
-        return address(new ERC1967Proxy(pointsFactoryImpl, initFactory));
+            abi.encodeWithSelector(PointsFactory.initialize.selector, erc20Rails, owner);
+        return PointsFactory(address(new ERC1967Proxy{salt: salt}(address(pointsFactoryImpl), initFactory)));
     }
 }

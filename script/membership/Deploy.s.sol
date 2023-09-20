@@ -17,8 +17,8 @@ import {Strings} from "openzeppelin-contracts/utils/Strings.sol";
 
 contract Deploy is ScriptUtils {
     /*=================
-            ENVIRONMENT 
-        =================*/
+        ENVIRONMENT 
+    =================*/
 
     // The following contracts will be deployed:
     MetadataRouter metadataRouterImpl;
@@ -64,12 +64,14 @@ contract Deploy is ScriptUtils {
 
         vm.startBroadcast( /*deployerPrivateKey*/ );
 
-        address owner = ScriptUtils.symmetry;
+        address owner = ScriptUtils.stationFounderSafe;
+        
         string memory saltString = ScriptUtils.readSalt("salt");
         bytes32 salt = bytes32(bytes(saltString));
 
         // eventually we can just use ScriptUtils to read from deploys.json
-        address erc721Rails = 0x7c804b088109C23d9129366a8C069448A4b219F8; // goerli, polygon, mainnet
+        // address erc721Rails = 0x7c804b088109C23d9129366a8C069448A4b219F8; // goerli, polygon, mainnet
+        address erc721Rails = 0xac06D8C535cb53F614d5C79809c778AB38343A63; // goerli, sepolia
 
         (metadataRouterImpl, metadataRouter) = deployMetadataRouter(owner, defaultURI, routes, uris, salt);
         onePerAddressGuard = deployOnePerAddressGuard(address(metadataRouter), salt);
