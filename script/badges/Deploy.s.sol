@@ -1,37 +1,45 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Script} from "forge-std/Script.sol";
+import {ScriptUtils} from "script/utils/ScriptUtils.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
-
 import {BadgesFactory} from "../../src/badges/factory/BadgesFactory.sol";
+import {Strings} from "openzeppelin-contracts/utils/Strings.sol";
 
-contract Deploy is Script {
-    address public turnkey = 0xBb942519A1339992630b13c3252F04fCB09D4841;
-    address public frog = 0xE7affDB964178261Df49B86BFdBA78E9d768Db6D;
-    address public sym = 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d;
+contract Deploy is ScriptUtils {
+    /*=================
+        ENVIRONMENT 
+    =================*/
 
-    address public owner = sym;
+    // The following contracts will be deployed:
+    BadgesFactory badgesFactoryImpl;
+    BadgesFactory badgesFactoryProxy; // proxy
 
-    function setUp() public {}
+    address public owner = ScriptUtils.stationFounderSafe;
 
     function run() public {
         vm.startBroadcast();
 
         /// @dev first deploy ERC1155Rails from the 0xrails repo and update the address in `deployBadgesFactory`!
 
-        deployBadgesFactory();
+        string memory saltString = ScriptUtils.readSalt("salt");
+        bytes32 salt = bytes32(bytes(saltString));
+
+        badgesFactoryProxy = deployBadgesFactory(salt);
 
         vm.stopBroadcast();
+
+        writeUsedSalt(saltString, string.concat("BadgesFactoryImpl @", Strings.toHexString(address(badgesFactoryImpl))));
+        writeUsedSalt(saltString, string.concat("BadgesFactoryProxy @", Strings.toHexString(address(badgesFactoryProxy))));
     }
 
-    function deployBadgesFactory() internal returns (address) {
-        // address badgesImpl = 0x0016864123d66B09bBBFfa690992196fdBDaA771; // goerli
-        address badgesImpl = 0xfC6Eea2467f921C66063C8E2aDB193c44299e869; // polygon
-        address badgesFactoryImpl = address(new BadgesFactory());
+    function deployBadgesFactory(bytes32 salt) internal returns (BadgesFactory) {
+        address badgesImpl = 0xb902C5610f6eE3206b6aC29579A411783AD5CB21; // goerli, sepolia
+        // address badgesImpl = 0xfC6Eea2467f921C66063C8E2aDB193c44299e869; // polygon
+        badgesFactoryImpl = new BadgesFactory{salt: salt}();
 
         bytes memory initFactory =
-            abi.encodeWithSelector(BadgesFactory(badgesFactoryImpl).initialize.selector, badgesImpl, owner);
-        return address(new ERC1967Proxy(badgesFactoryImpl, initFactory));
+            abi.encodeWithSelector(BadgesFactory.initialize.selector, badgesImpl, owner);
+        return BadgesFactory(address(new ERC1967Proxy{salt: salt}(address(badgesFactoryImpl), initFactory)));
     }
 }
