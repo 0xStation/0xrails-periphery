@@ -2,7 +2,6 @@
 pragma solidity ^0.8.13;
 
 import {Extension} from "0xrails/extension/Extension.sol";
-
 import {NFTMetadataRouter} from "./NFTMetadataRouter.sol";
 
 contract NFTMetadataRouterExtension is NFTMetadataRouter, Extension {
@@ -20,6 +19,7 @@ contract NFTMetadataRouterExtension is NFTMetadataRouter, Extension {
         EXTENSION
     ===============*/
 
+    /// @inheritdoc Extension
     function getAllSelectors() public pure override returns (bytes4[] memory selectors) {
         selectors = new bytes4[](2);
         selectors[0] = this.ext_contractURI.selector;
@@ -27,6 +27,7 @@ contract NFTMetadataRouterExtension is NFTMetadataRouter, Extension {
         return selectors;
     }
 
+    /// @inheritdoc Extension
     function signatureOf(bytes4 selector) public pure override returns (string memory) {
         if (selector == this.ext_contractURI.selector) {
             return "ext_contractURI()";

@@ -10,6 +10,8 @@ contract ContractMetadata {
         metadataRouter = router;
     }
 
+    /// @dev Returns the contract URI for this contract, a modern standard for NFTs
+    /// @notice Intended to be invoked in the context of a delegatecall
     function contractURI() public view virtual returns (string memory uri) {
         return IMetadataRouter(metadataRouter).uriOf(_contractRoute(), address(this));
     }

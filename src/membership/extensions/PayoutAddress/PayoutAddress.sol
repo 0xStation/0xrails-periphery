@@ -6,11 +6,14 @@ import {IPermissions} from "0xrails//access/permissions/interface/IPermissions.s
 import {IPayoutAddress} from "./IPayoutAddress.sol";
 import {PayoutAddressStorage} from "./PayoutAddressStorage.sol";
 
+/// @dev This contract provides utilities to manage collections' payout address
+/// @notice It is not to be instantiated directly, but inherited by eg. PayoutAddressExtension
 abstract contract PayoutAddress is IPayoutAddress {
     /*===========
         VIEWS
     ===========*/
 
+    /// @inheritdoc IPayoutAddress
     function payoutAddress() public view virtual returns (address) {
         PayoutAddressStorage.Layout storage layout = PayoutAddressStorage.layout();
         return layout.payoutAddress;
@@ -20,12 +23,14 @@ abstract contract PayoutAddress is IPayoutAddress {
         SETTERS
     =============*/
 
+    /// @inheritdoc IPayoutAddress
     function updatePayoutAddress(address newPayoutAddress) external virtual {
         _checkCanUpdatePayoutAddress();
         if (newPayoutAddress == address(0)) revert PayoutAddressIsZero();
         _updatePayoutAddress(newPayoutAddress);
     }
 
+    /// @inheritdoc IPayoutAddress
     function removePayoutAddress() external virtual {
         _checkCanUpdatePayoutAddress();
         _updatePayoutAddress(address(0));
@@ -41,6 +46,7 @@ abstract contract PayoutAddress is IPayoutAddress {
         AUTHORIZATION
     ====================*/
 
+    /// @notice This function is meant to be invoked in the context of `delegatecall`
     function _checkCanUpdatePayoutAddress() internal virtual {
         if (!IPermissions(address(this)).hasPermission(Operations.ADMIN, msg.sender)) {
             revert CannotUpdatePayoutAddress(msg.sender);
