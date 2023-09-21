@@ -15,7 +15,7 @@ interface IBadgesFactory {
 
     /// @dev Initializes the proxy for the factory
     /// @param owner_ The owner address to be set for the factory contract
-    /// @param badgesImpl- The initial Badge implementation address whose logic to use
+    /// @param badgesImpl_ The initial Badge implementation address whose logic to use
     function initialize(address badgesImpl_, address owner_) external;
 
     /// @dev Function to create a new Badge proxy using given data
