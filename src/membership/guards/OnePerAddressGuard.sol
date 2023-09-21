@@ -43,7 +43,7 @@ contract OnePerAddressGuard is ContractMetadata, IGuard {
     }
 
     /// @dev Hook to perform post-call checks.
-    /// @return checkBeforeData Data passed from the `checkBefore` function.
+    /// @param checkBeforeData Data passed from the `checkBefore` function.
     function checkAfter(bytes calldata checkBeforeData, bytes calldata) external view {
         address owner = abi.decode(checkBeforeData, (address));
         uint256 balanceAfter = IERC721(msg.sender).balanceOf(owner);
