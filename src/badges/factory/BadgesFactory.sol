@@ -6,10 +6,12 @@ import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeabl
 import {Ownable} from "0xrails/access/ownable/Ownable.sol";
 import {Initializable} from "0xrails/lib/initializable/Initializable.sol";
 import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
-
 import {IBadgesFactory} from "./IBadgesFactory.sol";
 import {BadgesFactoryStorage} from "./BadgesFactoryStorage.sol";
 
+/// @title GroupOS ERC1155 Badges Factory
+/// @author symmetry (@symmtry69)
+/// @dev Contract to create ERC1155 Badges as proxies that delegate to a singleton implementation contract
 contract BadgesFactory is Initializable, Ownable, UUPSUpgradeable, IBadgesFactory {
     /*============
         SET UP
@@ -17,15 +19,18 @@ contract BadgesFactory is Initializable, Ownable, UUPSUpgradeable, IBadgesFactor
 
     constructor() Initializable() {}
 
+    /// @inheritdoc IBadgesFactory
     function initialize(address badgesImpl_, address owner_) external initializer {
         _updateBadgesImpl(badgesImpl_);
         _transferOwnership(owner_);
     }
 
+    /// @inheritdoc IBadgesFactory
     function badgesImpl() public view returns (address) {
         return BadgesFactoryStorage.layout().badgesImpl;
     }
 
+    /// @inheritdoc IBadgesFactory
     function setBadgesImpl(address newImpl) external onlyOwner {
         _updateBadgesImpl(newImpl);
     }
@@ -43,6 +48,7 @@ contract BadgesFactory is Initializable, Ownable, UUPSUpgradeable, IBadgesFactor
         CREATE
     ============*/
 
+    /// @inheritdoc IBadgesFactory
     function create(address owner, string memory name, string memory symbol, bytes calldata initData)
         public
         returns (address badges)
