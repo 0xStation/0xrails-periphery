@@ -6,6 +6,10 @@ import {IERC721} from "0xrails/cores/ERC721/interface/IERC721.sol";
 
 import {ContractMetadata} from "../../lib/ContractMetadata.sol";
 
+/// @title GroupOS OnePerAddressGuard Contract
+/// @author symmetry (@symmtry69)
+/// @notice This contract serves as a guard pattern implementation, similar to that of Gnosis Safe contracts,
+/// designed to ensure that an address can only own one ERC-721 token at a time.
 contract OnePerAddressGuard is ContractMetadata, IGuard {
     error OnePerAddress(address owner, uint256 balance);
 
@@ -23,6 +27,9 @@ contract OnePerAddressGuard is ContractMetadata, IGuard {
         VIEWS
     ===========*/
 
+    /// @dev Hook to perform pre-call checks and return guard information.
+    /// @param data The data associated with the action, including relevant parameters.
+    /// @return checkBeforeData Additional data to be passed to the `checkAfter` function.
     function checkBefore(address, bytes calldata data) external view returns (bytes memory checkBeforeData) {
         // (address operator, address from, address to, uint256 startTokenId, uint256 quantity)
         (,, address owner,, uint256 quantity) = abi.decode(data, (address, address, address, uint256, uint256));
@@ -35,6 +42,8 @@ contract OnePerAddressGuard is ContractMetadata, IGuard {
         return abi.encode(owner); // only need to pass the owner forward to checkAfter
     }
 
+    /// @dev Hook to perform post-call checks.
+    /// @return checkBeforeData Data passed from the `checkBefore` function.
     function checkAfter(bytes calldata checkBeforeData, bytes calldata) external view {
         address owner = abi.decode(checkBeforeData, (address));
         uint256 balanceAfter = IERC721(msg.sender).balanceOf(owner);

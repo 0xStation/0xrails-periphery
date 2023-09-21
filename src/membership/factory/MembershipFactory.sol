@@ -17,15 +17,18 @@ contract MembershipFactory is Initializable, Ownable, UUPSUpgradeable, IMembersh
 
     constructor() Initializable() {}
 
+    /// @inheritdoc IMembershipFactory
     function initialize(address membershipImpl_, address owner_) external initializer {
         _updateMembershipImpl(membershipImpl_);
         _transferOwnership(owner_);
     }
 
+    /// @inheritdoc IMembershipFactory
     function membershipImpl() public view returns (address) {
         return MembershipFactoryStorage.layout().membershipImpl;
     }
 
+    /// @inheritdoc IMembershipFactory
     function setMembershipImpl(address newImpl) external onlyOwner {
         _updateMembershipImpl(newImpl);
     }
@@ -43,6 +46,7 @@ contract MembershipFactory is Initializable, Ownable, UUPSUpgradeable, IMembersh
         CREATE
     ============*/
 
+    /// @inheritdoc IMembershipFactory
     function create(address membershipOwner, string memory name, string memory symbol, bytes calldata initData)
         public
         returns (address membership)
