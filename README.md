@@ -18,8 +18,68 @@ _A Solidity framework for creating complex and evolving onchain structures._
 
 <div style="text-align:center"><img src="https://github.com/0xStation/tokens-v1/assets/80549215/a68b8a19-4568-45a7-9d32-d5738409081e" width="400" ></div>
 
-## Deployment Addresses
+## Directory Tree
+
+```
+* = deployed contract
+
+src
+├── badges
+│   └── factory
+│       ├── BadgesFactory.sol*
+│       ├── BadgesFactoryStorage.sol
+│       └── IBadgesFactory.sol
+├── lib
+│   ├── ContractMetadata.sol
+│   ├── NonceBitMap.sol
+│   └── module
+│       ├── FeeManager.sol*
+│       ├── ModuleFee.sol
+│       ├── ModulePermit.sol
+│       └── ModuleSetup.sol
+├── membership
+│   ├── extensions
+│   │   ├── NFTMetadataRouter
+│   │   │   ├── INFTMetadata.sol
+│   │   │   ├── NFTMetadataRouter.sol
+│   │   │   └── NFTMetadataRouterExtension.sol*
+│   │   └── PayoutAddress
+│   │       ├── IPayoutAddress.sol
+│   │       ├── PayoutAddress.sol
+│   │       ├── PayoutAddressExtension.sol*
+│   │       └── PayoutAddressStorage.sol
+│   ├── factory
+│   │   ├── IMembershipFactory.sol
+│   │   ├── MembershipFactory.sol*
+│   │   └── MembershipFactoryStorage.sol
+│   ├── guards
+│   │   └── OnePerAddressGuard.sol*
+│   └── modules
+│       ├── FreeMintModule.sol*
+│       ├── GasCoinPurchaseModule.sol*
+│       └── StablecoinPurchaseModule.sol*
+├── metadataRouter
+│   ├── IMetadataRouter.sol
+│   ├── MetadataRouter.sol*
+│   └── MetadataRouterStorage.sol
+└── points
+    └── factory
+        ├── IPointsFactory.sol
+        ├── PointsFactory.sol*
+        └── PointsFactoryStorage.sol
+```
+
+## Contributing
+
+While GroupOS is in initial release, assistance on reviews for security and developer experience are most appreciated. In the meantime, please reach out directly via [Twitter DM](https://twitter.com/ilikesymmetry).
+
+## License
+
+Direct inquiries for using GroupOS in your own project via [Twitter DM](https://twitter.com/ilikesymmetry). Note that GroupOS is currently un-audited with plans to audit in late 2023.
+
+## Onchain Deployments
 ### Addresses are consistent across networks
+
 | Contract | Goerli | Sepolia |
 | --- | --- | --- |
 | StationFounderSafe Multisig Proxy |  0x0f95a7b50eaeEFc08eb10Be44Dd48409b46372b2 | 0x0f95a7b50eaeEFc08eb10Be44Dd48409b46372b2
@@ -46,46 +106,5 @@ _A Solidity framework for creating complex and evolving onchain structures._
 | StablecoinPurchaseModule | 0xa4535fDdC3b10B23D1158feb41690CdF8cB8b1F7 | 0xa4535fDdC3b10B23D1158feb41690CdF8cB8b1F7
 | MembershipFactoryImpl | 0x3a6555AD03B35431813967778b8361ef5877fd13 | 0x3a6555AD03B35431813967778b8361ef5877fd13
 | MembershipFactoryProxy | 0xdcee9376a3435c991758af3fd07e2830b3a41bcb | 0xdcee9376a3435c991758af3fd07e2830b3a41bcb
-
-
-
-## Directory Tree
-
-```
-* = deployed contract
-
-lib/
-  |- module/
-      |- FeeManager*
-      |- ModuleFee
-      |- ModulePermit
-      |- ModuleSetup
-  |- ContractMetadata
-  |- NonceBitMap
-membership/
-  |- extensions/
-      |- NFTMetadataRouter/.
-      |- PayoutAddress/.
-  |- factory/
-      |- MembershipFactory*
-  |- guards/
-     |- OnePerAddressGuard*
-  |- modules/
-      |- FreeMintModule*
-      |- GasCoinPurchaseModule*
-      |- StablecoinPurchaseModule*
-metadataRouter/
-  |- MetadataRouter*
-```
-
-## Contributing
-
-While GroupOS is in initial release, assistance on reviews for security and developer experience are most appreciated. In the meantime, please reach out directly via [Twitter DM](https://twitter.com/ilikesymmetry).
-
-## License
-
-Direct inquiries for using GroupOS in your own project via [Twitter DM](https://twitter.com/ilikesymmetry). Note that GroupOS is currently un-audited with plans to audit in late 2023.
-
-## Onchain Deployments
 
 View deployments in [deploys.json](./deploys.json).
