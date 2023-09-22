@@ -14,7 +14,7 @@ import {ModuleFee} from "src/lib/module/ModuleFee.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 
-/// @title Station Network StablecoinPurchaseModuleV2 Contract
+/// @title Station Network StablecoinPurchaseControllerV2 Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg)
 /// @notice Mint membership tokens when users pay a fixed quantity of a stablecoin
 /// @dev Storage is designed to minimize costs for accepting multiple stablecoins as
@@ -23,7 +23,7 @@ import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 /// will use the same price value and can never get out of sync. Deploy one instance
 /// of this module per currency, per chain (e.g. USD, EUR, BTC).
 
-contract StablecoinPurchaseModule is ModuleSetup, ModulePermit, ModuleFee, ContractMetadata {
+contract StablecoinPurchaseController is ModuleSetup, ModulePermit, ModuleFee, ContractMetadata {
     using SafeERC20 for IERC20Metadata;
 
     /// @dev Struct of collection price data

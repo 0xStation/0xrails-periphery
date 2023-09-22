@@ -6,13 +6,13 @@ import {console} from "forge-std/console.sol";
 import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 
-import {FreeMintModule} from "src/membership/modules/FreeMintModule.sol";
+import {FreeMintController} from "src/membership/modules/FreeMintController.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
-contract FreeMintModuleTest is Test, SetUpMembership {
+contract FreeMintControllerTest is Test, SetUpMembership {
     ERC721Rails public proxy;
-    FreeMintModule public module;
+    FreeMintController public module;
     FeeManager public feeManager;
 
     // intended to contain custom error signatures
@@ -32,7 +32,7 @@ contract FreeMintModuleTest is Test, SetUpMembership {
         // instantiate feeManager with fuzzed base and variable fees as baseline
         feeManager = new FeeManager(owner, baseFee, variableFee, baseFee, variableFee);
 
-        module = new FreeMintModule(owner, address(feeManager), address(metadataRouter));
+        module = new FreeMintController(owner, address(feeManager), address(metadataRouter));
 
         // enable grants in module config setup and give module mint permission on proxy
         vm.startPrank(owner);

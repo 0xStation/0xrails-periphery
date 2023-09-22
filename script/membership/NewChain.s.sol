@@ -12,9 +12,9 @@ import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
 import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
 
 import {FeeManager} from "../../src/lib/module/FeeManager.sol";
-import {FreeMintModule} from "../../src/membership/modules/FreeMintModule.sol";
-import {GasCoinPurchaseModule} from "../../src/membership/modules/GasCoinPurchaseModule.sol";
-import {StablecoinPurchaseModule} from "../../src/membership/modules/StablecoinPurchaseModule.sol";
+import {FreeMintController} from "../../src/membership/modules/FreeMintController.sol";
+import {GasCoinPurchaseController} from "../../src/membership/modules/GasCoinPurchaseController.sol";
+import {StablecoinPurchaseController} from "../../src/membership/modules/StablecoinPurchaseController.sol";
 import {MetadataRouter} from "../../src/metadataRouter/MetadataRouter.sol";
 import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {MembershipFactory} from "../../src/membership/factory/MembershipFactory.sol";

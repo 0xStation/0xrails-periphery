@@ -11,14 +11,14 @@ import {IGuardsInternal as IGuards} from "0xrails/guard/interface/IGuards.sol";
 // src
 
 import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
-import {StablecoinPurchaseModule} from "src/membership/modules/StablecoinPurchaseModule.sol";
+import {StablecoinPurchaseController} from "src/membership/modules/StablecoinPurchaseController.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
 import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
 // test
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 import {FakeERC20} from "test/utils/FakeERC20.sol";
 
-contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
+contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
     // struct populated with test params to solve `stack too deep` errors for funcs with > 16 variables
     struct TestParams {
         uint8 coinDecimals;
@@ -29,7 +29,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     }
 
     ERC721Rails public proxy;
-    StablecoinPurchaseModule public stablecoinModule;
+    StablecoinPurchaseController public stablecoinModule;
     FakeERC20 public stablecoin;
     FeeManager public feeManager;
 
@@ -221,7 +221,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         stablecoin = new FakeERC20(coinDecimals);
         address[] memory stablecoins = new address[](0);
 
-        stablecoinModule = new StablecoinPurchaseModule(
+        stablecoinModule = new StablecoinPurchaseController(
             owner, 
             address(feeManager), 
             moduleDecimals,
@@ -260,7 +260,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         stablecoin = new FakeERC20(coinDecimals);
         address[] memory stablecoins = new address[](0);
 
-        stablecoinModule = new StablecoinPurchaseModule(
+        stablecoinModule = new StablecoinPurchaseController(
             owner, 
             address(feeManager), 
             moduleDecimals,
@@ -337,7 +337,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
         stablecoin = new FakeERC20(coinDecimals);
 
         // pass empty initial stables array to stablecoinModule constructor
-        stablecoinModule = new StablecoinPurchaseModule(
+        stablecoinModule = new StablecoinPurchaseController(
             owner, 
             address(feeManager), 
             moduleDecimals,
@@ -999,7 +999,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
     /// @notice Helper functions are not invoked as standalone tests
 
     // function to constrain fuzzed test values to realistic values for performance
-    // FeeManager.getFeeTotals() can overflow due to arithmetic in StablecoinPurchaseModule.mintPriceToStablecoinAmount()
+    // FeeManager.getFeeTotals() can overflow due to arithmetic in StablecoinPurchaseController.mintPriceToStablecoinAmount()
     // but only on impossibly high fees, price, & decimals causing a revert, roughly:
     // if (1e_coinDecimals * 1e_moduleDecimals * _baseFee * _variableFee * _price > type(uint256).max)
     function _constrainFuzzInputs(
@@ -1048,7 +1048,7 @@ contract StablecoinPurchaseModuleTest is Test, SetUpMembership {
 
         // pass empty initial stables array to stablecoinModule constructor
         address[] memory stablecoins = new address[](0);
-        stablecoinModule = new StablecoinPurchaseModule(
+        stablecoinModule = new StablecoinPurchaseController(
             owner, 
             address(feeManager), 
             moduleDecimals,

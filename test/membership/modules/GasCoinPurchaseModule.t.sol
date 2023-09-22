@@ -6,14 +6,14 @@ import {console} from "forge-std/console.sol";
 import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 
-import {GasCoinPurchaseModule} from "src/membership/modules/GasCoinPurchaseModule.sol";
+import {GasCoinPurchaseController} from "src/membership/modules/GasCoinPurchaseController.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 
-contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
+contract GasCoinPurchaseControllerTest is Test, SetUpMembership {
     ERC721Rails public proxy;
-    GasCoinPurchaseModule public gasCoinModule;
+    GasCoinPurchaseController public gasCoinPurchaseController;
     FeeManager public feeManager;
 
     // intended to contain custom error signatures
@@ -33,12 +33,12 @@ contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
         // instantiate feeManager with fuzzed base and variable fees as baseline
         feeManager = new FeeManager(owner, baseFee, variableFee, baseFee, variableFee);
 
-        gasCoinModule = new GasCoinPurchaseModule(owner, address(feeManager), address(metadataRouter));
+        gasCoinPurchaseController = new GasCoinPurchaseController(owner, address(feeManager), address(metadataRouter));
 
         // setup module, give module mint permission, add payout address
         vm.startPrank(owner);
-        gasCoinModule.setUp(address(proxy), price, false);
-        proxy.addPermission(Operations.MINT, address(gasCoinModule));
+        gasCoinPurchaseController.setUp(address(proxy), price, false);
+        proxy.addPermission(Operations.MINT, address(gasCoinPurchaseController));
         PayoutAddressExtension(address(proxy)).updatePayoutAddress(payoutAddress);
         vm.stopPrank();
     }
@@ -59,7 +59,7 @@ contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
 
         vm.startPrank(recipient);
         // mint token
-        gasCoinModule.mint{value: totalCost}(address(proxy));
+        gasCoinPurchaseController.mint{value: totalCost}(address(proxy));
         uint256 tokenId = proxy.totalSupply();
 
         // asserts
@@ -92,7 +92,7 @@ contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
         // mint token (reverts)
         err = abi.encodeWithSelector(InvalidFee.selector, totalCost, wrongTotalCost);
         vm.expectRevert(err);
-        gasCoinModule.mint{value: wrongTotalCost}(address(proxy));
+        gasCoinPurchaseController.mint{value: wrongTotalCost}(address(proxy));
 
         // asserts
         assertEq(proxy.balanceOf(recipient), 0);
@@ -119,7 +119,7 @@ contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
 
         vm.startPrank(payer);
         // mint token
-        gasCoinModule.mintTo{value: totalCost}(address(proxy), recipient);
+        gasCoinPurchaseController.mintTo{value: totalCost}(address(proxy), recipient);
         uint256 tokenId = proxy.totalSupply();
 
         // asserts
@@ -152,7 +152,7 @@ contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
         // mint token (reverts)
         err = abi.encodeWithSelector(InvalidFee.selector, totalCost, wrongTotalCost);
         vm.expectRevert(err);
-        gasCoinModule.mintTo{value: wrongTotalCost}(address(proxy), recipient);
+        gasCoinPurchaseController.mintTo{value: wrongTotalCost}(address(proxy), recipient);
 
         // asserts
         assertEq(proxy.balanceOf(recipient), 0);
@@ -179,7 +179,7 @@ contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
 
         vm.startPrank(recipient);
         // mint token
-        gasCoinModule.batchMint{value: totalCost}(address(proxy), quantity);
+        gasCoinPurchaseController.batchMint{value: totalCost}(address(proxy), quantity);
 
         // asserts
         assertEq(proxy.balanceOf(recipient), quantity);
@@ -215,7 +215,7 @@ contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
         // mint token (reverts)
         err = abi.encodeWithSelector(InvalidFee.selector, totalCost, wrongTotalCost);
         vm.expectRevert(err);
-        gasCoinModule.batchMint{value: wrongTotalCost}(address(proxy), quantity);
+        gasCoinPurchaseController.batchMint{value: wrongTotalCost}(address(proxy), quantity);
 
         // asserts
         assertEq(proxy.balanceOf(recipient), 0);
@@ -243,7 +243,7 @@ contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
 
         vm.startPrank(payer);
         // mint token
-        gasCoinModule.batchMintTo{value: totalCost}(address(proxy), recipient, quantity);
+        gasCoinPurchaseController.batchMintTo{value: totalCost}(address(proxy), recipient, quantity);
 
         // asserts
         assertEq(proxy.balanceOf(recipient), quantity);
@@ -280,7 +280,7 @@ contract GasCoinPurchaseModuleTest is Test, SetUpMembership {
         // mint token (reverts)
         err = abi.encodeWithSelector(InvalidFee.selector, totalCost, wrongTotalCost);
         vm.expectRevert(err);
-        gasCoinModule.batchMintTo{value: wrongTotalCost}(address(proxy), recipient, quantity);
+        gasCoinPurchaseController.batchMintTo{value: wrongTotalCost}(address(proxy), recipient, quantity);
 
         // asserts
         assertEq(proxy.balanceOf(recipient), 0);

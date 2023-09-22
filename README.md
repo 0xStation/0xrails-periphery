@@ -48,9 +48,9 @@ membership/
   |- guards/
      |- OnePerAddressGuard*
   |- modules/
-      |- FreeMintModule*
-      |- GasCoinPurchaseModule*
-      |- StablecoinPurchaseModule*
+      |- FreeMintController*
+      |- GasCoinPurchaseController*
+      |- StablecoinPurchaseController*
 metadataRouter/
   |- MetadataRouter*
 ```
