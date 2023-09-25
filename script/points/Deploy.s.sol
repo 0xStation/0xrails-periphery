@@ -30,8 +30,9 @@ contract Deploy is ScriptUtils {
     }
 
     function deployPointsFactory(bytes32 salt) internal returns (PointsFactory) {
-        address erc20Rails = 0x9391eD3da2645CE9B7C8d718CDB4F101fA8d9D7b; // goerli, sepolia
+        // address erc20Rails = 0x9391eD3da2645CE9B7C8d718CDB4F101fA8d9D7b; // goerli, sepolia
         // address erc20Rails = 0x5195a67ebf55e6f76f6c36e017e14a807d1f4c1d; // polygon
+        address erc20Rails = 0x7ffC6bB6f33111D88B0Da80aC3DFe03bFcA55c49; // Linea
         pointsFactoryImpl = PointsFactory(address(new PointsFactory{salt: salt}()));
 
         bytes memory initFactory =
