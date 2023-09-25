@@ -11,11 +11,13 @@ contract NFTMetadataRouter is ContractMetadata, INFTMetadata {
     /*===========
         VIEWS
     ===========*/
-
+    
+    /// @inheritdoc INFTMetadata
     function ext_contractURI() external view returns (string memory uri) {
         return IMetadataRouter(metadataRouter).uriOf("collection", address(this));
     }
 
+    /// @inheritdoc INFTMetadata
     function ext_tokenURI(uint256 tokenId) external view returns (string memory uri) {
         return IMetadataRouter(metadataRouter).tokenURI(address(this), tokenId);
     }

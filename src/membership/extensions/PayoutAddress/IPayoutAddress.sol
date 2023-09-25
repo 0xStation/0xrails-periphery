@@ -9,10 +9,12 @@ interface IPayoutAddress {
     error PayoutAddressIsZero();
     error CannotUpdatePayoutAddress(address sender);
 
-    // views
+    /// @dev Returns the address of the current `payoutAddress` in storage
     function payoutAddress() external view returns (address);
 
-    // setters
+    /// @dev Updates the current payout address to the provided `payoutAddress`
     function updatePayoutAddress(address payoutAddress) external;
+
+    /// @dev Removes the current payout address, replacing it with address(0x0)
     function removePayoutAddress() external;
 }

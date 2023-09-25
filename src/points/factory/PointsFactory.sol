@@ -17,15 +17,18 @@ contract PointsFactory is Initializable, Ownable, UUPSUpgradeable, IPointsFactor
 
     constructor() Initializable() {}
 
+    /// @inheritdoc IPointsFactory
     function initialize(address pointsImpl_, address owner_) external initializer {
         _updatePointsImpl(pointsImpl_);
         _transferOwnership(owner_);
     }
 
+    /// @inheritdoc IPointsFactory
     function pointsImpl() public view returns (address) {
         return PointsFactoryStorage.layout().pointsImpl;
     }
 
+    /// @inheritdoc IPointsFactory
     function setPointsImpl(address newImpl) external onlyOwner {
         _updatePointsImpl(newImpl);
     }
@@ -43,6 +46,7 @@ contract PointsFactory is Initializable, Ownable, UUPSUpgradeable, IPointsFactor
         CREATE
     ============*/
 
+    /// @inheritdoc IPointsFactory
     function create(address owner, string memory name, string memory symbol, bytes calldata initData)
         public
         returns (address points)

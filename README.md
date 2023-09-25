@@ -55,9 +55,9 @@ src
 │   ├── guards
 │   │   └── OnePerAddressGuard.sol*
 │   └── modules
-│       ├── FreeMintModule.sol*
-│       ├── GasCoinPurchaseModule.sol*
-│       └── StablecoinPurchaseModule.sol*
+│       ├── FreeMintController.sol*
+│       ├── GasCoinPurchaseController.sol*
+│       └── StablecoinPurchaseController.sol*
 ├── metadataRouter
 │   ├── IMetadataRouter.sol
 │   ├── MetadataRouter.sol*

@@ -8,9 +8,9 @@
       "NFTMetadataRouterExtension": "0xda142d7C6105aFa35CE23Fc4db5fee595D4Ebc55",
       "PayoutAddressExtension": "0x5092d5033797cc7ac5c71e8e8bcbdDD29507093e",
       "FeeManager": "0x4B5f9B012842d449f84c93B1b9c85A730ea7cd7A",
-      "FreeMintModule": "0x695c1e08a20fa2f9873e851e35990e81f54753f5",
-      "GasCoinPurchaseModule": "0x5afdb2888023c01f569180c117863486c4342033",
-      "StablecoinPurchaseModule": "0x673003f86ffe32f7caa3e5fcfdc711ebf8a64aef",
+      "FreeMintController": "0x695c1e08a20fa2f9873e851e35990e81f54753f5",
+      "GasCoinPurchaseController": "0x5afdb2888023c01f569180c117863486c4342033",
+      "StablecoinPurchaseController": "0x673003f86ffe32f7caa3e5fcfdc711ebf8a64aef",
       "MembershipFactory (impl)": "0x0e81d74FEdf54dF1B2dc1231c4C7f0Ca1348c37F",
       "MembershipFactory (proxy)": "0xc59EAFF8FFed977f02361dd99329A2217AaFC0E6"
     }
@@ -24,9 +24,9 @@
       "NFTMetadataRouterExtension": "0xda142d7C6105aFa35CE23Fc4db5fee595D4Ebc55",
       "PayoutAddressExtension": "0x5092d5033797cc7ac5c71e8e8bcbdDD29507093e",
       "FeeManager": "0x4B5f9B012842d449f84c93B1b9c85A730ea7cd7A",
-      "FreeMintModule": "0x695C1E08a20fa2F9873e851e35990e81F54753f5",
-      "GasCoinPurchaseModule": "0x5afdb2888023c01f569180c117863486c4342033",
-      "StablecoinPurchaseModule": "0x673003f86ffe32f7caa3e5fcfdc711ebf8a64aef",
+      "FreeMintController": "0x695C1E08a20fa2F9873e851e35990e81F54753f5",
+      "GasCoinPurchaseController": "0x5afdb2888023c01f569180c117863486c4342033",
+      "StablecoinPurchaseController": "0x673003f86ffe32f7caa3e5fcfdc711ebf8a64aef",
       "MembershipFactory (impl)": "0x0e81d74FEdf54dF1B2dc1231c4C7f0Ca1348c37F",
       "MembershipFactory (proxy)": "0xc59EAFF8FFed977f02361dd99329A2217AaFC0E6"
     },
@@ -45,9 +45,9 @@
       "NFTMetadataRouterExtension": "0xda142d7C6105aFa35CE23Fc4db5fee595D4Ebc55",
       "PayoutAddressExtension": "0x5092d5033797cc7ac5c71e8e8bcbdDD29507093e",
       "FeeManager": "0x4B5f9B012842d449f84c93B1b9c85A730ea7cd7A",
-      "FreeMintModule": "0x695C1E08a20fa2F9873e851e35990e81F54753f5",
-      "GasCoinPurchaseModule": "0x5afdb2888023c01f569180c117863486c4342033",
-      "StablecoinPurchaseModule": "0x673003f86ffe32f7caa3e5fcfdc711ebf8a64aef",
+      "FreeMintController": "0x695C1E08a20fa2F9873e851e35990e81F54753f5",
+      "GasCoinPurchaseController": "0x5afdb2888023c01f569180c117863486c4342033",
+      "StablecoinPurchaseController": "0x673003f86ffe32f7caa3e5fcfdc711ebf8a64aef",
       "MembershipFactory (impl)": "0x0e81d74FEdf54dF1B2dc1231c4C7f0Ca1348c37F",
       "MembershipFactory (proxy)": "0xc59EAFF8FFed977f02361dd99329A2217AaFC0E6"
     },

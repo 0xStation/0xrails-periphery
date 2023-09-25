@@ -5,18 +5,14 @@ import {SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol"
 import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
 import {FeeManager} from "./FeeManager.sol";
 
 /// @title Station Network Fee Manager Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg), 👦🏻👦🏻.eth
-
 /// @dev This contract enables payment by handling funds when charging base and variable fees on each Membership's mints
-
-/// @notice ModuleFeeV2 differs from ModuleFee in that it is intended to be inherited by all purchase modules
+/// @notice FeeControllerV2 differs from FeeController in that it is intended to be inherited by all purchase modules
 /// The goal is to abstract all payment logic so this module can handle fees for every client's desired Membership implementation
-
-abstract contract ModuleFee is Ownable {
+abstract contract FeeController is Ownable {
     // using SafeERC20 for covering USDT no-return and other transfer issues
     using SafeERC20 for IERC20Metadata;
 

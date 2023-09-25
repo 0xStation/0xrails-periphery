@@ -6,7 +6,7 @@ import {console} from "forge-std/console.sol";
 import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 
-import {FreeMintModule} from "src/membership/modules/FreeMintModule.sol";
+import {FreeMintController} from "src/membership/modules/FreeMintController.sol";
 import {OnePerAddressGuard} from "src/membership/guards/OnePerAddressGuard.sol";
 import {SetUpMembership} from "test/lib/SetUpMembership.sol";
 

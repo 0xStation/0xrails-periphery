@@ -21,6 +21,7 @@ contract PayoutAddressExtension is PayoutAddress, Extension, ContractMetadata {
         EXTENSION
     ===============*/
 
+    /// @inheritdoc Extension
     function getAllSelectors() public pure override returns (bytes4[] memory selectors) {
         selectors = new bytes4[](3);
         selectors[0] = this.payoutAddress.selector;
@@ -30,6 +31,7 @@ contract PayoutAddressExtension is PayoutAddress, Extension, ContractMetadata {
         return selectors;
     }
 
+    /// @inheritdoc Extension
     function signatureOf(bytes4 selector) public pure override returns (string memory) {
         if (selector == this.payoutAddress.selector) {
             return "payoutAddress()";
