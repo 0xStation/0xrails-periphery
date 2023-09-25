@@ -326,7 +326,7 @@ contract FeeManagerTest is Test, SetUpMembership {
     }
 
     // function to constrain fuzzed test values to realistic values for performance
-    // FeeManager.getFeeTotals() can overflow due to arithmetic in StablecoinPurchaseModule.mintPriceToStablecoinAmount()
+    // FeeManager.getFeeTotals() can overflow due to arithmetic in StablecoinPurchaseController.mintPriceToStablecoinAmount()
     // but only on impossibly high fees, price, & decimals causing a revert, roughly:
     // if (1ecoinDecimals * 1emoduleDecimals * _baseFee * _variableFee * _price > type(uint256).max)
     function _constrainFuzzInputs(uint120 _baseFee, uint120 _variableFee, uint120 _ethBaseFee, uint120 _ethVariableFee)

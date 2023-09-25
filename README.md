@@ -34,9 +34,9 @@ _A Solidity framework for creating complex and evolving onchain structures._
 lib/
   |- module/
       |- FeeManager*
-      |- ModuleFee
-      |- ModulePermit
-      |- ModuleSetup
+      |- FeeController
+      |- PermitController
+      |- SetupController
   |- ContractMetadata
   |- NonceBitMap
 membership/
@@ -48,9 +48,9 @@ membership/
   |- guards/
      |- OnePerAddressGuard*
   |- modules/
-      |- FreeMintModule*
-      |- GasCoinPurchaseModule*
-      |- StablecoinPurchaseModule*
+      |- FreeMintController*
+      |- GasCoinPurchaseController*
+      |- StablecoinPurchaseController*
 metadataRouter/
   |- MetadataRouter*
 ```

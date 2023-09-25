@@ -3,9 +3,9 @@ pragma solidity ^0.8.13;
 
 import {ScriptUtils} from "script/utils/ScriptUtils.sol";
 import {FeeManager} from "../../src/lib/module/FeeManager.sol";
-import {FreeMintModule} from "../../src/membership/modules/FreeMintModule.sol";
-import {GasCoinPurchaseModule} from "../../src/membership/modules/GasCoinPurchaseModule.sol";
-import {StablecoinPurchaseModule} from "../../src/membership/modules/StablecoinPurchaseModule.sol";
+import {FreeMintController} from "../../src/membership/modules/FreeMintController.sol";
+import {GasCoinPurchaseController} from "../../src/membership/modules/GasCoinPurchaseController.sol";
+import {StablecoinPurchaseController} from "../../src/membership/modules/StablecoinPurchaseController.sol";
 import {MetadataRouter} from "../../src/metadataRouter/MetadataRouter.sol";
 import {OnePerAddressGuard} from "../../src/membership/guards/OnePerAddressGuard.sol";
 import {NFTMetadataRouterExtension} from
@@ -27,9 +27,9 @@ contract Deploy is ScriptUtils {
     NFTMetadataRouterExtension nftMetadataRouterExtension;
     PayoutAddressExtension payoutAddressExtension;
     FeeManager feeManager;
-    FreeMintModule freeMintModule;
-    GasCoinPurchaseModule gasCoinPurchaseModule;
-    StablecoinPurchaseModule stablecoinPurchaseModule;
+    FreeMintController freeMintModule;
+    GasCoinPurchaseController gasCoinPurchaseController;
+    StablecoinPurchaseController stablecoinPurchaseController;
     MembershipFactory membershipFactoryImpl;
     MembershipFactory membershipFactory; // proxy
 
@@ -50,7 +50,7 @@ contract Deploy is ScriptUtils {
         // uris[0] = "https://groupos.xyz/api/v1/nftMetadata";
         uris[0] = "https://dev.groupos.xyz/api/v1/nftMetadata"; // goerli
 
-        // `deployStablecoinPurchaseModule` params configuration
+        // `deployStablecoinPurchaseController` params configuration
         uint8 decimals = 2;
         string memory currency = "USD";
         address[] memory stablecoins = new address[](1);
@@ -79,11 +79,11 @@ contract Deploy is ScriptUtils {
         payoutAddressExtension = deployPayoutAddressExtension(address(metadataRouter), salt);
 
         feeManager = FeeManager(deployFeeManager(owner, salt));
-        freeMintModule = deployFreeMintModule(owner, address(feeManager), address(metadataRouter), salt);
-        gasCoinPurchaseModule = deployGasCoinPurchaseModule(owner, address(feeManager), address(metadataRouter), salt);
+        freeMintModule = deployFreeMintController(owner, address(feeManager), address(metadataRouter), salt);
+        gasCoinPurchaseController = deployGasCoinPurchaseController(owner, address(feeManager), address(metadataRouter), salt);
 
         // using stablecoin 'environment' params above
-        stablecoinPurchaseModule = deployStablecoinPurchaseModule(
+        stablecoinPurchaseController = deployStablecoinPurchaseController(
             owner, address(feeManager), decimals, currency, stablecoins, address(metadataRouter), salt
         );
 
@@ -105,13 +105,13 @@ contract Deploy is ScriptUtils {
             saltString, string.concat("PayoutAddressExtension @", Strings.toHexString(address(payoutAddressExtension)))
         );
         writeUsedSalt(saltString, string.concat("FeeManager @", Strings.toHexString(address(feeManager))));
-        writeUsedSalt(saltString, string.concat("FreeMintModule @", Strings.toHexString(address(freeMintModule))));
+        writeUsedSalt(saltString, string.concat("FreeMintController @", Strings.toHexString(address(freeMintModule))));
         writeUsedSalt(
-            saltString, string.concat("GasCoinPurchaseModule @", Strings.toHexString(address(gasCoinPurchaseModule)))
+            saltString, string.concat("GasCoinPurchaseController @", Strings.toHexString(address(gasCoinPurchaseController)))
         );
         writeUsedSalt(
             saltString,
-            string.concat("StablecoinPurchaseModule @", Strings.toHexString(address(stablecoinPurchaseModule)))
+            string.concat("StablecoinPurchaseController @", Strings.toHexString(address(stablecoinPurchaseController)))
         );
         writeUsedSalt(
             saltString, string.concat("MembershipFactoryImpl @", Strings.toHexString(address(membershipFactoryImpl)))
@@ -163,21 +163,21 @@ contract Deploy is ScriptUtils {
             new FeeManager{salt: _salt}(_owner, _defaultBaseFee, _defaultVariableFee, _ethBaseFee, _defaultVariableFee);
     }
 
-    function deployFreeMintModule(address _owner, address _feeManager, address _metadataRouter, bytes32 _salt)
+    function deployFreeMintController(address _owner, address _feeManager, address _metadataRouter, bytes32 _salt)
         internal
-        returns (FreeMintModule)
+        returns (FreeMintController)
     {
-        return new FreeMintModule{salt: _salt}(_owner, _feeManager, _metadataRouter);
+        return new FreeMintController{salt: _salt}(_owner, _feeManager, _metadataRouter);
     }
 
-    function deployGasCoinPurchaseModule(address _owner, address _feeManager, address _metadataRouter, bytes32 _salt)
+    function deployGasCoinPurchaseController(address _owner, address _feeManager, address _metadataRouter, bytes32 _salt)
         internal
-        returns (GasCoinPurchaseModule)
+        returns (GasCoinPurchaseController)
     {
-        return new GasCoinPurchaseModule{salt: _salt}(_owner, _feeManager, _metadataRouter);
+        return new GasCoinPurchaseController{salt: _salt}(_owner, _feeManager, _metadataRouter);
     }
 
-    function deployStablecoinPurchaseModule(
+    function deployStablecoinPurchaseController(
         address _owner,
         address _feeManager,
         uint8 _decimals,
@@ -185,9 +185,9 @@ contract Deploy is ScriptUtils {
         address[] memory _stablecoins,
         address _metadataRouter,
         bytes32 _salt
-    ) internal returns (StablecoinPurchaseModule) {
+    ) internal returns (StablecoinPurchaseController) {
         return
-        new StablecoinPurchaseModule{salt: _salt}(_owner, _feeManager, _decimals, _currency, _stablecoins, _metadataRouter);
+        new StablecoinPurchaseController{salt: _salt}(_owner, _feeManager, _decimals, _currency, _stablecoins, _metadataRouter);
     }
 
     function deployMembershipFactory(address _owner, address _erc721Rails, bytes32 _salt)
