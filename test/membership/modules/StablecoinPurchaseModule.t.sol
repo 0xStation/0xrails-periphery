@@ -10,7 +10,7 @@ import {IGuardsInternal as IGuards} from "0xrails/guard/interface/IGuards.sol";
 
 // src
 
-import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
+import {SetupController} from "src/lib/module/SetupController.sol";
 import {StablecoinPurchaseController} from "src/membership/modules/StablecoinPurchaseController.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
 import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
@@ -36,7 +36,7 @@ contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
     // intended to contain custom error signatures
     bytes public err;
 
-    // transplanted from ModuleFeeV2 since custom errors are not externally visible
+    // transplanted from FeeControllerV2 since custom errors are not externally visible
     error InvalidFee(uint256 expected, uint256 received);
 
     function setUp() public override {
@@ -234,7 +234,7 @@ contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
         setupStablecoins[0] = address(stablecoin);
         // prank as not-permitted, non-owner randomAddress
         vm.prank(randomAddress);
-        err = abi.encodeWithSelector(ModuleSetup.SetUpUnauthorized.selector, address(proxy), randomAddress);
+        err = abi.encodeWithSelector(SetupController.SetUpUnauthorized.selector, address(proxy), randomAddress);
         vm.expectRevert(err);
         stablecoinModule.setUp(address(proxy), price, stablecoins, false);
 

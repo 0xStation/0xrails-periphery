@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 
-contract ModuleSetup {
+contract SetupController {
     error SetUpUnauthorized(address collection, address account);
 
     modifier canSetUp(address collection) {

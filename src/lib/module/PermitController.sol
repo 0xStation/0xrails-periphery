@@ -5,11 +5,11 @@ import {SignatureChecker, ECDSA} from "openzeppelin-contracts/utils/cryptography
 import {Address} from "openzeppelin-contracts/utils/Address.sol";
 import {NonceBitMap} from "src/lib/NonceBitMap.sol";
 
-/// @title ModulePermit: EIP-712 Signature Module for Permit-Based Function Authentication
+/// @title PermitController: EIP-712 Signature Module for Permit-Based Function Authentication
 /// @dev This contract provides a framework for permit-based function authentication using EIP-712 signatures.
 /// It allows callers to execute functions on behalf of authorized signers by presenting a valid permit
 /// containing an EIP-712 signature. This contract also includes reentrancy protection
-abstract contract ModulePermit is NonceBitMap {
+abstract contract PermitController is NonceBitMap {
 
     /// @dev Struct of Permit data to be hashed and signed for meta-transactions.
     /// @param signer The authorized signer's address.

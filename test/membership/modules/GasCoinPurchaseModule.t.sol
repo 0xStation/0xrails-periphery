@@ -19,7 +19,7 @@ contract GasCoinPurchaseControllerTest is Test, SetUpMembership {
     // intended to contain custom error signatures
     bytes public err;
 
-    // transplanted from ModuleFeeV2 since custom errors are not externally visible
+    // transplanted from FeeControllerV2 since custom errors are not externally visible
     error InvalidFee(uint256 expected, uint256 received);
 
     function setUp() public override {

@@ -5,9 +5,9 @@ import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 
-import {ModuleSetup} from "src/lib/module/ModuleSetup.sol";
-import {ModulePermit} from "src/lib/module/ModulePermit.sol";
-import {ModuleFee} from "src/lib/module/ModuleFee.sol";
+import {SetupController} from "src/lib/module/SetupController.sol";
+import {PermitController} from "src/lib/module/PermitController.sol";
+import {FeeController} from "src/lib/module/FeeController.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 
@@ -16,7 +16,7 @@ import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 /// @dev Provides a modular contract to handle collections who wish for their membership mints to be
 /// paid in the native currency of the chain this contract is deployed to
 
-contract GasCoinPurchaseController is ModuleSetup, ModulePermit, ModuleFee, ContractMetadata {
+contract GasCoinPurchaseController is SetupController, PermitController, FeeController, ContractMetadata {
     /*=======================
         CONTRACT METADATA
     =======================*/
@@ -44,11 +44,11 @@ contract GasCoinPurchaseController is ModuleSetup, ModulePermit, ModuleFee, Cont
         CONFIG
     ============*/
 
-    /// @param _newOwner The owner of the ModuleFeeV2, an address managed by Station Network
+    /// @param _newOwner The owner of the FeeControllerV2, an address managed by Station Network
     /// @param _feeManager The FeeManager's address
     constructor(address _newOwner, address _feeManager, address metadataRouter)
-        ModulePermit()
-        ModuleFee(_newOwner, _feeManager)
+        PermitController()
+        FeeController(_newOwner, _feeManager)
         ContractMetadata(metadataRouter)
     {}
 
