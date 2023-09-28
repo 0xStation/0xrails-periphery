@@ -61,5 +61,21 @@
       "BadgesFactory (impl)": "0x0cfb5c196E6905391EFb10bcb2d059794a7f3B99",
       "BadgesFactory (proxy)": "0x3192BF082DD537944b09Da147C5AFbAf9d6dC11C"
     }
+  },
+  "59140": {
+    "membership": {
+      "ERC721Mage (impl)": "0x19b39040DF2e9dc2b0D18710833A6B4e715545d0",
+      "MetadataRouter (impl)": "0xaDB02d9f7dE96dAC737808B950299e8C1b6b4908",
+      "MetadataRouter (proxy)": "0xE86b14C1FA3c22c0d40Ba902C2b9946E25dE7779",
+      "OnePerAddressGuard": "0x29b44777AA8A4E19086D6E45cCc4A5c751D9b1B3",
+      "NFTMetadataRouterExtension": "0x31e2De0756c286ba559Cf96Bd3f798906c9fD00E",
+      "PayoutAddressExtension": "0xe33D6E2B69F3440b805A80C8b2bFA9D04fEE1e91",
+      "FeeManager": "0xFd9779CC646403A321f40f879dB66F8aEbbbC110",
+      "FreeMintController": "0xA62D0E5A138A70C297679bDF9055996214f05141",
+      "GasCoinPurchaseController": "0xa6Bc9D06e3052Fa1095ca7fe7499Cb950A998b90",
+      "StablecoinPurchaseController": "0x9A15f562d77d8D8eAFeD1F3E1e437C0478EEF282",
+      "MembershipFactory (impl)": "0xea8cc16F6e486De0C1220321D36a01f3cE24d950",
+      "MembershipFactory (proxy)": "0x05773645B3f01FAc487643806044583397dCa879"
+    }
   }
 }

@@ -19,3 +19,6 @@ script/input
 
 # macOS
 */.DS_Store
+
+# VSCode
+.vscode/

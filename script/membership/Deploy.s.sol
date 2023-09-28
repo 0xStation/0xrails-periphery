@@ -42,21 +42,16 @@ contract Deploy is ScriptUtils {
         ============*/
 
         // `deployMetadataRouter()` params configuration
-        // string memory defaultURI = "https://groupos.xyz/api/v1/contractMetadata";
-        string memory defaultURI = "https://dev.groupos.xyz/api/v1/contractMetadata"; // goerli
+        string memory defaultURI = "https://groupos.xyz/api/v1/contractMetadata";
         string[] memory routes = new string[](1);
         routes[0] = "token";
         string[] memory uris = new string[](1);
-        // uris[0] = "https://groupos.xyz/api/v1/nftMetadata";
-        uris[0] = "https://dev.groupos.xyz/api/v1/nftMetadata"; // goerli
+        uris[0] = "https://groupos.xyz/api/v1/nftMetadata";
 
         // `deployStablecoinPurchaseController` params configuration
         uint8 decimals = 2;
         string memory currency = "USD";
-        address[] memory stablecoins = new address[](1);
-        stablecoins[0] = 0xD478219fDca296699A6511f28BA93a265E3E9a1b; // goerli
-        // stablecoins[0] = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174; // polygon
-        // stablecoins[0] = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // ethereum
+        address[] memory stablecoins = new address[](0); // do NOT use, will make multichain addresses incompatible
 
         /*===============
             BROADCAST 
@@ -72,6 +67,8 @@ contract Deploy is ScriptUtils {
         // eventually we can just use ScriptUtils to read from deploys.json
         // address erc721Rails = 0x7c804b088109C23d9129366a8C069448A4b219F8; // goerli, polygon, mainnet
         // address erc721Rails = 0xac06D8C535cb53F614d5C79809c778AB38343A63; // goerli, sepolia
+        // address erc721Rails = 0x19b39040DF2e9dc2b0D18710833A6B4e715545d0; // linea testnet
+
         address erc721Rails = 0xA03a52b4C8D0C8C64c540183447494C25F590e20; // Linea
 
         (metadataRouterImpl, metadataRouter) = deployMetadataRouter(owner, defaultURI, routes, uris, salt);
