@@ -11,7 +11,8 @@ import {OnePerAddressGuard} from "../../src/membership/guards/OnePerAddressGuard
 import {NFTMetadataRouterExtension} from
     "../../src/membership/extensions/NFTMetadataRouter/NFTMetadataRouterExtension.sol";
 import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
-import {MembershipFactory} from "../../src/membership/factory/MembershipFactory.sol";
+import {ITokenFactory} from "../../src/factory/ITokenFactory.sol";
+import {TokenFactory} from "../../src/factory/TokenFactory.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Strings} from "openzeppelin-contracts/utils/Strings.sol";
 
@@ -30,25 +31,27 @@ contract Deploy is ScriptUtils {
     FreeMintController freeMintModule;
     GasCoinPurchaseController gasCoinPurchaseController;
     StablecoinPurchaseController stablecoinPurchaseController;
-    MembershipFactory membershipFactoryImpl;
-    MembershipFactory membershipFactory; // proxy
-
-    // uncomment all instances of `deployerPrivateKey` if using a private key in shell env var
-    // uint256 deployerPrivateKey = vm.envUint("PK");
+    TokenFactory tokenFactoryImpl;
+    TokenFactory tokenFactory; // proxy
 
     function run() public {
         /*============
             CONFIG
         ============*/
 
+        // founderSafeScript:
+        // - metadataRouterData = abi.encode(”updateUri”, “https://…”)
+        // - multicallData = abi.encode(”multiCall”, [metadataRouterData, feeManagerData, …])
+        // - Safe(founderSafe).execTransactionFromModule(multicall3, 0, mutlicallData);
+
         // `deployMetadataRouter()` params configuration
-        // string memory defaultURI = "https://groupos.xyz/api/v1/contractMetadata";
-        string memory defaultURI = "https://dev.groupos.xyz/api/v1/contractMetadata"; // goerli
+        string memory defaultURI = "https://groupos.xyz/api/v1/contractMetadata";
+        // string memory defaultURI = "https://dev.groupos.xyz/api/v1/contractMetadata"; // goerli
         string[] memory routes = new string[](1);
         routes[0] = "token";
         string[] memory uris = new string[](1);
-        // uris[0] = "https://groupos.xyz/api/v1/nftMetadata";
-        uris[0] = "https://dev.groupos.xyz/api/v1/nftMetadata"; // goerli
+        uris[0] = "https://groupos.xyz/api/v1/nftMetadata";
+        // uris[0] = "https://dev.groupos.xyz/api/v1/nftMetadata"; // goerli
 
         // `deployStablecoinPurchaseController` params configuration
         uint8 decimals = 2;
@@ -62,7 +65,7 @@ contract Deploy is ScriptUtils {
             BROADCAST 
         ===============*/
 
-        vm.startBroadcast( /*deployerPrivateKey*/ );
+        vm.startBroadcast();
 
         address owner = ScriptUtils.stationFounderSafe;
         
@@ -75,6 +78,8 @@ contract Deploy is ScriptUtils {
         address erc721Rails = 0xA03a52b4C8D0C8C64c540183447494C25F590e20; // Linea
 
         (metadataRouterImpl, metadataRouter) = deployMetadataRouter(owner, defaultURI, routes, uris, salt);
+        // metadataRouter.initialize(); //todo
+
         onePerAddressGuard = deployOnePerAddressGuard(address(metadataRouter), salt);
         nftMetadataRouterExtension = deployNFTMetadataRouterExtension(address(metadataRouter), salt);
         payoutAddressExtension = deployPayoutAddressExtension(address(metadataRouter), salt);
@@ -88,7 +93,8 @@ contract Deploy is ScriptUtils {
             owner, address(feeManager), decimals, currency, stablecoins, address(metadataRouter), salt
         );
 
-        (membershipFactoryImpl, membershipFactory) = deployMembershipFactory(owner, erc721Rails, salt);
+        (tokenFactoryImpl, tokenFactory) = deployTokenFactory(owner, erc721Rails, salt);
+        // tokenFactory.initialize();//todo
 
         // missing: ExtensionBeacon
 
@@ -115,10 +121,10 @@ contract Deploy is ScriptUtils {
             string.concat("StablecoinPurchaseController @", Strings.toHexString(address(stablecoinPurchaseController)))
         );
         writeUsedSalt(
-            saltString, string.concat("MembershipFactoryImpl @", Strings.toHexString(address(membershipFactoryImpl)))
+            saltString, string.concat("TokenFactoryImpl @", Strings.toHexString(address(tokenFactoryImpl)))
         );
         writeUsedSalt(
-            saltString, string.concat("MembershipFactoryProxy @", Strings.toHexString(address(membershipFactory)))
+            saltString, string.concat("TokenFactoryProxy @", Strings.toHexString(address(tokenFactory)))
         );
     }
 
@@ -131,9 +137,10 @@ contract Deploy is ScriptUtils {
     ) internal returns (MetadataRouter _impl, MetadataRouter _proxy) {
         _impl = new MetadataRouter{salt: _salt}();
 
-        bytes memory initData =
-            abi.encodeWithSelector(MetadataRouter.initialize.selector, _owner, _defaultURI, _routes, _uris);
-        _proxy = MetadataRouter(address(new ERC1967Proxy{salt: _salt}(address(_impl), initData)));
+        //todo
+        // bytes memory initData =
+        //     abi.encodeWithSelector(MetadataRouter.initialize.selector, _owner, _defaultURI, _routes, _uris);
+        _proxy = MetadataRouter(address(new ERC1967Proxy{salt: _salt}(address(_impl), ''))); //initData)));
     }
 
     function deployOnePerAddressGuard(address _metadataRouter, bytes32 _salt) internal returns (OnePerAddressGuard) {
@@ -191,13 +198,14 @@ contract Deploy is ScriptUtils {
         new StablecoinPurchaseController{salt: _salt}(_owner, _feeManager, _decimals, _currency, _stablecoins, _metadataRouter);
     }
 
-    function deployMembershipFactory(address _owner, address _erc721Rails, bytes32 _salt)
+    function deployTokenFactory(address _owner, address _erc721Rails, bytes32 _salt)
         internal
-        returns (MembershipFactory _impl, MembershipFactory _proxy)
+        returns (TokenFactory _impl, TokenFactory _proxy)
     {
-        _impl = new MembershipFactory{salt: _salt}();
+        _impl = new TokenFactory{salt: _salt}();
 
-        bytes memory initFactory = abi.encodeWithSelector(MembershipFactory.initialize.selector, _erc721Rails, _owner);
-        _proxy = MembershipFactory(address(new ERC1967Proxy{salt: _salt}(address(_impl), initFactory)));
+        //todo
+        // bytes memory initFactory = abi.encodeWithSelector(TokenFactory.initialize.selector, _erc721Rails, _owner);
+        _proxy = TokenFactory(address(new ERC1967Proxy{salt: _salt}(address(_impl), ''))); // initFactory)));
     }
 }
