@@ -34,8 +34,9 @@ contract Deploy is ScriptUtils {
     }
 
     function deployBadgesFactory(bytes32 salt) internal returns (BadgesFactory) {
-        address badgesImpl = 0xb902C5610f6eE3206b6aC29579A411783AD5CB21; // goerli, sepolia
-        // address badgesImpl = 0xfC6Eea2467f921C66063C8E2aDB193c44299e869; // polygon
+        // address badgesImpl = 0xb902C5610f6eE3206b6aC29579A411783AD5CB21; // erc1155rails on goerli, sepolia
+        // address badgesImpl = 0xfC6Eea2467f921C66063C8E2aDB193c44299e869; // erc1155rails on polygon
+        address badgesImpl = 0x0070Ac819452f7F5a0d02FF3c9c7A8BcfE7Bba14; // erc1155rails on Linea
         badgesFactoryImpl = new BadgesFactory{salt: salt}();
 
         bytes memory initFactory =

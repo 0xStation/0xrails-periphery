@@ -67,7 +67,9 @@ contract Deploy is ScriptUtils {
         // eventually we can just use ScriptUtils to read from deploys.json
         // address erc721Rails = 0x7c804b088109C23d9129366a8C069448A4b219F8; // goerli, polygon, mainnet
         // address erc721Rails = 0xac06D8C535cb53F614d5C79809c778AB38343A63; // goerli, sepolia
-        address erc721Rails = 0x19b39040DF2e9dc2b0D18710833A6B4e715545d0; // linea testnet
+        // address erc721Rails = 0x19b39040DF2e9dc2b0D18710833A6B4e715545d0; // linea testnet
+
+        address erc721Rails = 0xA03a52b4C8D0C8C64c540183447494C25F590e20; // Linea
 
         (metadataRouterImpl, metadataRouter) = deployMetadataRouter(owner, defaultURI, routes, uris, salt);
         onePerAddressGuard = deployOnePerAddressGuard(address(metadataRouter), salt);
