@@ -61,5 +61,31 @@
       "BadgesFactory (impl)": "0x0cfb5c196E6905391EFb10bcb2d059794a7f3B99",
       "BadgesFactory (proxy)": "0x3192BF082DD537944b09Da147C5AFbAf9d6dC11C"
     }
+  },
+  "59144": {
+    "StationFounderSafe Multisig Proxy": "0x5d347E9b0e348a10327F4368a90286b3d1E7FB15",
+    "Station Safe Impl": "0x4aecEDCb5A1DD4615F57dF2672D5399b843F2469",
+    "Station Proxy Factory": "0x17841bb20729b25f23fdc6307dbccd883ad30f91",
+    "CallPermitValidator": "0x75d58aad25abacd5e9c30ef68159153fe1654846",
+    "BotAccountImpl": "0x37ec63afcab263c59c26b2725593ba9570d073b8",
+    "BotAccountProxy": "0x8fc712c40dcceda4e0efa93caf512d02200de30f",
+    "ERC721Rails": "0xa03a52b4c8d0c8c64c540183447494c25f590e20",
+    "ERC20Rails": "0x7ffc6bb6f33111d88b0da80ac3dfe03bfca55c49",
+    "ERC1155Rails": "0x0070ac819452f7f5a0d02ff3c9c7a8bcfe7bba14",
+    "BadgesFactoryImpl": "0x54d7E374e0EDA2Ba1AC9753882879A9151cbA059",
+    "BadgesFactoryProxy": "0x77e9435A62fC8E7956bebe918F5e85BC328f5165",
+    "PointsFactoryImpl": "0xeEBB0AeD46a87D22Aec722DEdF4Cc26eA63454c2",
+    "PointsFactoryProxy": "0x9de62d5970356270E2790EAB4e3E6cF186868587",
+    "MembershipFactoryImpl": "0xec4de6a3bf2b598fef179dc4a6766fa0e73f143a",
+    "MembershipFactoryProxy": "0xc5abb7832f6e5201f3f339429ec71a569ffe49f5",
+    "MetadataRouterImpl": "0x8166634a8972d5d06f50eb472906b6bc54214613",
+    "MetadataRouterProxy": "0xe63da895a4c35d011116fe13267cbfc7ef4b8314",
+    "OneAddressPerGuard": "0x1577194B3F7F0D69B4869c378D8bC5Aa52e4567A",
+    "NFTMetadataRouterExtension": "0x4d3c0192650ed584d9fe89fc11ccbda437d274c8",
+    "PayoutAddressExtension": "0xc786b15615b62e1ff126969b2028ab10c86f5442",
+    "FeeManager": "0xd612dc76ff8cd0ec390208f267b26f9485534df3",
+    "FreeMintController": "0x19b3b28d76df5a1b90e6998edbf31e57094c31c1",
+    "GasCoinPurchaseController": "0x822bdae137f6a3d50801e5b744b2e99e35d8bee1",
+    "StablecoinPurchaseController": "0x75b899c58e1117f9e42276753e17949ef2aaa6dd"
   }
 }
