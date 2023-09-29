@@ -38,13 +38,13 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
     {
         // events are emitted before initialization for indexer convenience
         if (std == TokenStandard.ERC20) { 
-            emit PointsCreated(core);
+            emit ERC20RailsCreated(core);
             core = _create(type(IERC20).interfaceId, coreImpl, owner, name, symbol, initData);
        } else if (std == TokenStandard.ERC721) {
-            emit MembershipCreated(core);
+            emit ERC721RailsCreated(core);
             core = _create(type(IERC721).interfaceId, coreImpl, owner, name, symbol, initData);
        } else if (std == TokenStandard.ERC1155) {
-            emit BadgesCreated(core);
+            emit ERC1155RailsCreated(core);
             core = _create(type(IERC1155).interfaceId, coreImpl, owner, name, symbol, initData);
        }
     }

@@ -9,9 +9,9 @@ interface ITokenFactory {
         ERC1155
     }
 
-    event MembershipCreated(address indexed membership);
-    event PointsCreated(address indexed points);
-    event BadgesCreated(address indexed badges);
+    event ERC721RailsCreated(address indexed membership);
+    event ERC20RailsCreated(address indexed points);
+    event ERC1155RailsCreated(address indexed badges);
 
     error InvalidImplementation();
 
