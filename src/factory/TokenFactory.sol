@@ -8,6 +8,7 @@ import {IERC721} from "openzeppelin-contracts/token/ERC721/IERC721.sol";
 import {IERC1155} from "openzeppelin-contracts/token/ERC1155/IERC1155.sol";
 import {Ownable} from "0xrails/access/ownable/Ownable.sol";
 import {Initializable} from "0xrails/lib/initializable/Initializable.sol";
+import {ISupportsInterface} from "0xrails/lib/ERC165/ISupportsInterface.sol";
 import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
 import {ERC20Rails} from "0xrails/cores/ERC20/ERC20Rails.sol";
 import {ERC1155Rails} from "0xrails/cores/ERC1155/ERC1155Rails.sol";
@@ -36,7 +37,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         returns (address payable core)
     {
         if (std == TokenStandard.ERC20) { 
-            if (!ERC20Rails(coreImpl).supportsInterface(type(IERC20).interfaceId)) revert InvalidImplementation();
+            if (!ISupportsInterface(coreImpl).supportsInterface(type(IERC20).interfaceId)) revert InvalidImplementation();
             core = _create(coreImpl);
 
             // emit event before initialization for indexer convenience
@@ -45,7 +46,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
             // initializer relies on self-delegatecall so make a separate call to initialize after deploying new proxy
             ERC20Rails(core).initialize(owner, name, symbol, initData);
        } else if (std == TokenStandard.ERC721) {
-            if (!ERC721Rails(coreImpl).supportsInterface(type(IERC721).interfaceId)) revert InvalidImplementation();
+            if (!ISupportsInterface(coreImpl).supportsInterface(type(IERC721).interfaceId)) revert InvalidImplementation();
             core = _create(coreImpl);
 
             // emit event before initialization for indexer convenience
@@ -54,7 +55,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
             // initializer relies on self-delegatecall so make a separate call to initialize after deploying new proxy
             ERC721Rails(core).initialize(owner, name, symbol, initData);
        } else if (std == TokenStandard.ERC1155) {
-            if (!ERC1155Rails(coreImpl).supportsInterface(type(IERC1155).interfaceId)) revert InvalidImplementation();
+            if (!ISupportsInterface(coreImpl).supportsInterface(type(IERC1155).interfaceId)) revert InvalidImplementation();
             core = _create(coreImpl);
 
             // emit event before initialization for indexer convenience
