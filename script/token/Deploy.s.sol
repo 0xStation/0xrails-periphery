@@ -101,8 +101,8 @@ contract Deploy is ScriptUtils {
         calls[0] = metadataRouterSetDefaultURICall;
         calls[1] = metadataRouterSetRouteURICall;
         bytes memory multicallData = abi.encodeWithSignature("aggregate3((address,bool,bytes)[])", calls);
-        // `Safe(owner).execTransactionFromModule(multicall3, 0, multicallData, uint8(0));` using 0 ETH value & Operation == CALL
-        bytes memory safeCall = abi.encodeWithSignature("execTransactionFromModule(address,uint256,bytes,uint8)", multicall3, 0, multicallData, uint8(0));
+        // `Safe(owner).execTransactionFromModule(multicall3, 0, multicallData, uint8(1));` using 0 ETH value & Operation == DELEGATECALL
+        bytes memory safeCall = abi.encodeWithSignature("execTransactionFromModule(address,uint256,bytes,uint8)", multicall3, 0, multicallData, uint8(1));
         (bool r,) = owner.call(safeCall);
         require(r);
 
