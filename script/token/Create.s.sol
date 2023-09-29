@@ -7,7 +7,7 @@ import {Permissions} from "0xrails/access/permissions/Permissions.sol";
 import {PermissionsStorage} from "0xrails/access/permissions/PermissionsStorage.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 import {IExtensions} from "0xrails/extension/interface/IExtensions.sol";
-
+import {ITokenFactory} from "src/factory/ITokenFactory.sol";
 import {FeeManager} from "../../src/lib/module/FeeManager.sol";
 import {FreeMintController} from "../../src/membership/modules/FreeMintController.sol";
 import {GasCoinPurchaseController} from "../../src/membership/modules/GasCoinPurchaseController.sol";
@@ -89,7 +89,11 @@ contract Create is Script {
 
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, initCalls);
 
-        TokenFactory(membershipFactory).create(owner, name, symbol, initData);
+        ///@notice Configure the following parameters to use desired token type and token address
+        ITokenFactory.TokenStandard standard; // eg. = ITokenFactory.TokenStandard.ERC721;
+        address coreImpl; // eg. = address(erc721RailsImpl);
+        
+        TokenFactory(membershipFactory).create(standard, payable(coreImpl), owner, name, symbol, initData);
 
         vm.stopBroadcast();
     }
