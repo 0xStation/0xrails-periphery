@@ -9,11 +9,8 @@ interface ITokenFactory {
         ERC1155
     }
 
-    event MembershipUpdated(address indexed membershipImpl);
     event MembershipCreated(address indexed membership);
-    event PointsUpdated(address indexed pointsImpl);
     event PointsCreated(address indexed points);
-    event BadgesUpdated(address indexed badgesImpl);
     event BadgesCreated(address indexed badges);
 
     error InvalidImplementation();
