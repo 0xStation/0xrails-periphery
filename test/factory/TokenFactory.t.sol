@@ -149,16 +149,6 @@ contract TokenFactoryTest is Test, IERC1967 {
         tokenFactoryProxy.initialize(owner);
     }
 
-    function test_initializeRevertInvalidImplementation() public {
-        assertFalse(tokenFactoryProxy.initialized());
-
-        err = abi.encodeWithSelector(ITokenFactory.InvalidImplementation.selector);
-        vm.expectRevert(err);
-        tokenFactoryProxy.initialize(address(0x0));
-
-        assertFalse(tokenFactoryProxy.initialized());
-    }
-
     function test_authorizeUpgrade(address notOwner) public {
         vm.assume(notOwner != owner);
         tokenFactoryProxy.initialize(owner);

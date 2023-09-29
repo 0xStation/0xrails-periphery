@@ -9,9 +9,9 @@ import {IERC1155} from "openzeppelin-contracts/token/ERC1155/IERC1155.sol";
 import {Ownable} from "0xrails/access/ownable/Ownable.sol";
 import {Initializable} from "0xrails/lib/initializable/Initializable.sol";
 import {ISupportsInterface} from "0xrails/lib/ERC165/ISupportsInterface.sol";
-import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
-import {ERC20Rails} from "0xrails/cores/ERC20/ERC20Rails.sol";
-import {ERC1155Rails} from "0xrails/cores/ERC1155/ERC1155Rails.sol";
+import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
+import {IERC20Rails} from "0xrails/cores/ERC20/interface/IERC20Rails.sol";
+import {IERC1155Rails} from "0xrails/cores/ERC1155/interface/IERC1155Rails.sol";
 import {ITokenFactory} from "src/factory/ITokenFactory.sol";
 
 contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory {
@@ -36,38 +36,30 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         public 
         returns (address payable core)
     {
+        // events are emitted before initialization for indexer convenience
         if (std == TokenStandard.ERC20) { 
-            if (!ISupportsInterface(coreImpl).supportsInterface(type(IERC20).interfaceId)) revert InvalidImplementation();
-            core = _create(coreImpl);
-
-            // emit event before initialization for indexer convenience
             emit PointsCreated(core);
-
-            // initializer relies on self-delegatecall so make a separate call to initialize after deploying new proxy
-            ERC20Rails(core).initialize(owner, name, symbol, initData);
+            core = _create(type(IERC20).interfaceId, coreImpl, owner, name, symbol, initData);
        } else if (std == TokenStandard.ERC721) {
-            if (!ISupportsInterface(coreImpl).supportsInterface(type(IERC721).interfaceId)) revert InvalidImplementation();
-            core = _create(coreImpl);
-
-            // emit event before initialization for indexer convenience
             emit MembershipCreated(core);
-
-            // initializer relies on self-delegatecall so make a separate call to initialize after deploying new proxy
-            ERC721Rails(core).initialize(owner, name, symbol, initData);
+            core = _create(type(IERC721).interfaceId, coreImpl, owner, name, symbol, initData);
        } else if (std == TokenStandard.ERC1155) {
-            if (!ISupportsInterface(coreImpl).supportsInterface(type(IERC1155).interfaceId)) revert InvalidImplementation();
-            core = _create(coreImpl);
-
-            // emit event before initialization for indexer convenience
             emit BadgesCreated(core);
-
-            // initializer relies on self-delegatecall so make a separate call to initialize after deploying new proxy
-            ERC1155Rails(core).initialize(owner, name, symbol, initData);
+            core = _create(type(IERC1155).interfaceId, coreImpl, owner, name, symbol, initData);
        }
     }
 
-    function _create(address _coreImpl) public returns (address payable _core) {
+    function _create(
+        bytes4 _interfaceId, 
+        address _coreImpl, 
+        address _owner, 
+        string memory _name, 
+        string memory _symbol, 
+        bytes memory _initData
+    ) public returns (address payable _core) {
+        if (!ISupportsInterface(_coreImpl).supportsInterface(_interfaceId)) revert InvalidImplementation();
         _core = payable(address(new ERC1967Proxy(_coreImpl, bytes(""))));
+        IERC721Rails(_core).initialize(_owner, _name, _symbol, _initData);
     }
 
     /*===============
