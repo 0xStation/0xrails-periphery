@@ -4,6 +4,12 @@ pragma solidity ^0.8.13;
 import {Script} from "forge-std/Script.sol";
 
 abstract contract ScriptUtils is Script {
+    struct Call3 {
+        address target;
+        bool allowFailure;
+        bytes callData;
+    }
+    
     error Create2Failure();
 
     // global addresses
@@ -12,6 +18,8 @@ abstract contract ScriptUtils is Script {
     address public constant turnkey = 0xBb942519A1339992630b13c3252F04fCB09D4841;
     // Station multisig (SafeProxy.sol)
     address public constant stationFounderSafe = 0x0f95a7b50eaeEFc08eb10Be44Dd48409b46372b2;
+    // Multicall3 contract address across almost all chains
+    address public constant multicall3 = 0xcA11bde05977b3631167028862bE2a173976CA11;
 
     // dev addresses
     address public constant symmetry = 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d;
