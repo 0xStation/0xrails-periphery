@@ -22,30 +22,13 @@ contract MetadataRouter is Initializable, Ownable, UUPSUpgradeable, IMetadataRou
 
     constructor() Initializable() {}
 
-    /// @dev Initialize the contract with default URIs and ownership information.
+    /// @dev Initialize the contract with ownership information.
     /// @param _owner The address of the contract owner.
-    /// @param defaultURI_ The default URI to be used when no specific URI is configured.
-    /// @param routes An array of route names.
-    /// @param routeURIs An array of URIs corresponding to the routes provided.
-    /// @notice The number of elements in `routes` and `routeURIs` arrays must match, or initialization will revert.
     /// @notice The contract owner will have exclusive rights to manage metadata routes and URIs.
-    function initialize(address _owner, string memory defaultURI_, string[] memory routes, string[] memory routeURIs)
+    function initialize(address _owner)
         external
         initializer
     {
-        uint256 len = routes.length;
-        if (len != routeURIs.length) revert();
-
-        MetadataRouterStorage.Layout storage layout = MetadataRouterStorage.layout();
-
-        for (uint256 i; i < len; i++) {
-            layout.routeURI[routes[i]] = routeURIs[i];
-            emit RouteURIUpdated(routes[i], routeURIs[i]);
-        }
-
-        layout.defaultURI = defaultURI_;
-        emit DefaultURIUpdated(defaultURI_);
-
         _transferOwnership(_owner);
     }
 
