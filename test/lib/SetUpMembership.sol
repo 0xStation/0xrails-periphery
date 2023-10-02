@@ -6,7 +6,8 @@ import {IExtensions} from "0xrails/extension/interface/IExtensions.sol";
 import {Multicall} from "openzeppelin-contracts/utils/Multicall.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import {MembershipFactory} from "src/membership/factory/MembershipFactory.sol";
+import {TokenFactory} from "src/factory/TokenFactory.sol";
+import {ITokenFactory} from "src/factory/ITokenFactory.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
 import {Helpers} from "test/lib/Helpers.sol";
@@ -15,8 +16,8 @@ abstract contract SetUpMembership is Helpers {
     address public owner;
     address public payoutAddress;
     ERC721Rails public membershipImpl;
-    MembershipFactory public membershipFactoryImpl;
-    MembershipFactory public membershipFactory;
+    TokenFactory public membershipFactoryImpl;
+    TokenFactory public membershipFactory;
     PayoutAddressExtension public payoutAddressExtension;
     address public metadataRouter = address(0);
 
@@ -24,9 +25,9 @@ abstract contract SetUpMembership is Helpers {
         owner = createAccount();
         payoutAddress = createAccount();
         membershipImpl = new ERC721Rails();
-        membershipFactoryImpl = new MembershipFactory();
-        membershipFactory = MembershipFactory(address(new ERC1967Proxy(address(membershipFactoryImpl), bytes(""))));
-        membershipFactory.initialize(address(membershipImpl), owner);
+        membershipFactoryImpl = new TokenFactory();
+        membershipFactory = TokenFactory(address(new ERC1967Proxy(address(membershipFactoryImpl), bytes(""))));
+        membershipFactory.initialize(owner);
         payoutAddressExtension = new PayoutAddressExtension(address(0));
     }
 
@@ -51,6 +52,6 @@ abstract contract SetUpMembership is Helpers {
         calls[2] = addRemovePayoutAddressExtension;
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, calls);
 
-        proxy = ERC721Rails(payable(membershipFactory.create(owner, "Test", "TEST", initData)));
+        proxy = ERC721Rails(payable(membershipFactory.create(ITokenFactory.TokenStandard.ERC721, payable(address(membershipImpl)), owner, "Test", "TEST", initData)));
     }
 }

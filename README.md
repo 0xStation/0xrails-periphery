@@ -85,7 +85,7 @@ Direct inquiries for using GroupOS in your own project via [Twitter DM](https://
 | --- | --- | --- |
 | StationFounderSafe Multisig Proxy |  274,123 | 0x5d347E9b0e348a10327F4368a90286b3d1E7FB15 | 
 | Station Safe Impl | 2,871,006 | 0x4aecEDCb5A1DD4615F57dF2672D5399b843F2469 | 
-| Station Proxy Factory| 482,636 | 0x17841bb20729b25f23fdc6307dbccd883ad30f91 | 
+| Station Proxy Factory | 482,636 | 0x17841bb20729b25f23fdc6307dbccd883ad30f91 | 
 | CallPermitValidator | 770,771 | 0x75d58aad25abacd5e9c30ef68159153fe1654846 | 
 | BotAccountImpl | 4,179,853 | 0x37ec63afcab263c59c26b2725593ba9570d073b8 | 
 | BotAccountProxy | 136,124 | 0x8fc712c40dcceda4e0efa93caf512d02200de30f | 

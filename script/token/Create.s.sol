@@ -7,14 +7,14 @@ import {Permissions} from "0xrails/access/permissions/Permissions.sol";
 import {PermissionsStorage} from "0xrails/access/permissions/PermissionsStorage.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 import {IExtensions} from "0xrails/extension/interface/IExtensions.sol";
-
+import {ITokenFactory} from "src/factory/ITokenFactory.sol";
 import {FeeManager} from "../../src/lib/module/FeeManager.sol";
 import {FreeMintController} from "../../src/membership/modules/FreeMintController.sol";
 import {GasCoinPurchaseController} from "../../src/membership/modules/GasCoinPurchaseController.sol";
 import {StablecoinPurchaseController} from "../../src/membership/modules/StablecoinPurchaseController.sol";
 import {MetadataRouter} from "../../src/metadataRouter/MetadataRouter.sol";
 import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
-import {MembershipFactory} from "../../src/membership/factory/MembershipFactory.sol";
+import {TokenFactory} from "../../src/factory/TokenFactory.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
 import {INFTMetadata} from "src/membership/extensions/NFTMetadataRouter/INFTMetadata.sol";
@@ -89,7 +89,11 @@ contract Create is Script {
 
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, initCalls);
 
-        MembershipFactory(membershipFactory).create(owner, name, symbol, initData);
+        ///@notice Configure the following parameters to use desired token type and token address
+        ITokenFactory.TokenStandard standard; // eg. = ITokenFactory.TokenStandard.ERC721;
+        address coreImpl; // eg. = address(erc721RailsImpl);
+        
+        TokenFactory(membershipFactory).create(standard, payable(coreImpl), owner, name, symbol, initData);
 
         vm.stopBroadcast();
     }

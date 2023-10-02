@@ -17,7 +17,7 @@ import {GasCoinPurchaseController} from "../../src/membership/modules/GasCoinPur
 import {StablecoinPurchaseController} from "../../src/membership/modules/StablecoinPurchaseController.sol";
 import {MetadataRouter} from "../../src/metadataRouter/MetadataRouter.sol";
 import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
-import {MembershipFactory} from "../../src/membership/factory/MembershipFactory.sol";
+import {TokenFactory} from "../../src/factory/TokenFactory.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
 import {INFTMetadata} from "src/membership/extensions/NFTMetadataRouter/INFTMetadata.sol";
