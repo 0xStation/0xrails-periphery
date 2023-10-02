@@ -42,10 +42,7 @@ contract Deploy is ScriptUtils {
         // `deployStablecoinPurchaseController` params configuration
         uint8 decimals = 2;
         string memory currency = "USD";
-        address[] memory stablecoins = new address[](1);
-        stablecoins[0] = 0xD478219fDca296699A6511f28BA93a265E3E9a1b; // goerli
-        // stablecoins[0] = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174; // polygon
-        // stablecoins[0] = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // ethereum
+        address[] memory stablecoins = new address[](0); // do NOT use, will make multichain addresses incompatible
 
         /*===============
             BROADCAST 
