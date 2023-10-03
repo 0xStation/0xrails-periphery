@@ -17,7 +17,7 @@ abstract contract ScriptUtils is Script {
     // valid as of 09/14/23
     address public constant turnkey = 0xBb942519A1339992630b13c3252F04fCB09D4841;
     // Station multisig (SafeProxy.sol)
-    address public constant stationFounderSafe = 0x0f95a7b50eaeEFc08eb10Be44Dd48409b46372b2;
+    address public constant stationFounderSafe = 0x5d347E9b0e348a10327F4368a90286b3d1E7FB15;
     // Multicall3 contract address across almost all chains
     address public constant multicall3 = 0xcA11bde05977b3631167028862bE2a173976CA11;
 

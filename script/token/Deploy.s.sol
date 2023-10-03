@@ -103,6 +103,10 @@ contract Deploy is ScriptUtils {
         (bool r,) = owner.call(safeCall);
         require(r);
 
+        // assert metadataRouter calls were successful
+        assert(keccak256(bytes(metadataRouter.defaultURI())) == keccak256(bytes(defaultURI)));
+        assert(keccak256(bytes(metadataRouter.routeURI(route))) == keccak256(bytes(uri)));
+
         // missing: ExtensionBeacon
 
         vm.stopBroadcast();
