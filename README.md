@@ -24,49 +24,38 @@ _A Solidity framework for creating complex and evolving onchain structures._
 * = deployed contract
 
 src
-├── badges
-│   └── factory
-│       ├── BadgesFactory.sol*
-│       ├── BadgesFactoryStorage.sol
-│       └── IBadgesFactory.sol
+├── factory
+│   ├── ITokenFactory.sol
+│   └── TokenFactory.sol*
 ├── lib
 │   ├── ContractMetadata.sol
-│   ├── NonceBitMap.sol
-│   └── module
-│       ├── FeeManager.sol*
-│       ├── ModuleFee.sol
-│       ├── ModulePermit.sol
-│       └── ModuleSetup.sol
+│   ├── module
+│   │   ├── FeeController.sol
+│   │   ├── FeeManager.sol*
+│   │   ├── PermitController.sol
+│   │   └── SetupController.sol
+│   └── NonceBitMap.sol
 ├── membership
 │   ├── extensions
 │   │   ├── NFTMetadataRouter
 │   │   │   ├── INFTMetadata.sol
-│   │   │   ├── NFTMetadataRouter.sol
-│   │   │   └── NFTMetadataRouterExtension.sol*
+│   │   │   ├── NFTMetadataRouterExtension.sol*
+│   │   │   └── NFTMetadataRouter.sol
 │   │   └── PayoutAddress
 │   │       ├── IPayoutAddress.sol
-│   │       ├── PayoutAddress.sol
 │   │       ├── PayoutAddressExtension.sol*
+│   │       ├── PayoutAddress.sol
 │   │       └── PayoutAddressStorage.sol
-│   ├── factory
-│   │   ├── IMembershipFactory.sol
-│   │   ├── MembershipFactory.sol*
-│   │   └── MembershipFactoryStorage.sol
 │   ├── guards
 │   │   └── OnePerAddressGuard.sol*
 │   └── modules
 │       ├── FreeMintController.sol*
 │       ├── GasCoinPurchaseController.sol*
 │       └── StablecoinPurchaseController.sol*
-├── metadataRouter
-│   ├── IMetadataRouter.sol
-│   ├── MetadataRouter.sol*
-│   └── MetadataRouterStorage.sol
-└── points
-    └── factory
-        ├── IPointsFactory.sol
-        ├── PointsFactory.sol*
-        └── PointsFactoryStorage.sol
+└── metadataRouter
+    ├── IMetadataRouter.sol
+    ├── MetadataRouter.sol*
+    └── MetadataRouterStorage.sol
 ```
 
 ## Contributing
@@ -75,37 +64,34 @@ While GroupOS is in initial release, assistance on reviews for security and deve
 
 ## License
 
-Direct inquiries for using GroupOS in your own project via [Twitter DM](https://twitter.com/ilikesymmetry). Note that GroupOS is currently un-audited with plans to audit in late 2023.
+Direct inquiries for using GroupOS in your own project via [Twitter DM](https://twitter.com/ilikesymmetry). Note that GroupOS is currently undergoing a security audit.
 
 ## Onchain Deployments
 ### Addresses are consistent across networks
-#### * denotes testnet deployment, mainnet coming soon
+#### The following addresses are v1.1.0, currently deployed to Linea mainnet. For older versions deployed to other networks, consult `deploys.json`
 
 | Contract | Gas | Address |
 | --- | --- | --- |
-| StationFounderSafe Multisig Proxy |  274,123 | 0x5d347E9b0e348a10327F4368a90286b3d1E7FB15 | 
+| StationFounderSafe Multisig Proxy |  274,123 | 0xDd70fb41e936c5dc67Fc783BA5281E50f0A46fBC | 
 | Station Safe Impl | 2,871,006 | 0x4aecEDCb5A1DD4615F57dF2672D5399b843F2469 | 
 | Station Proxy Factory | 482,636 | 0x17841bb20729b25f23fdc6307dbccd883ad30f91 | 
-| CallPermitValidator | 770,771 | 0x75d58aad25abacd5e9c30ef68159153fe1654846 | 
-| BotAccountImpl | 4,179,853 | 0x37ec63afcab263c59c26b2725593ba9570d073b8 | 
-| BotAccountProxy | 136,124 | 0x8fc712c40dcceda4e0efa93caf512d02200de30f | 
-| ERC721Rails | 4,717,748 | 0xa03a52b4c8d0c8c64c540183447494c25f590e20 | 
-| ERC20Rails | 3,879,187 | 0x7ffc6bb6f33111d88b0da80ac3dfe03bfca55c49 | 
-| ERC1155Rails | 4,410,740 | 0x0070ac819452f7f5a0d02ff3c9c7a8bcfe7bba14 | 
-| BadgesFactoryImpl | 1,516,793 | 0x54d7E374e0EDA2Ba1AC9753882879A9151cbA059* | 
-| BadgesFactoryProxy | 326,036 | 0x77e9435A62fC8E7956bebe918F5e85BC328f5165* | 
-| PointsFactoryImpl | 1,392,926 | 0xeEBB0AeD46a87D22Aec722DEdF4Cc26eA63454c2* | 
-| PointsFactoryProxy | 212,264 | 0x9de62d5970356270E2790EAB4e3E6cF186868587* | 
-| MembershipFactoryImpl | 1,390,807 | 0xec4de6a3bf2b598fef179dc4a6766fa0e73f143a | 
-| MembershipFactoryProxy | 212,264 | 0xc5abb7832f6e5201f3f339429ec71a569ffe49f5 | 
-| MetadataRouterImpl | 1,915,882 | 0x8166634a8972d5d06f50eb472906b6bc54214613 | 
-| MetadataRouterProxy | 336,187 | 0xe63da895a4c35d011116fe13267cbfc7ef4b8314 | 
-| OneAddressPerGuard | 426,313 | 0x1577194B3F7F0D69B4869c378D8bC5Aa52e4567A | 
-| NFTMetadataRouterExtension | 535,214 | 0x4d3c0192650ed584d9fe89fc11ccbda437d274c8 | 
-| PayoutAddressExtension | 632,639 | 0xc786b15615b62e1ff126969b2028ab10c86f5442 | 
-| FeeManager | 869,188 | 0xd612dc76ff8cd0ec390208f267b26f9485534df3 | 
-| FreeMintController | 1,906,671 | 0x19b3b28d76df5a1b90e6998edbf31e57094c31c1 | 
-| GasCoinPurchaseController | 2,013,611 | 0x822bdae137f6a3d50801e5b744b2e99e35d8bee1 | 
-| StablecoinPurchaseController | 2,926,173 | 0x75b899c58e1117f9e42276753e17949ef2aaa6dd | 
+| AdminGuard | 1,013,754 | 0xDB9A089A20D4b8cDef355ca474323b6C832D9776 | 
+| CallPermitValidator | 770,771 | 0x234fe47240fbd6f0aa4573c16a0571969a735b13 | 
+| BotAccountImpl | 4,179,853 | 0x645902b42714c1a8be5568f71c0b4e211c8e8e21 | 
+| BotAccountProxy | 136,124 | 0xf5d53160846ed39dd819feecf548444364386ed3 | 
+| ERC721Rails | 4,717,748 | 0x3f4f3680c80dba28ae43fbe160420d4ad8ca50e4 | 
+| ERC20Rails | 3,879,187 | 0xe0dd2f320290d04dce5432e6ec2312d66d6f84c1 | 
+| ERC1155Rails | 4,410,740 | 0x7a391860cf812e8151d9c578ca4cf36a015ddb79 |  
+| TokenFactoryImpl | 2,087,959 | 0x0e3ea0764a433f2b3af2b305ca4109dbe47c82e3 | 
+| TokenFactoryProxy | 259,529 | 0x282857626040e7fbd226eab7dbb46bb981b42617 | 
+| MetadataRouterImpl | 1,915,882 | 0x1a1ab249c71e19e37be1ad7ac339146340158150 | 
+| MetadataRouterProxy | 336,187 | 0x856ac2e3a5d065e8a505ceb0ca97906db8fa4b49 | 
+| OneAddressPerGuard | 426,313 | 0x7A7fD9DE9738F815172989C65443A6Ce283dFb78 | 
+| NFTMetadataRouterExtension | 535,214 | 0x2d85bfa7e8c0e4e9d5185f69e8691c7886444e94 | 
+| PayoutAddressExtension | 632,639 | 0xc3c7ef9d13e5027021a6fddeb63e05fd703a464f | 
+| FeeManager | 869,188 | 0x36b3acc10e7160e6003c621029c08a792e67be43 | 
+| FreeMintController | 1,906,671 | 0x966ad227192e665960a2d1b89095c16286fc7792 | 
+| GasCoinPurchaseController | 2,013,611 | 0xc4848d1e772c1385b86a2d3bfa56244a6122f700 | 
+| StablecoinPurchaseController | 2,926,173 | 0xdd4f5f86d864ac806a98411e3fc87b74ca20dc2b | 
 
 View deployments in [deploys.json](./deploys.json).
