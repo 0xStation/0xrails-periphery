@@ -121,6 +121,7 @@ contract Deploy is ScriptUtils {
         writeUsedSalt(
             saltString, string.concat("TokenFactoryProxy @", Strings.toHexString(address(tokenFactory)))
         );
+        writeUsedSalt(saltString, string.concat("OnePerAddressGuard @", Strings.toHexString(address(onePerAddressGuard))));
         writeUsedSalt(
             saltString,
             string.concat("NFTMetadataRouterExtension @", Strings.toHexString(address(nftMetadataRouterExtension)))
