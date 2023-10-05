@@ -43,7 +43,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         }
         token = payable(address(new ERC1967Proxy(implementation, bytes(""))));
         emit ERC20Created(token);
-        IERC20Rails(token).initialize(_owner, _name, _symbol, _initData);
+        IERC20Rails(token).initialize(owner, name, symbol, initData);
     }
 
     /// @inheritdoc ITokenFactory
@@ -59,7 +59,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         }
         token = payable(address(new ERC1967Proxy(implementation, bytes(""))));
         emit ERC721Created(token);
-        IERC721Rails(token).initialize(_owner, _name, _symbol, _initData);
+        IERC721Rails(token).initialize(owner, name, symbol, initData);
     }
 
     /// @inheritdoc ITokenFactory
@@ -75,7 +75,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         }
         token = payable(address(new ERC1967Proxy(implementation, bytes(""))));
         emit ERC1155Created(token);
-        IERC1155Rails(token).initialize(_owner, _name, _symbol, _initData);
+        IERC1155Rails(token).initialize(owner, name, symbol, initData);
     }
 
     /*===============
