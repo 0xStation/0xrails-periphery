@@ -15,7 +15,6 @@ import {IERC1155Rails} from "0xrails/cores/ERC1155/interface/IERC1155Rails.sol";
 import {ITokenFactory} from "src/factory/ITokenFactory.sol";
 
 contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory {
-
     /*============
         SET UP
     ============*/
@@ -32,34 +31,51 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
     ============*/
 
     /// @inheritdoc ITokenFactory
-    function create(TokenStandard std, address payable coreImpl, address owner, string memory name, string memory symbol, bytes calldata initData) 
-        public 
-        returns (address payable core)
-    {
-        // events are emitted before initialization for indexer convenience
-        if (std == TokenStandard.ERC20) { 
-            emit ERC20RailsCreated(core);
-            core = _create(type(IERC20).interfaceId, coreImpl, owner, name, symbol, initData);
-       } else if (std == TokenStandard.ERC721) {
-            emit ERC721RailsCreated(core);
-            core = _create(type(IERC721).interfaceId, coreImpl, owner, name, symbol, initData);
-       } else if (std == TokenStandard.ERC1155) {
-            emit ERC1155RailsCreated(core);
-            core = _create(type(IERC1155).interfaceId, coreImpl, owner, name, symbol, initData);
-       }
+    function createERC20(
+        address payable implementation,
+        address owner,
+        string memory name,
+        string memory symbol,
+        bytes calldata initData
+    ) public returns (address payable token) {
+        if (!ISupportsInterface(implementation).supportsInterface(type(IERC20).interfaceId)) {
+            revert InvalidImplementation();
+        }
+        token = payable(address(new ERC1967Proxy(implementation, bytes(""))));
+        emit ERC20Created(token);
+        IERC20Rails(token).initialize(_owner, _name, _symbol, _initData);
     }
 
-    function _create(
-        bytes4 _interfaceId, 
-        address _coreImpl, 
-        address _owner, 
-        string memory _name, 
-        string memory _symbol, 
-        bytes memory _initData
-    ) public returns (address payable _core) {
-        if (!ISupportsInterface(_coreImpl).supportsInterface(_interfaceId)) revert InvalidImplementation();
-        _core = payable(address(new ERC1967Proxy(_coreImpl, bytes(""))));
-        IERC721Rails(_core).initialize(_owner, _name, _symbol, _initData);
+    /// @inheritdoc ITokenFactory
+    function createERC721(
+        address payable implementation,
+        address owner,
+        string memory name,
+        string memory symbol,
+        bytes calldata initData
+    ) public returns (address payable token) {
+        if (!ISupportsInterface(implementation).supportsInterface(type(IERC721).interfaceId)) {
+            revert InvalidImplementation();
+        }
+        token = payable(address(new ERC1967Proxy(implementation, bytes(""))));
+        emit ERC721Created(token);
+        IERC721Rails(token).initialize(_owner, _name, _symbol, _initData);
+    }
+
+    /// @inheritdoc ITokenFactory
+    function createERC1155(
+        address payable implementation,
+        address owner,
+        string memory name,
+        string memory symbol,
+        bytes calldata initData
+    ) public returns (address payable token) {
+        if (!ISupportsInterface(implementation).supportsInterface(type(IERC1155).interfaceId)) {
+            revert InvalidImplementation();
+        }
+        token = payable(address(new ERC1967Proxy(implementation, bytes(""))));
+        emit ERC1155Created(token);
+        IERC1155Rails(token).initialize(_owner, _name, _symbol, _initData);
     }
 
     /*===============
