@@ -82,8 +82,8 @@ Direct inquiries for using GroupOS in your own project via [Twitter DM](https://
 | ERC721Rails | 4,717,748 | 0x3f4f3680c80dba28ae43fbe160420d4ad8ca50e4 | 
 | ERC20Rails | 3,879,187 | 0xe0dd2f320290d04dce5432e6ec2312d66d6f84c1 | 
 | ERC1155Rails | 4,410,740 | 0x7a391860cf812e8151d9c578ca4cf36a015ddb79 |  
-| TokenFactoryImpl | 2,087,959 | 0x0e3ea0764a433f2b3af2b305ca4109dbe47c82e3 | 
-| TokenFactoryProxy | 259,529 | 0x282857626040e7fbd226eab7dbb46bb981b42617 | 
+| TokenFactoryImpl | 2,087,959 | 0x079e4521ba03bc99321066261e8740d58f32bd45 | 
+| TokenFactoryProxy | 259,529 | 0x66b28cc146a1a2cdf1073c2875d070733c7d01af | 
 | MetadataRouterImpl | 1,915,882 | 0x1a1ab249c71e19e37be1ad7ac339146340158150 | 
 | MetadataRouterProxy | 336,187 | 0x856ac2e3a5d065e8a505ceb0ca97906db8fa4b49 | 
 | OneAddressPerGuard | 426,313 | 0x7A7fD9DE9738F815172989C65443A6Ce283dFb78 | 
