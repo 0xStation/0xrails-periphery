@@ -52,6 +52,6 @@ abstract contract SetUpMembership is Helpers {
         calls[2] = addRemovePayoutAddressExtension;
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, calls);
 
-        proxy = ERC721Rails(payable(membershipFactory.create(ITokenFactory.TokenStandard.ERC721, payable(address(membershipImpl)), owner, "Test", "TEST", initData)));
+        proxy = ERC721Rails(payable(membershipFactory.createERC721(payable(address(membershipImpl)), owner, "Test", "TEST", initData)));
     }
 }
