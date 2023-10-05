@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Script} from "forge-std/Script.sol";
+import {ScriptUtils} from "script/utils/ScriptUtils.sol";
 import {Multicall} from "openzeppelin-contracts/utils/Multicall.sol";
 import {Permissions} from "0xrails/access/permissions/Permissions.sol";
 import {PermissionsStorage} from "0xrails/access/permissions/PermissionsStorage.sol";
@@ -13,34 +13,37 @@ import {FreeMintController} from "../../src/membership/modules/FreeMintControlle
 import {GasCoinPurchaseController} from "../../src/membership/modules/GasCoinPurchaseController.sol";
 import {StablecoinPurchaseController} from "../../src/membership/modules/StablecoinPurchaseController.sol";
 import {MetadataRouter} from "../../src/metadataRouter/MetadataRouter.sol";
-import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
+// import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {TokenFactory} from "../../src/factory/TokenFactory.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
 import {INFTMetadata} from "src/membership/extensions/NFTMetadataRouter/INFTMetadata.sol";
 
-contract Create is Script {
+contract Create is ScriptUtils {
+    /*============
+        CONFIG 
+    ============*/
+
+    /// @notice LINEA: v.1.10
+    address coreImpl = 0x3F4f3680c80DBa28ae43FbE160420d4Ad8ca50E4; // ERC721Rails Linea
+    
+    address public owner = ScriptUtils.symmetry;
     string public name = "Symmetry Testing";
     string public symbol = "SYM";
 
-    address public frog = 0xE7affDB964178261Df49B86BFdBA78E9d768Db6D;
-    address public sym = 0x7ff6363cd3A4E7f9ece98d78Dd3c862bacE2163d;
-    address public paprika = 0x4b8c47aE2e5083EE6AA9aE2884E8051c2e4741b1;
+    address public payoutAddress = ScriptUtils.turnkey;
 
-    address public owner = sym;
+    /// @notice GOERLI: v1.0.0
+    // address public mintModule = 0x8226Ff7e6F1CD020dC23901f71265D7d47a636d4; // Free mint goerli
+    // address public metadataURIExtension = 0xD130547Bfcb52f66d0233F0206A6C427d89F81ED; // goerli
+    // address public payoutAddressExtension = 0x52Db1fa1B82B63842513Da4482Cd41b26c1Bc307; // goerli
+    // address public membershipFactory = 0x08300cfDcF6dD1A6870FC2B1594804C0Be8076eC; // goerli
 
-    address public turnkey = 0xBb942519A1339992630b13c3252F04fCB09D4841;
-    address public mintModule = 0x8226Ff7e6F1CD020dC23901f71265D7d47a636d4; // Free mint goerli
-    address public payoutAddress = turnkey;
-
-    address public metadataURIExtension = 0xD130547Bfcb52f66d0233F0206A6C427d89F81ED; // goerli
-    address public payoutAddressExtension = 0x52Db1fa1B82B63842513Da4482Cd41b26c1Bc307; // goerli
-
-    address public constant MAX_ADDRESS = 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF;
-
-    address public membershipFactory = 0x08300cfDcF6dD1A6870FC2B1594804C0Be8076eC; // goerli
-
-    function setUp() public {}
+    /// @notice LINEA: v1.1.0
+    address public mintModule = 0x966aD227192e665960A2d1b89095C16286Fc7792; // FreeMintController Linea
+    address public NFTMetadataRouterExtension = 0x2D85bFA7E8C0e4E9D5185F69E8691c7886444E94;
+    address public payoutAddressExtension = 0xc3c7Ef9d13E5027021a6fddeb63E05fd703a464F;
+    address public tokenFactory = 0x66B28Cc146A1a2cDF1073C2875D070733C7d01Af;
 
     function run() public {
         vm.startBroadcast();
@@ -60,10 +63,10 @@ contract Create is Script {
             address(payoutAddressExtension)
         );
         bytes memory addTokenURIExtension = abi.encodeWithSelector(
-            IExtensions.setExtension.selector, INFTMetadata.ext_tokenURI.selector, address(metadataURIExtension)
+            IExtensions.setExtension.selector, INFTMetadata.ext_tokenURI.selector, address(NFTMetadataRouterExtension)
         );
         bytes memory addContractURIExtension = abi.encodeWithSelector(
-            IExtensions.setExtension.selector, INFTMetadata.ext_contractURI.selector, address(metadataURIExtension)
+            IExtensions.setExtension.selector, INFTMetadata.ext_contractURI.selector, address(NFTMetadataRouterExtension)
         );
 
         // PERMISSIONS
@@ -73,7 +76,7 @@ contract Create is Script {
             abi.encodeWithSelector(Permissions.addPermission.selector, Operations.MINT, mintModule);
         bytes memory permitFrogAdmin =
             abi.encodeWithSelector(Permissions.addPermission.selector, Operations.ADMIN, frog);
-        bytes memory permitSymAdmin = abi.encodeWithSelector(Permissions.addPermission.selector, Operations.ADMIN, sym);
+        bytes memory permitSymAdmin = abi.encodeWithSelector(Permissions.addPermission.selector, Operations.ADMIN, symmetry);
 
         // INIT
         bytes[] memory initCalls = new bytes[](9);
@@ -88,12 +91,8 @@ contract Create is Script {
         initCalls[8] = permitSymAdmin;
 
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, initCalls);
-
-        ///@notice Configure the following parameters to use desired token type and token address
-        ITokenFactory.TokenStandard standard; // eg. = ITokenFactory.TokenStandard.ERC721;
-        address coreImpl; // eg. = address(erc721RailsImpl);
         
-        TokenFactory(membershipFactory).create(standard, payable(coreImpl), owner, name, symbol, initData);
+        TokenFactory(tokenFactory).createERC721(payable(coreImpl), owner, name, symbol, initData);
 
         vm.stopBroadcast();
     }
