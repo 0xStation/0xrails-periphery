@@ -13,13 +13,12 @@ import {FreeMintController} from "../../src/membership/modules/FreeMintControlle
 import {GasCoinPurchaseController} from "../../src/membership/modules/GasCoinPurchaseController.sol";
 import {StablecoinPurchaseController} from "../../src/membership/modules/StablecoinPurchaseController.sol";
 import {MetadataRouter} from "../../src/metadataRouter/MetadataRouter.sol";
-// import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {TokenFactory} from "../../src/factory/TokenFactory.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
 import {INFTMetadata} from "src/membership/extensions/NFTMetadataRouter/INFTMetadata.sol";
 
-contract Create is ScriptUtils {
+contract CreateERC721 is ScriptUtils {
     /*============
         CONFIG 
     ============*/

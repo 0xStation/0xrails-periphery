@@ -11,7 +11,7 @@ import {GasCoinPurchaseController} from "../../src/membership/modules/GasCoinPur
 import {StablecoinPurchaseController} from "../../src/membership/modules/StablecoinPurchaseController.sol";
 import {TokenFactory} from "../../src/factory/TokenFactory.sol";
 
-contract CreateERC721 is ScriptUtils {
+contract CreateERC20 is ScriptUtils {
     /*============
         CONFIG 
     ============*/
