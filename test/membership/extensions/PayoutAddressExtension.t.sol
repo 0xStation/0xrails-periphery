@@ -40,14 +40,19 @@ contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
         someURI = "someURI";
         uris = new string[](1);
         uris[0] = someURI;
-        initData = abi.encodeWithSelector(MetadataRouter.initialize.selector, owner_, defaultURI, routes, uris);
+        initData = abi.encodeWithSelector(MetadataRouter.initialize.selector, owner_);//, defaultURI, routes, uris);
 
         exampleRouterImpl = new MetadataRouter();
         exampleRouterProxy = MetadataRouter(address(new ERC1967Proxy(address(exampleRouterImpl), initData)));
 
+        // initialize MetadataRouter defaultURI and routeURI
+        vm.startPrank(owner_);
+        exampleRouterProxy.setDefaultURI(defaultURI);
+        exampleRouterProxy.setRouteURI(someRoute, someURI);
+
         // deploy payoutAddressExtension as `owner` so it grants `owner` ADMIN permission
-        vm.prank(owner_);
         payoutAddressExtension = new PayoutAddressExtension(address(exampleRouterProxy));
+        vm.stopPrank();
 
         // ERC721Rails is just used to access the `Permissions::hasPermission()` method,
         // so no proxy is necessary in this test file- the impl will do
