@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Operations} from "0xrails/lib/Operations.sol";
-import {IPermissions} from "0xrails//access/permissions/interface/IPermissions.sol";
+import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {IPayoutAddress} from "./IPayoutAddress.sol";
 import {PayoutAddressStorage} from "./PayoutAddressStorage.sol";
 
