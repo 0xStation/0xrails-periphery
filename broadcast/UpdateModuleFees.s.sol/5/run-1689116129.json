@@ -1,0 +1,86 @@
+{
+  "transactions": [
+    {
+      "hash": "0xbff542867b65f4914862ce12b8eb17e43ec64a14be7c10bb485438dc41c960c6",
+      "transactionType": "CALL",
+      "contractName": "FreeMintModuleV2",
+      "contractAddress": "0x37CDd35d650c3f88C1E2F011a2d9FfE295f23132",
+      "function": "updateFee(uint256)",
+      "arguments": [
+        "1000000000000000"
+      ],
+      "rpc": "https://eth-goerli.alchemyapi.io/v2/ZJIj3ytrFaWioVp550EyzD4MR9q5VClg",
+      "transaction": {
+        "type": "0x02",
+        "from": "0x016562aa41a8697720ce0943f003141f5deae006",
+        "to": "0x37cdd35d650c3f88c1e2f011a2d9ffe295f23132",
+        "gas": "0xaa71",
+        "value": "0x0",
+        "data": "0x9012c4a800000000000000000000000000000000000000000000000000038d7ea4c68000",
+        "nonce": "0x1a1",
+        "accessList": []
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    },
+    {
+      "hash": "0xce23a094ad9f38d14d9d430dc991535c430f12d7e9fef139f6169cd59b57101c",
+      "transactionType": "CALL",
+      "contractName": "EthPurchaseModuleV2",
+      "contractAddress": "0x64FCaCfd9f94fA6e3e186593e86247E1Ab84B40d",
+      "function": "updateFee(uint256)",
+      "arguments": [
+        "1000000000000000"
+      ],
+      "rpc": "https://eth-goerli.alchemyapi.io/v2/ZJIj3ytrFaWioVp550EyzD4MR9q5VClg",
+      "transaction": {
+        "type": "0x02",
+        "from": "0x016562aa41a8697720ce0943f003141f5deae006",
+        "to": "0x64fcacfd9f94fa6e3e186593e86247e1ab84b40d",
+        "gas": "0xa0da",
+        "value": "0x0",
+        "data": "0x9012c4a800000000000000000000000000000000000000000000000000038d7ea4c68000",
+        "nonce": "0x1a2",
+        "accessList": []
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    },
+    {
+      "hash": "0x7ac901573dc03d94b14ed41c9608035451bdf7fbcee489cb7f81111853412055",
+      "transactionType": "CALL",
+      "contractName": "StablecoinPurchaseModuleV2",
+      "contractAddress": "0xBAfCE0738451666f43dD98Bb579D59F64a91DB2e",
+      "function": "updateFee(uint256)",
+      "arguments": [
+        "1000000000000000"
+      ],
+      "rpc": "https://eth-goerli.alchemyapi.io/v2/ZJIj3ytrFaWioVp550EyzD4MR9q5VClg",
+      "transaction": {
+        "type": "0x02",
+        "from": "0x016562aa41a8697720ce0943f003141f5deae006",
+        "to": "0xbafce0738451666f43dd98bb579d59f64a91db2e",
+        "gas": "0xa0fa",
+        "value": "0x0",
+        "data": "0x9012c4a800000000000000000000000000000000000000000000000000038d7ea4c68000",
+        "nonce": "0x1a3",
+        "accessList": []
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [],
+  "libraries": [],
+  "pending": [
+    "0xbff542867b65f4914862ce12b8eb17e43ec64a14be7c10bb485438dc41c960c6",
+    "0xce23a094ad9f38d14d9d430dc991535c430f12d7e9fef139f6169cd59b57101c",
+    "0x7ac901573dc03d94b14ed41c9608035451bdf7fbcee489cb7f81111853412055"
+  ],
+  "path": "/Users/cswenberg/Code/station/tokens-v1/broadcast/UpdateModuleFees.s.sol/5/run-latest.json",
+  "returns": {},
+  "timestamp": 1689116129,
+  "chain": 5,
+  "multi": false,
+  "commit": "41f737f"
+}
