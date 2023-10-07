@@ -32,13 +32,13 @@ interface IMetadataRouter {
     /// @param contractAddress The address of the contract for which to request a URI.
     /// @return '' The URI configured for the specified route and contract address.
     function contractRouteURI(string memory route, address contractAddress) external view returns (string memory);
-    
+
     /// @dev Get the full URI for a specific route and contract address.
     /// @param route The name of the route.
     /// @param contractAddress The address of the contract for which to request a URI.
     /// @return '' The full URI for the specified route and contract address.
     function uriOf(string memory route, address contractAddress) external view returns (string memory);
-    
+
     /// @dev Get the full URI for a specific route and contract address, with additional appended data.
     /// @param route The name of the route.
     /// @param contractAddress The address of the contract for which the URI is requested.

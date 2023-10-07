@@ -9,7 +9,7 @@ abstract contract ScriptUtils is Script {
         bool allowFailure;
         bytes callData;
     }
-    
+
     error Create2Failure();
 
     // global addresses

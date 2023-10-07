@@ -51,7 +51,7 @@ contract Deploy is ScriptUtils {
         vm.startBroadcast();
 
         address owner = ScriptUtils.stationFounderSafe;
-        
+
         string memory saltString = ScriptUtils.readSalt("salt");
         bytes32 salt = bytes32(bytes(saltString));
 
@@ -65,41 +65,36 @@ contract Deploy is ScriptUtils {
 
         feeManager = FeeManager(deployFeeManager(owner, salt));
         freeMintModule = deployFreeMintController(owner, address(feeManager), address(metadataRouter), salt);
-        gasCoinPurchaseController = deployGasCoinPurchaseController(owner, address(feeManager), address(metadataRouter), salt);
+        gasCoinPurchaseController =
+            deployGasCoinPurchaseController(owner, address(feeManager), address(metadataRouter), salt);
 
         // using stablecoin 'environment' params above
         stablecoinPurchaseController = deployStablecoinPurchaseController(
             owner, address(feeManager), decimals, currency, stablecoins, address(metadataRouter), salt
         );
 
-        // After deployments, format Multicall3 calls and execute it from FounderSafe as module sender 
+        // After deployments, format Multicall3 calls and execute it from FounderSafe as module sender
         // `MetadataRouter::setDefaultURI()` configuration
         string memory defaultURI = "https://groupos.xyz/api/v1/contractMetadata";
         bytes memory setDefaultURIData = abi.encodeWithSelector(MetadataRouter.setDefaultURI.selector, defaultURI);
-        Call3 memory metadataRouterSetDefaultURICall = 
-            Call3({
-                target: address(metadataRouter),
-                allowFailure: false,
-                callData: setDefaultURIData
-            });
+        Call3 memory metadataRouterSetDefaultURICall =
+            Call3({target: address(metadataRouter), allowFailure: false, callData: setDefaultURIData});
 
         // `MetadataRouter::setRouteURI()` configuration
         string memory route = "token";
         string memory uri = "https://groupos.xyz/api/v1/nftMetadata";
         bytes memory setRouteURIData = abi.encodeWithSelector(MetadataRouter.setRouteURI.selector, route, uri);
-        Call3 memory metadataRouterSetRouteURICall = 
-            Call3({
-                target: address(metadataRouter),
-                allowFailure: false,
-                callData: setRouteURIData
-            });
+        Call3 memory metadataRouterSetRouteURICall =
+            Call3({target: address(metadataRouter), allowFailure: false, callData: setRouteURIData});
 
         Call3[] memory calls = new Call3[](2);
         calls[0] = metadataRouterSetDefaultURICall;
         calls[1] = metadataRouterSetRouteURICall;
         bytes memory multicallData = abi.encodeWithSignature("aggregate3((address,bool,bytes)[])", calls);
         // `Safe(owner).execTransactionFromModule(multicall3, 0, multicallData, uint8(1));` using 0 ETH value & Operation == DELEGATECALL
-        bytes memory safeCall = abi.encodeWithSignature("execTransactionFromModule(address,uint256,bytes,uint8)", multicall3, 0, multicallData, uint8(1));
+        bytes memory safeCall = abi.encodeWithSignature(
+            "execTransactionFromModule(address,uint256,bytes,uint8)", multicall3, 0, multicallData, uint8(1)
+        );
         (bool r,) = owner.call(safeCall);
         require(r);
 
@@ -115,13 +110,11 @@ contract Deploy is ScriptUtils {
             saltString, string.concat("MetaDataRouterImpl @", Strings.toHexString(address(metadataRouterImpl)))
         );
         writeUsedSalt(saltString, string.concat("MetaDataRouterProxy @", Strings.toHexString(address(metadataRouter))));
+        writeUsedSalt(saltString, string.concat("TokenFactoryImpl @", Strings.toHexString(address(tokenFactoryImpl))));
+        writeUsedSalt(saltString, string.concat("TokenFactoryProxy @", Strings.toHexString(address(tokenFactory))));
         writeUsedSalt(
-            saltString, string.concat("TokenFactoryImpl @", Strings.toHexString(address(tokenFactoryImpl)))
+            saltString, string.concat("OnePerAddressGuard @", Strings.toHexString(address(onePerAddressGuard)))
         );
-        writeUsedSalt(
-            saltString, string.concat("TokenFactoryProxy @", Strings.toHexString(address(tokenFactory)))
-        );
-        writeUsedSalt(saltString, string.concat("OnePerAddressGuard @", Strings.toHexString(address(onePerAddressGuard))));
         writeUsedSalt(
             saltString,
             string.concat("NFTMetadataRouterExtension @", Strings.toHexString(address(nftMetadataRouterExtension)))
@@ -132,7 +125,8 @@ contract Deploy is ScriptUtils {
         writeUsedSalt(saltString, string.concat("FeeManager @", Strings.toHexString(address(feeManager))));
         writeUsedSalt(saltString, string.concat("FreeMintController @", Strings.toHexString(address(freeMintModule))));
         writeUsedSalt(
-            saltString, string.concat("GasCoinPurchaseController @", Strings.toHexString(address(gasCoinPurchaseController)))
+            saltString,
+            string.concat("GasCoinPurchaseController @", Strings.toHexString(address(gasCoinPurchaseController)))
         );
         writeUsedSalt(
             saltString,
@@ -140,14 +134,19 @@ contract Deploy is ScriptUtils {
         );
     }
 
-    function deployMetadataRouter(bytes32 _salt, address _owner) internal returns (MetadataRouter _impl, MetadataRouter _proxy) {
+    function deployMetadataRouter(bytes32 _salt, address _owner)
+        internal
+        returns (MetadataRouter _impl, MetadataRouter _proxy)
+    {
         _impl = new MetadataRouter{salt: _salt}();
-        bytes memory metadataRouterInitData =
-            abi.encodeWithSelector(MetadataRouter.initialize.selector, _owner);
+        bytes memory metadataRouterInitData = abi.encodeWithSelector(MetadataRouter.initialize.selector, _owner);
         _proxy = MetadataRouter(address(new ERC1967Proxy{salt: _salt}(address(_impl), metadataRouterInitData)));
     }
 
-    function deployTokenFactory(bytes32 _salt, address _owner) internal returns (TokenFactory _impl, TokenFactory _proxy) {
+    function deployTokenFactory(bytes32 _salt, address _owner)
+        internal
+        returns (TokenFactory _impl, TokenFactory _proxy)
+    {
         _impl = new TokenFactory{salt: _salt}();
         bytes memory tokenFactoryInitData = abi.encodeWithSelector(TokenFactory.initialize.selector, _owner);
         _proxy = TokenFactory(address(new ERC1967Proxy{salt: _salt}(address(_impl), tokenFactoryInitData)));
@@ -187,10 +186,12 @@ contract Deploy is ScriptUtils {
         return new FreeMintController{salt: _salt}(_owner, _feeManager, _metadataRouter);
     }
 
-    function deployGasCoinPurchaseController(address _owner, address _feeManager, address _metadataRouter, bytes32 _salt)
-        internal
-        returns (GasCoinPurchaseController)
-    {
+    function deployGasCoinPurchaseController(
+        address _owner,
+        address _feeManager,
+        address _metadataRouter,
+        bytes32 _salt
+    ) internal returns (GasCoinPurchaseController) {
         return new GasCoinPurchaseController{salt: _salt}(_owner, _feeManager, _metadataRouter);
     }
 

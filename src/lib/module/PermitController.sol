@@ -10,7 +10,6 @@ import {NonceBitMap} from "src/lib/NonceBitMap.sol";
 /// It allows callers to execute functions on behalf of authorized signers by presenting a valid permit
 /// containing an EIP-712 signature. This contract also includes reentrancy protection
 abstract contract PermitController is NonceBitMap {
-
     /// @dev Struct of Permit data to be hashed and signed for meta-transactions.
     /// @param signer The authorized signer's address.
     /// @param sender The address of the sender.

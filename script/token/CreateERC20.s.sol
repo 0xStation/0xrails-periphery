@@ -18,7 +18,7 @@ contract CreateERC20 is ScriptUtils {
 
     /// @notice LINEA: v.1.10
     address coreImpl = 0xe0dd2F320290d04Dce5432E6ec2312D66d6f84C1; // ERC20Rails Linea
-    
+
     address public owner = ScriptUtils.symmetry;
     string public name = "Symmetry Testing";
     string public symbol = "SYM";
@@ -40,7 +40,8 @@ contract CreateERC20 is ScriptUtils {
             abi.encodeWithSelector(Permissions.addPermission.selector, Operations.MINT, mintModule);
         bytes memory permitFrogAdmin =
             abi.encodeWithSelector(Permissions.addPermission.selector, Operations.ADMIN, frog);
-        bytes memory permitSymAdmin = abi.encodeWithSelector(Permissions.addPermission.selector, Operations.ADMIN, symmetry);
+        bytes memory permitSymAdmin =
+            abi.encodeWithSelector(Permissions.addPermission.selector, Operations.ADMIN, symmetry);
 
         // INIT
         bytes[] memory initCalls = new bytes[](4);
@@ -50,7 +51,7 @@ contract CreateERC20 is ScriptUtils {
         initCalls[3] = permitSymAdmin;
 
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, initCalls);
-        
+
         TokenFactory(tokenFactory).createERC20(payable(coreImpl), owner, name, symbol, initData);
 
         vm.stopBroadcast();

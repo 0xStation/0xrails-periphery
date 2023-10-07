@@ -40,7 +40,7 @@ contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
         someURI = "someURI";
         uris = new string[](1);
         uris[0] = someURI;
-        initData = abi.encodeWithSelector(MetadataRouter.initialize.selector, owner_);//, defaultURI, routes, uris);
+        initData = abi.encodeWithSelector(MetadataRouter.initialize.selector, owner_); //, defaultURI, routes, uris);
 
         exampleRouterImpl = new MetadataRouter();
         exampleRouterProxy = MetadataRouter(address(new ERC1967Proxy(address(exampleRouterImpl), initData)));
