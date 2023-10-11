@@ -68,7 +68,7 @@ Direct inquiries for using GroupOS in your own project via [Twitter DM](https://
 
 ## Onchain Deployments
 ### Addresses are consistent across networks
-#### The following addresses are v1.1.0, currently deployed to Linea mainnet. For older versions deployed to other networks, consult `deploys.json`
+#### The following addresses are v1.1.0, currently deployed to Polygon, Linea, and Goerli. For older versions deployed to other networks, consult `deploys.json`
 
 | Contract | Gas | Address |
 | --- | --- | --- |
