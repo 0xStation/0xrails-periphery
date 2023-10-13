@@ -19,3 +19,6 @@
 [submodule "lib/0xrails"]
 	path = lib/0xrails
 	url = https://github.com/0xStation/0xrails
+[submodule "lib/protocol-ops"]
+	path = lib/protocol-ops
+	url = git@github.com:0xStation/Protocol-Ops.git
