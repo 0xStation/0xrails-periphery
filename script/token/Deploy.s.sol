@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {ScriptUtils} from "script/utils/ScriptUtils.sol";
+import {ScriptUtils} from "lib/protocol-ops/script/ScriptUtils.sol";
 import {FeeManager} from "../../src/lib/module/FeeManager.sol";
 import {FreeMintController} from "../../src/membership/modules/FreeMintController.sol";
 import {GasCoinPurchaseController} from "../../src/membership/modules/GasCoinPurchaseController.sol";
