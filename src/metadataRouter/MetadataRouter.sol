@@ -25,10 +25,7 @@ contract MetadataRouter is Initializable, Ownable, UUPSUpgradeable, IMetadataRou
     /// @dev Initialize the contract with ownership information.
     /// @param _owner The address of the contract owner.
     /// @notice The contract owner will have exclusive rights to manage metadata routes and URIs.
-    function initialize(address _owner)
-        external
-        initializer
-    {
+    function initialize(address _owner) external initializer {
         _transferOwnership(_owner);
     }
 

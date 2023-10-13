@@ -1,0 +1,34 @@
+{
+  "transactions": [
+    {
+      "hash": null,
+      "transactionType": "CALL",
+      "contractName": null,
+      "contractAddress": "0xf8A31352e237af670D5DC6e9b75a4401A37BaD0E",
+      "function": null,
+      "arguments": null,
+      "rpc": "https://eth-goerli.alchemyapi.io/v2/ZJIj3ytrFaWioVp550EyzD4MR9q5VClg",
+      "transaction": {
+        "type": "0x02",
+        "from": "0x016562aa41a8697720ce0943f003141f5deae006",
+        "to": "0xf8a31352e237af670d5dc6e9b75a4401a37bad0e",
+        "gas": "0xe6e7",
+        "value": "0x0",
+        "data": "0x931688cb0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002e68747470733a2f2f6465762e73746174696f6e2e657870726573732f6170692f76312f6e66744d65746164617461000000000000000000000000000000000000",
+        "nonce": "0x19e",
+        "accessList": []
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [],
+  "libraries": [],
+  "pending": [],
+  "path": "/Users/cswenberg/Code/station/tokens-v1/broadcast/UpdateURI.s.sol/5/run-latest.json",
+  "returns": {},
+  "timestamp": 1688660858,
+  "chain": 5,
+  "multi": false,
+  "commit": "6c183e5"
+}

@@ -25,7 +25,7 @@ contract CreateERC721 is ScriptUtils {
 
     /// @notice LINEA: v.1.10
     address coreImpl = 0x3F4f3680c80DBa28ae43FbE160420d4Ad8ca50E4; // ERC721Rails Linea
-    
+
     address public owner = ScriptUtils.symmetry;
     string public name = "Symmetry Testing";
     string public symbol = "SYM";
@@ -65,7 +65,9 @@ contract CreateERC721 is ScriptUtils {
             IExtensions.setExtension.selector, INFTMetadata.ext_tokenURI.selector, address(NFTMetadataRouterExtension)
         );
         bytes memory addContractURIExtension = abi.encodeWithSelector(
-            IExtensions.setExtension.selector, INFTMetadata.ext_contractURI.selector, address(NFTMetadataRouterExtension)
+            IExtensions.setExtension.selector,
+            INFTMetadata.ext_contractURI.selector,
+            address(NFTMetadataRouterExtension)
         );
 
         // PERMISSIONS
@@ -75,7 +77,8 @@ contract CreateERC721 is ScriptUtils {
             abi.encodeWithSelector(Permissions.addPermission.selector, Operations.MINT, mintModule);
         bytes memory permitFrogAdmin =
             abi.encodeWithSelector(Permissions.addPermission.selector, Operations.ADMIN, frog);
-        bytes memory permitSymAdmin = abi.encodeWithSelector(Permissions.addPermission.selector, Operations.ADMIN, symmetry);
+        bytes memory permitSymAdmin =
+            abi.encodeWithSelector(Permissions.addPermission.selector, Operations.ADMIN, symmetry);
 
         // INIT
         bytes[] memory initCalls = new bytes[](9);
@@ -90,7 +93,7 @@ contract CreateERC721 is ScriptUtils {
         initCalls[8] = permitSymAdmin;
 
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, initCalls);
-        
+
         TokenFactory(tokenFactory).createERC721(payable(coreImpl), owner, name, symbol, initData);
 
         vm.stopBroadcast();

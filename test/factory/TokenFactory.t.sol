@@ -165,8 +165,9 @@ contract TokenFactoryTest is Test, IERC1967 {
         tokenFactoryProxy.initialize(owner);
 
         address oldMembership = address(erc721RailsProxy);
-        ERC721Rails newMembership =
-            ERC721Rails(payable(tokenFactoryProxy.createERC721(payable(address(erc721RailsImpl)), newOwner, newName, newSymbol, "")));
+        ERC721Rails newMembership = ERC721Rails(
+            payable(tokenFactoryProxy.createERC721(payable(address(erc721RailsImpl)), newOwner, newName, newSymbol, ""))
+        );
         assertFalse(oldMembership == address(newMembership));
         assertEq(newMembership.owner(), newOwner);
         assertEq(newMembership.name(), newName);
@@ -178,8 +179,9 @@ contract TokenFactoryTest is Test, IERC1967 {
         tokenFactoryProxy.initialize(owner);
 
         address oldPoints = address(erc20RailsProxy);
-        ERC20Rails newPoints =
-            ERC20Rails(payable(tokenFactoryProxy.createERC20(payable(address(erc20RailsImpl)), newOwner, newName, newSymbol, "")));
+        ERC20Rails newPoints = ERC20Rails(
+            payable(tokenFactoryProxy.createERC20(payable(address(erc20RailsImpl)), newOwner, newName, newSymbol, ""))
+        );
         assertFalse(oldPoints == address(newPoints));
         assertEq(newPoints.owner(), newOwner);
         assertEq(newPoints.name(), newName);
@@ -191,8 +193,11 @@ contract TokenFactoryTest is Test, IERC1967 {
         tokenFactoryProxy.initialize(owner);
 
         address oldBadges = address(erc1155RailsProxy);
-        ERC1155Rails newBadges =
-            ERC1155Rails(payable(tokenFactoryProxy.createERC1155(payable(address(erc1155RailsImpl)), newOwner, newName, newSymbol, "")));
+        ERC1155Rails newBadges = ERC1155Rails(
+            payable(
+                tokenFactoryProxy.createERC1155(payable(address(erc1155RailsImpl)), newOwner, newName, newSymbol, "")
+            )
+        );
         assertFalse(oldBadges == address(newBadges));
         assertEq(newBadges.owner(), newOwner);
         assertEq(newBadges.name(), newName);
