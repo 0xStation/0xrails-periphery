@@ -12,7 +12,7 @@ import {AccountGroupStorage} from "./AccountGroupStorage.sol";
 import {IAccountGroup} from "../interface/IAccountGroup.sol";
 import {AccountGroupLib} from "../lib/AccountGroupLib.sol";
 
-abstract contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, Access, Initializable, Ownable {
+contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, Access, Initializable, Ownable {
 
     /*====================
         INITIALIZATION
