@@ -35,6 +35,10 @@ contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, A
         }
         return initializer;
     }
+    
+    function getDefaultAccountInitializer() external view returns (address) {
+        return AccountGroupStorage.layout().defaultInitializer;
+    }
 
     /*=============
         SETTERS
