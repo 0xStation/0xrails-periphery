@@ -14,22 +14,35 @@ import {AccountGroupLib} from "../lib/AccountGroupLib.sol";
 
 abstract contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, Access, Initializable, Ownable {
 
-    // initialization
+    /*====================
+        INITIALIZATION
+    ====================*/
 
     function initialize(address owner_) external initializer {
         _transferOwnership(owner_);
     }
 
-    /// @dev Owner address is implemented using the `OwnableInternal` contract's function
-    function owner() public view override(Access, OwnableInternal) returns (address) {
-        return OwnableInternal.owner();
+    /*===========
+        VIEWS
+    ===========*/
+
+    function getAccountInitializer(address account) external view returns (address) {
+        (,uint64 subgroupId,) = AccountGroupLib.accountParams(account);
+        AccountGroupStorage.Layout storage layout = AccountGroupStorage.layout();
+        address initializer = layout.initializerOf[subgroupId];
+        if (initializer == address(0)) {
+            initializer = layout.defaultInitializer;
+        }
+        return initializer;
     }
 
-    // subgroups
+    /*=============
+        SETTERS
+    =============*/
 
-    function getAccountInitializer(address) public view returns (address) {
-        (,uint64 subgroupId,) = AccountGroupLib.accountParams();
-        return AccountGroupStorage.layout().initializerOf[subgroupId];
+    function setDefaultAccountInitializer(address initializer) external onlyOwner {
+        AccountGroupStorage.layout().defaultInitializer = initializer;
+        emit DefaultInitializerUpdated(initializer);
     }
 
     function setAccountInitializer(uint64 subgroupId, address initializer) public {
@@ -38,7 +51,14 @@ abstract contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgra
         emit SubgroupInitializerUpdated(subgroupId, initializer);
     }
 
-    // auth
+    /*===================
+        AUTHORIZATION
+    ===================*/
+
+    /// @dev Owner address is implemented using the `OwnableInternal` contract's function
+    function owner() public view override(Access, OwnableInternal) returns (address) {
+        return OwnableInternal.owner();
+    }
 
     function _checkCanUpdateSubgroup(uint64) internal view {
         _checkPermission(Operations.ADMIN, msg.sender);

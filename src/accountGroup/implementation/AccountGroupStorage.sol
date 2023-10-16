@@ -5,6 +5,7 @@ library AccountGroupStorage {
     bytes32 internal constant SLOT = keccak256(abi.encode(uint256(keccak256("groupos.AccountGroup")) - 1));
 
     struct Layout {
+        address defaultInitializer;
         mapping(uint64 => address) initializerOf;
     }
 
