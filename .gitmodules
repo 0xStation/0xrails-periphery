@@ -14,3 +14,6 @@
 	path = lib/0xrails
 	url = https://github.com/0xStation/0xrails
 	branch = main
+[submodule "lib/erc6551"]
+	path = lib/erc6551
+	url = https://github.com/erc6551/reference
