@@ -6,16 +6,11 @@
 	path = lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
 	branch = v4.8.3
-[submodule "lib/solmate"]
-	path = lib/solmate
-	url = https://github.com/transmissions11/solmate
 [submodule "lib/openzeppelin-contracts-upgradeable"]
 	path = lib/openzeppelin-contracts-upgradeable
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable
 	branch = v4.8.3
-[submodule "lib/contracts"]
-	path = lib/contracts
-	url = https://github.com/tokenbound/contracts
 [submodule "lib/0xrails"]
 	path = lib/0xrails
 	url = https://github.com/0xStation/0xrails
+	branch = main
