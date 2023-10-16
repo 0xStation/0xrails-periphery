@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
 import {IERC6551AccountGroup} from "0xrails/lib/ERC6551AccountGroup/interface/IERC6551AccountGroup.sol";
 import {Ownable, OwnableInternal} from "0xrails/access/ownable/Ownable.sol";
 import {Access} from "0xrails/access/Access.sol";
@@ -11,13 +12,12 @@ import {AccountGroupStorage} from "./AccountGroupStorage.sol";
 import {IAccountGroup} from "../interface/IAccountGroup.sol";
 import {AccountGroupLib} from "../lib/AccountGroupLib.sol";
 
-abstract contract AccountGroup is IERC6551AccountGroup, IAccountGroup, Access, Initializable, Ownable {
+abstract contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, Access, Initializable, Ownable {
 
     // initialization
 
-    function initialize(address owner_, address initializerImpl_) external initializer {
+    function initialize(address owner_) external initializer {
         _transferOwnership(owner_);
-        _setAccountInitializer(initializerImpl_);
     }
 
     /// @dev Owner address is implemented using the `OwnableInternal` contract's function
@@ -27,27 +27,20 @@ abstract contract AccountGroup is IERC6551AccountGroup, IAccountGroup, Access, I
 
     // subgroups
 
-    function getAccountInitializer(address account) public view returns (address) {
+    function getAccountInitializer(address) public view returns (address) {
         (,uint64 subgroupId,) = AccountGroupLib.accountParams();
-        return ERC6551AccountGroupStorage.layout().initalizerOf[subgroupId];
-    }
-    
-    function getAccountImplementation(address account) public view returns (address) {
-        (,uint64 subgroupId,) = AccountGroupLib.accountParams();
-        return ERC6551AccountGroupStorage.layout().accountOf[subgroupId];
+        return AccountGroupStorage.layout().initializerOf[subgroupId];
     }
 
-    function updateSubgroup(uint64 subgroupId, address accountImpl, address initializer) public {
+    function setAccountInitializer(uint64 subgroupId, address initializer) public {
         _checkCanUpdateSubgroup(subgroupId);
-        ERC6551AccountGroupStorage layout = ERC6551AccountGroupStorage.layout();
-        layout.initalizerOf[subgroupId] = initalizer;
-        layout.accountOf[subgroupId] = accountImpl;
-        emit SubgroupInitializationUpdated(subgroupId, accountImpl, initializer);
+        AccountGroupStorage.layout().initializerOf[subgroupId] = initializer;
+        emit SubgroupInitializerUpdated(subgroupId, initializer);
     }
 
     // auth
 
-    function _checkCanUpdateSubgroup(uint64 subgroupId) internal view override {
+    function _checkCanUpdateSubgroup(uint64) internal view {
         _checkPermission(Operations.ADMIN, msg.sender);
     }
 
