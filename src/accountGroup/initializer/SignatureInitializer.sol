@@ -2,11 +2,11 @@
 pragma solidity ^0.8.13;
 
 import {SignatureChecker} from "openzeppelin-contracts/utils/cryptography/SignatureChecker.sol";
-
-import {AccountInitializer} from "./AccountInitializer.sol";
-import {ERC6551AccountGroupLib} from "./lib/ERC6551AccountGroupLib.sol";
+import {AccountInitializer} from "0xrails/lib/ERC6551AccountGroup/AccountInitializer.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
+
+import {ERC6551AccountGroupLib} from "../lib/ERC6551AccountGroupLib.sol";
 
 contract SignatureInitializer is AccountInitializer {
     error AlreadyInitialized();
