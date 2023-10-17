@@ -27,9 +27,13 @@ contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, A
     ===========*/
 
     function getAccountInitializer(address account) external view returns (address) {
+        // fetch subgroupId from account's contract bytecode
         (,uint64 subgroupId,) = AccountGroupLib.accountParams(account);
+        // query namespaced storage for initializer associated with `subgroupId`
         AccountGroupStorage.Layout storage layout = AccountGroupStorage.layout();
         address initializer = layout.initializerOf[subgroupId];
+        
+        // handle unset initializer using default
         if (initializer == address(0)) {
             initializer = layout.defaultInitializer;
         }
