@@ -25,11 +25,7 @@ contract InitializeAccountController is PermitController {
         uint256 tokenId,
         address accountImpl,
         bytes memory initData
-    )
-        external
-        usePermits(_encodePermitContext(salt))
-        returns (address account)
-    {
+    ) external usePermits(_encodePermitContext(salt)) returns (address account) {
         // deploy account
         account = IERC6551Registry(registry).createAccount(accountProxy, salt, chainId, tokenContract, tokenId);
         // initialize account
@@ -53,7 +49,7 @@ contract InitializeAccountController is PermitController {
         address accountGroup = _decodePermitContext(context);
         return !IPermissions(accountGroup).hasPermission(Operations.INITIALIZE_ACCOUNT_PERMIT, msg.sender);
     }
-    
+
     /// @notice If a permit is expected, then validate the signer has INITIALIZE_ACCOUNT_PERMIT permission
     function signerCanPermit(address signer, bytes memory context) public view override returns (bool) {
         address accountGroup = _decodePermitContext(context);

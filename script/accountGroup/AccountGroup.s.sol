@@ -4,12 +4,13 @@ pragma solidity ^0.8.13;
 import {ScriptUtils} from "script/utils/ScriptUtils.sol";
 import {Strings} from "openzeppelin-contracts/utils/Strings.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {Operations} from "0xrails/lib/Operations.sol";
 
 import {AccountGroup} from "../../src/accountGroup/implementation/AccountGroup.sol";
 import {PermissionGatedInitializer} from "../../src/accountGroup/initializer/PermissionGatedInitializer.sol";
 import {InitializeAccountController} from "../../src/accountGroup/module/InitializeAccountController.sol";
 
-contract Deploy is ScriptUtils {
+contract AccountGroupScript is ScriptUtils {
     /*=================
         ENVIRONMENT 
     =================*/
@@ -27,7 +28,8 @@ contract Deploy is ScriptUtils {
 
         vm.startBroadcast();
 
-        address owner = ScriptUtils.stationFounderSafe;
+        // address owner = ScriptUtils.stationFounderSafe;
+        address owner = ScriptUtils.symmetry;
 
         string memory saltString = ScriptUtils.readSalt("salt");
         bytes32 salt = bytes32(bytes(saltString));
@@ -39,21 +41,30 @@ contract Deploy is ScriptUtils {
 
         // After deployments, format Multicall3 calls and execute it from FounderSafe as module sender
         // `MetadataRouter::setDefaultURI()` configuration
-        bytes memory setDefaultAccountInitializer = abi.encodeWithSelector(
-            AccountGroup.setDefaultAccountInitializer.selector, address(permissionGatedInitializer)
-        );
-        Call3 memory accountGroupSetDefaultAccountInitializerCall =
-            Call3({target: address(accountGroup), allowFailure: false, callData: setDefaultAccountInitializer});
 
-        Call3[] memory calls = new Call3[](1);
-        calls[0] = accountGroupSetDefaultAccountInitializerCall;
-        bytes memory multicallData = abi.encodeWithSignature("aggregate3((address,bool,bytes)[])", calls);
-        // `Safe(owner).execTransactionFromModule(multicall3, 0, multicallData, uint8(1));` using 0 ETH value & Operation == DELEGATECALL
-        bytes memory safeCall = abi.encodeWithSignature(
-            "execTransactionFromModule(address,uint256,bytes,uint8)", multicall3, 0, multicallData, uint8(1)
-        );
-        (bool r,) = owner.call(safeCall);
-        require(r);
+        // LOCAL DEPLOY
+        
+        accountGroup.setDefaultAccountInitializer(address(permissionGatedInitializer));
+        accountGroup.addPermission(Operations.INITIALIZE_ACCOUNT, address(initializeAccountController));
+        accountGroup.addPermission(Operations.INITIALIZE_ACCOUNT_PERMIT, ScriptUtils.turnkey);
+
+        // PRODUCTION DEPLOY 
+
+        // bytes memory setDefaultAccountInitializer = abi.encodeWithSelector(
+        //     AccountGroup.setDefaultAccountInitializer.selector, address(permissionGatedInitializer)
+        // );
+        // Call3 memory accountGroupSetDefaultAccountInitializerCall =
+        //     Call3({target: address(accountGroup), allowFailure: false, callData: setDefaultAccountInitializer});
+
+        // Call3[] memory calls = new Call3[](1);
+        // calls[0] = accountGroupSetDefaultAccountInitializerCall;
+        // bytes memory multicallData = abi.encodeWithSignature("aggregate3((address,bool,bytes)[])", calls);
+        // // `Safe(owner).execTransactionFromModule(multicall3, 0, multicallData, uint8(1));` using 0 ETH value & Operation == DELEGATECALL
+        // bytes memory safeCall = abi.encodeWithSignature(
+        //     "execTransactionFromModule(address,uint256,bytes,uint8)", multicall3, 0, multicallData, uint8(1)
+        // );
+        // (bool r,) = owner.call(safeCall);
+        // require(r);
 
         // assert accountGroup call successful
         assert(accountGroup.getDefaultAccountInitializer() == address(permissionGatedInitializer));
@@ -65,6 +76,10 @@ contract Deploy is ScriptUtils {
         writeUsedSalt(
             saltString,
             string.concat("PermissionGatedInitializer @", Strings.toHexString(address(permissionGatedInitializer)))
+        );
+        writeUsedSalt(
+            saltString,
+            string.concat("InitializeAccountController @", Strings.toHexString(address(initializeAccountController)))
         );
     }
 
