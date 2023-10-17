@@ -18,3 +18,6 @@
 	path = lib/erc6551
 	url = https://github.com/erc6551/reference
 	branch = main
+[submodule "lib/protocol-ops"]
+	path = lib/protocol-ops
+	url = git@github.com:0xStation/Protocol-Ops.git
