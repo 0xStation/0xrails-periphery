@@ -36,10 +36,11 @@ contract Deploy is ScriptUtils {
 
         // After deployments, format Multicall3 calls and execute it from FounderSafe as module sender
         // `MetadataRouter::setDefaultURI()` configuration
-        bytes memory setDefaultAccountInitializer = abi.encodeWithSelector(AccountGroup.setDefaultAccountInitializer.selector, address(permissionGatedInitializer));
+        bytes memory setDefaultAccountInitializer = abi.encodeWithSelector(
+            AccountGroup.setDefaultAccountInitializer.selector, address(permissionGatedInitializer)
+        );
         Call3 memory accountGroupSetDefaultAccountInitializerCall =
             Call3({target: address(accountGroup), allowFailure: false, callData: setDefaultAccountInitializer});
-
 
         Call3[] memory calls = new Call3[](1);
         calls[0] = accountGroupSetDefaultAccountInitializerCall;
@@ -56,12 +57,12 @@ contract Deploy is ScriptUtils {
 
         vm.stopBroadcast();
 
-        writeUsedSalt(
-            saltString, string.concat("AccountGroupImpl @", Strings.toHexString(address(accountGroupImpl)))
-        );
+        writeUsedSalt(saltString, string.concat("AccountGroupImpl @", Strings.toHexString(address(accountGroupImpl))));
         writeUsedSalt(saltString, string.concat("AccountGroupProxy @", Strings.toHexString(address(accountGroup))));
-        writeUsedSalt(saltString, string.concat("PermissionGatedInitializer @", Strings.toHexString(address(permissionGatedInitializer))));
-        
+        writeUsedSalt(
+            saltString,
+            string.concat("PermissionGatedInitializer @", Strings.toHexString(address(permissionGatedInitializer)))
+        );
     }
 
     function deployAccountGroup(bytes32 _salt, address _owner)
@@ -73,10 +74,7 @@ contract Deploy is ScriptUtils {
         _proxy = AccountGroup(address(new ERC1967Proxy{salt: _salt}(address(_impl), accountGroupInitData)));
     }
 
-    function deployPermissionGatedInitialization(bytes32 _salt)
-        internal
-        returns (PermissionGatedInitializer)
-    {
+    function deployPermissionGatedInitialization(bytes32 _salt) internal returns (PermissionGatedInitializer) {
         return new PermissionGatedInitializer{salt: _salt}();
     }
 }

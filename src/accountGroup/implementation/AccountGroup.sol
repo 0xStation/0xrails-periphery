@@ -13,7 +13,6 @@ import {IAccountGroup} from "../interface/IAccountGroup.sol";
 import {AccountGroupLib} from "../lib/AccountGroupLib.sol";
 
 contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, Access, Initializable, Ownable {
-
     /*====================
         INITIALIZATION
     ====================*/
@@ -27,15 +26,15 @@ contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, A
     ===========*/
 
     function getAccountInitializer(address account) external view returns (address) {
-        (,uint64 subgroupId,) = AccountGroupLib.accountParams(account);
+        AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(account);
         AccountGroupStorage.Layout storage layout = AccountGroupStorage.layout();
-        address initializer = layout.initializerOf[subgroupId];
+        address initializer = layout.initializerOf[params.subgroupId];
         if (initializer == address(0)) {
             initializer = layout.defaultInitializer;
         }
         return initializer;
     }
-    
+
     function getDefaultAccountInitializer() external view returns (address) {
         return AccountGroupStorage.layout().defaultInitializer;
     }
