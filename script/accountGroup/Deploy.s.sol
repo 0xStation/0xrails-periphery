@@ -7,6 +7,7 @@ import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.so
 
 import {AccountGroup} from "../../src/accountGroup/implementation/AccountGroup.sol";
 import {PermissionGatedInitializer} from "../../src/accountGroup/initializer/PermissionGatedInitializer.sol";
+import {InitializeAccountController} from "../../src/accountGroup/module/InitializeAccountController.sol";
 
 contract Deploy is ScriptUtils {
     /*=================
@@ -17,6 +18,7 @@ contract Deploy is ScriptUtils {
     AccountGroup accountGroupImpl;
     AccountGroup accountGroup; // proxy
     PermissionGatedInitializer permissionGatedInitializer;
+    InitializeAccountController initializeAccountController;
 
     function run() public {
         /*===============
@@ -32,7 +34,8 @@ contract Deploy is ScriptUtils {
 
         // begin deployments
         (accountGroupImpl, accountGroup) = deployAccountGroup(salt, owner);
-        permissionGatedInitializer = deployPermissionGatedInitialization(salt);
+        permissionGatedInitializer = new PermissionGatedInitializer{salt: salt}();
+        initializeAccountController = new InitializeAccountController{salt: salt}();
 
         // After deployments, format Multicall3 calls and execute it from FounderSafe as module sender
         // `MetadataRouter::setDefaultURI()` configuration
@@ -72,9 +75,5 @@ contract Deploy is ScriptUtils {
         _impl = new AccountGroup{salt: _salt}();
         bytes memory accountGroupInitData = abi.encodeWithSelector(AccountGroup.initialize.selector, _owner);
         _proxy = AccountGroup(address(new ERC1967Proxy{salt: _salt}(address(_impl), accountGroupInitData)));
-    }
-
-    function deployPermissionGatedInitialization(bytes32 _salt) internal returns (PermissionGatedInitializer) {
-        return new PermissionGatedInitializer{salt: _salt}();
     }
 }
