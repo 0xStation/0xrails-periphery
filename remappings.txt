@@ -5,4 +5,5 @@ openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contr
 solmate/=lib/solmate/
 tokenbound/=lib/contracts/
 test/=test/
-0xrails/=lib/0xrails/src
+0xrails/=lib/0xrails/src/
+erc6551/=lib/erc6551/src/
