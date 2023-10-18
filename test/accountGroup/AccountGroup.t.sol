@@ -71,11 +71,11 @@ contract AccountGroupTest is Test, Account {
         assertEq(accountGroup.getAccountInitializer(address(accountGroup)), address(0x0));
 
         // fetch subgroupId
-        (,uint64 subgroupId,) = AccountGroupLib.accountParams(address(accountGroup));
+        AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(accountGroup));
         
         // set initializer
         vm.prank(owner);
-        accountGroup.setAccountInitializer(subgroupId, address(permissionGatedInitializer));
+        accountGroup.setAccountInitializer(params.subgroupId, address(permissionGatedInitializer));
         address newInitializer = accountGroup.getAccountInitializer(address(accountGroup));
         assertEq(newInitializer, address(permissionGatedInitializer));
     }
@@ -84,11 +84,11 @@ contract AccountGroupTest is Test, Account {
         assertEq(accountGroup.getAccountInitializer(address(accountGroup)), address(0x0));
 
         // fetch subgroupId
-        (,uint64 subgroupId,) = AccountGroupLib.accountParams(address(accountGroup));
+        AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(accountGroup));
         
         // attempt to set initializer without permission
         vm.expectRevert(abi.encodeWithSelector(IPermissionsInternal.PermissionDoesNotExist.selector, Operations.ADMIN, address(this)));
-        accountGroup.setAccountInitializer(subgroupId, address(permissionGatedInitializer));
+        accountGroup.setAccountInitializer(params.subgroupId, address(permissionGatedInitializer));
         // assert no state changes made
         assertEq(accountGroup.getAccountInitializer(address(accountGroup)), address(0x0));
     }
