@@ -48,8 +48,6 @@ abstract contract PayoutAddress is IPayoutAddress {
 
     /// @notice This function is meant to be invoked in the context of `delegatecall`
     function _checkCanUpdatePayoutAddress() internal virtual {
-        if (!IPermissions(address(this)).hasPermission(Operations.ADMIN, msg.sender)) {
-            revert CannotUpdatePayoutAddress(msg.sender);
-        }
+        IPermissions(address(this)).checkPermission(Operations.ADMIN, msg.sender);
     }
 }

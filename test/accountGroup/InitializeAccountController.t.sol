@@ -118,7 +118,6 @@ contract InitializeAccountControllerTest is Test, Account {
     function test_createAndInitializeAccountRevertPermitSignerInvalid() public {        
         uint256 tokenId = 1;
         bytes memory data;
-        bytes memory creationCode = ERC6551BytecodeLib.getCreationCode(address(botAccount), bytecodeSalt, block.chainid, address(erc721Rails), tokenId);
 
         vm.expectRevert(abi.encodeWithSelector(PermitController.PermitSignerInvalid.selector, address(0x1)));
         initializeAccountController.createAndInitializeAccount(address(erc6551Registry), address(accountGroup), bytecodeSalt, block.chainid, address(erc721Rails), tokenId, address(botAccountImpl), data);
