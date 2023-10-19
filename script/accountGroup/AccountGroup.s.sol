@@ -28,10 +28,9 @@ contract AccountGroupScript is ScriptUtils {
 
         vm.startBroadcast();
 
-        // address owner = ScriptUtils.stationFounderSafe;
-        address owner = ScriptUtils.symmetry;
+        address owner = ScriptUtils.stationFounderSafe;
 
-        string memory saltString = ScriptUtils.readSalt("salt");
+        string memory saltString = "station";
         bytes32 salt = bytes32(bytes(saltString));
 
         // begin deployments
@@ -40,34 +39,50 @@ contract AccountGroupScript is ScriptUtils {
         initializeAccountController = new InitializeAccountController{salt: salt}();
 
         // After deployments, format Multicall3 calls and execute it from FounderSafe as module sender
-        // `MetadataRouter::setDefaultURI()` configuration
 
         // LOCAL DEPLOY
         
-        accountGroup.setDefaultAccountInitializer(address(permissionGatedInitializer));
-        accountGroup.addPermission(Operations.INITIALIZE_ACCOUNT, address(initializeAccountController));
-        accountGroup.addPermission(Operations.INITIALIZE_ACCOUNT_PERMIT, ScriptUtils.turnkey);
+        // accountGroup.setDefaultAccountInitializer(address(permissionGatedInitializer));
+        // accountGroup.addPermission(Operations.INITIALIZE_ACCOUNT, address(initializeAccountController));
+        // accountGroup.addPermission(Operations.INITIALIZE_ACCOUNT_PERMIT, ScriptUtils.turnkey);
 
         // PRODUCTION DEPLOY 
 
-        // bytes memory setDefaultAccountInitializer = abi.encodeWithSelector(
-        //     AccountGroup.setDefaultAccountInitializer.selector, address(permissionGatedInitializer)
-        // );
-        // Call3 memory accountGroupSetDefaultAccountInitializerCall =
-        //     Call3({target: address(accountGroup), allowFailure: false, callData: setDefaultAccountInitializer});
+        bytes memory setDefaultAccountInitializer = abi.encodeWithSelector(
+            AccountGroup.setDefaultAccountInitializer.selector, address(permissionGatedInitializer)
+        );
+        Call3 memory accountGroupSetDefaultAccountInitializerCall =
+            Call3({target: address(accountGroup), allowFailure: false, callData: setDefaultAccountInitializer});
 
-        // Call3[] memory calls = new Call3[](1);
-        // calls[0] = accountGroupSetDefaultAccountInitializerCall;
-        // bytes memory multicallData = abi.encodeWithSignature("aggregate3((address,bool,bytes)[])", calls);
-        // // `Safe(owner).execTransactionFromModule(multicall3, 0, multicallData, uint8(1));` using 0 ETH value & Operation == DELEGATECALL
-        // bytes memory safeCall = abi.encodeWithSignature(
-        //     "execTransactionFromModule(address,uint256,bytes,uint8)", multicall3, 0, multicallData, uint8(1)
-        // );
-        // (bool r,) = owner.call(safeCall);
-        // require(r);
+        bytes memory addPermissionInitializeAccountToController = abi.encodeWithSelector(
+            AccountGroup.addPermission.selector, Operations.INITIALIZE_ACCOUNT, address(initializeAccountController)
+        );
+        Call3 memory addPermissionInitializeAccountToControllerCall = 
+            Call3({target: address(accountGroup), allowFailure: false, callData: addPermissionInitializeAccountToController});
+
+        bytes memory addPermissionInitializeAccountPermitToTurnkey = abi.encodeWithSelector(
+            AccountGroup.addPermission.selector, Operations.INITIALIZE_ACCOUNT_PERMIT, ScriptUtils.turnkey
+        );
+        Call3 memory addPermissionInitializeAccountPermitToTurnkeyCall = 
+            Call3({target: address(accountGroup), allowFailure: false, callData: addPermissionInitializeAccountPermitToTurnkey})
+
+        Call3[] memory calls = new Call3[](3);
+        calls[0] = accountGroupSetDefaultAccountInitializerCall;
+        calls[1] = addPermissionInitializeAccountToControllerCall;
+        calls[2] = addPermissionInitializeAccountPermitToTurnkeyCall;
+
+        bytes memory multicallData = abi.encodeWithSignature("aggregate3((address,bool,bytes)[])", calls);
+        // `Safe(owner).execTransactionFromModule(multicall3, 0, multicallData, uint8(1));` using 0 ETH value & Operation == DELEGATECALL
+        bytes memory safeCall = abi.encodeWithSignature(
+            "execTransactionFromModule(address,uint256,bytes,uint8)", multicall3, 0, multicallData, uint8(1)
+        );
+        (bool r,) = owner.call(safeCall);
+        require(r);
 
         // assert accountGroup call successful
         assert(accountGroup.getDefaultAccountInitializer() == address(permissionGatedInitializer));
+        assert(accountGroup.hasPermission(Operations.INITIALIZE_ACCOUNT, address(initializeAccountController)));
+        assert(accountGroup.hasPermission(Operations.INITIALIZE_ACCOUNT_PERMIT, ScriptUtils.turnkey));
 
         vm.stopBroadcast();
 
