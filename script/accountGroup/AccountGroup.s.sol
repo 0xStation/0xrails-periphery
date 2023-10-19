@@ -5,6 +5,7 @@ import {ScriptUtils} from "protocol-ops/script/ScriptUtils.sol";
 import {Strings} from "openzeppelin-contracts/utils/Strings.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
+import {IPermissions} from "0xrails/access/permissions/Permissions.sol";
 
 import {AccountGroup} from "../../src/accountGroup/implementation/AccountGroup.sol";
 import {PermissionGatedInitializer} from "../../src/accountGroup/initializer/PermissionGatedInitializer.sol";
@@ -55,16 +56,16 @@ contract AccountGroupScript is ScriptUtils {
             Call3({target: address(accountGroup), allowFailure: false, callData: setDefaultAccountInitializer});
 
         bytes memory addPermissionInitializeAccountToController = abi.encodeWithSelector(
-            AccountGroup.addPermission.selector, Operations.INITIALIZE_ACCOUNT, address(initializeAccountController)
+            IPermissions.addPermission.selector, Operations.INITIALIZE_ACCOUNT, address(initializeAccountController)
         );
         Call3 memory addPermissionInitializeAccountToControllerCall = 
             Call3({target: address(accountGroup), allowFailure: false, callData: addPermissionInitializeAccountToController});
 
         bytes memory addPermissionInitializeAccountPermitToTurnkey = abi.encodeWithSelector(
-            AccountGroup.addPermission.selector, Operations.INITIALIZE_ACCOUNT_PERMIT, ScriptUtils.turnkey
+            IPermissions.addPermission.selector, Operations.INITIALIZE_ACCOUNT_PERMIT, ScriptUtils.turnkey
         );
         Call3 memory addPermissionInitializeAccountPermitToTurnkeyCall = 
-            Call3({target: address(accountGroup), allowFailure: false, callData: addPermissionInitializeAccountPermitToTurnkey})
+            Call3({target: address(accountGroup), allowFailure: false, callData: addPermissionInitializeAccountPermitToTurnkey});
 
         Call3[] memory calls = new Call3[](3);
         calls[0] = accountGroupSetDefaultAccountInitializerCall;
