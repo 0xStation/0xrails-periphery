@@ -7,7 +7,7 @@ interface IPayoutAddress {
 
     // errors
     error PayoutAddressIsZero();
-    error CannotUpdatePayoutAddress(address sender);
+    // error CannotUpdatePayoutAddress(address sender);
 
     /// @dev Returns the address of the current `payoutAddress` in storage
     function payoutAddress() external view returns (address);
