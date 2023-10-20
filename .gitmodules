@@ -21,3 +21,6 @@
 [submodule "lib/protocol-ops"]
 	path = lib/protocol-ops
   url = https://github.com/0xStation/protocol-ops
+[submodule "lib/solmate"]
+	path = lib/solmate
+	url = https://github.com/transmissions11/solmate
