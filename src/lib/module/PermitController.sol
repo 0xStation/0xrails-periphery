@@ -141,7 +141,7 @@ abstract contract PermitController is NonceBitMap {
         }
     }
 
-    function _domainSeparator() private view returns (bytes32) {
+    function _domainSeparator() public view returns (bytes32) {
         return keccak256(abi.encode(DOMAIN_TYPE_HASH, NAME_HASH, VERSION_HASH, block.chainid, address(this)));
     }
 }
