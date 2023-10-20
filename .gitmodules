@@ -20,4 +20,4 @@
 	branch = main
 [submodule "lib/protocol-ops"]
 	path = lib/protocol-ops
-	url = git@github.com:0xStation/Protocol-Ops.git
+	url = https://github.com/0xStation/protocol-ops.git
