@@ -13,22 +13,22 @@ import {TokenFactory} from "../../src/factory/TokenFactory.sol";
 
 contract CreateERC20 is ScriptUtils {
     /*============
-        CONFIG 
+        CONFIG
     ============*/
 
     /// @notice LINEA: v.1.10
-    address coreImpl = 0xe0dd2F320290d04Dce5432E6ec2312D66d6f84C1; // ERC20Rails Linea
-
-    address public owner = ScriptUtils.symmetry;
-    string public name = "Symmetry Testing";
-    string public symbol = "SYM";
+    // address coreImpl = 0xe0dd2F320290d04Dce5432E6ec2312D66d6f84C1; // ERC20Rails Linea
+    // address public mintModule = 0x966aD227192e665960A2d1b89095C16286Fc7792; // FreeMintController Linea
+    // address public tokenFactory = 0x66B28Cc146A1a2cDF1073C2875D070733C7d01Af; // tokenFactory Linea
 
     /// @notice GOERLI: v1.0.0
-    // address public mintModule = 0x8226Ff7e6F1CD020dC23901f71265D7d47a636d4; // Free mint goerli
+    address public coreImpl = 0xe0dd2F320290d04Dce5432E6ec2312D66d6f84C1; // ERC20Rails goerli
+    address public mintModule = 0x8E019DfdA444743CA58065bd9b24Bd569b61fa75; // Free mint goerli
+    address public tokenFactory = 0x66B28Cc146A1a2cDF1073C2875D070733C7d01Af; // tokenFactory goerli
 
-    /// @notice LINEA: v1.1.0
-    address public mintModule = 0x966aD227192e665960A2d1b89095C16286Fc7792; // FreeMintController Linea
-    address public tokenFactory = 0x66B28Cc146A1a2cDF1073C2875D070733C7d01Af;
+    address public owner = ScriptUtils.symmetry;
+    string public name = "Symmetry Testing II";
+    string public symbol = "SYMII";
 
     function run() public {
         vm.startBroadcast();
