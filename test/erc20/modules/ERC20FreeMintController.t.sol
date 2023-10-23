@@ -12,7 +12,7 @@ import {Operations} from "0xrails/lib/Operations.sol";
 import {ERC20Rails} from "0xrails/cores/ERC20/ERC20Rails.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 
-contract PermitControllerTest is Test, PermitController {
+contract ERC20FreeMintControllerTest is Test, FreeMintController {
     FreeMintController public erc20MintModule;
     MetadataRouter public metadataRouter;
     FeeManager public feeManager;
@@ -27,9 +27,12 @@ contract PermitControllerTest is Test, PermitController {
     uint256 public amount;
 
     bytes32 public GRANT_TYPE_HASH = keccak256("Permit(address sender,uint48 expiration,uint256 nonce,bytes data)");
+    bytes32 public DOMAIN_TYPE_HASH = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
+    bytes32 public VERSION_HASH = keccak256("0.0.1");
+    bytes32 public NAME_HASH = keccak256("GroupOS");
 
     // uint256 public goerliFork;
-    // string GOERLI_RPC_URL = "https://goerli.infura.io/v3/45d6051636ab43d1ad73c74c8201ae78"; // vm.envString("https://goerli.infura.io/v3/45d6051636ab43d1ad73c74c8201ae78");
+    // string GOERLI_RPC_URL = vm.envString("$GOERLI_RPC_URL");
 
     function setUp() public {
         // FORKING
@@ -46,7 +49,7 @@ contract PermitControllerTest is Test, PermitController {
         // deploy infra
         metadataRouter = new MetadataRouter();
         feeManager = new FeeManager(owner, 0, 0, 0, 0);
-        erc20MintModule = new FreeMintController(owner, address(feeManager), address(metadataRouter));
+        erc20MintModule = new FreeMintController();
 
         // deploy collection & assign for convenience
         erc20Impl = new ERC20Rails();
@@ -97,7 +100,9 @@ contract PermitControllerTest is Test, PermitController {
             keccak256(permit.data)
         ));
 
-        bytes32 permitHash = ECDSA.toTypedDataHash(PermitController(address(erc20MintModule))._domainSeparator(), valuesHash);
+        bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPE_HASH, NAME_HASH, VERSION_HASH, block.chainid, address(erc20MintModule)));
+
+        bytes32 permitHash = ECDSA.toTypedDataHash(domainSeparator, valuesHash);
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(somePK, permitHash);
         bytes memory sig = abi.encodePacked(r, s, v);
