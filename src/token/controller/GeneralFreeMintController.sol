@@ -17,13 +17,6 @@ import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 /// @notice As this controller is entirely fee-less, it does not make use of the FeeManager,
 /// which enforces a baseline default mint fee
 contract GeneralFreeMintController is PermitController, SetupController, ContractMetadata {
-    /*=======================
-        CONTRACT METADATA
-    =======================*/
-
-    function _contractRoute() internal pure override returns (string memory route) {
-        return "module";
-    }
 
     /*=============
         STORAGE
@@ -36,6 +29,7 @@ contract GeneralFreeMintController is PermitController, SetupController, Contrac
         EVENTS
     ============*/
 
+    /// @dev Events share names but differ in parameters to differentiate them between controllers
     event SetUp(address indexed collection, bool indexed enablePermits);
 
     /*============
@@ -47,7 +41,7 @@ contract GeneralFreeMintController is PermitController, SetupController, Contrac
         PermitController() 
         ContractMetadata(_metadataRouter) {}
 
-    /// @dev Function to set up and configure a new collection
+    /// @dev Function to set up and configure a new collection's purchase prices
     /// @param collection The new collection to configure
     /// @param enablePermits A boolean to represent whether this collection will repeal or support grant functionality
     function setUp(address collection, bool enablePermits) public canSetUp(collection) {
@@ -56,6 +50,15 @@ contract GeneralFreeMintController is PermitController, SetupController, Contrac
         }
         emit SetUp(collection, enablePermits);
     }
+    
+    /// @dev convenience function for setting up when creating collections, relies on auth done in public setUp
+    function setUp(bool enablePermits) external {
+        setUp(msg.sender, enablePermits);
+    }
+
+    /*==========
+        MINT
+    ==========*/
 
     /// @dev Function to mint ERC20 collection tokens to a specified recipient
     function mintToERC20(address collection, address recipient, uint256 amount) external payable usePermits(_encodePermitContext(collection)) {
@@ -94,5 +97,13 @@ contract GeneralFreeMintController is PermitController, SetupController, Contrac
 
     function requirePermits(bytes memory context) public view override returns (bool) {
         return true;
+    }
+
+    /*==============
+        OVERRIDE
+    ==============*/
+
+    function _contractRoute() internal pure override returns (string memory route) {
+        return "module";
     }
 }

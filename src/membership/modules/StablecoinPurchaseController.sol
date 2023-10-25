@@ -68,6 +68,7 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
     ============*/
 
     event Register(address indexed stablecoin, uint8 indexed key);
+    /// @dev Events share names but differ in parameters to differentiate them between controllers
     event SetUp(address indexed collection, uint128 price, address[] enabledCoins, bool indexed enablePermits);
 
     /*============

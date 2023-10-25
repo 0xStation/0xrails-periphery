@@ -38,6 +38,7 @@ contract GasCoinPurchaseController is SetupController, PermitController, FeeCont
         EVENTS
     ============*/
 
+    /// @dev Events share names but differ in parameters to differentiate them between controllers
     event SetUp(address indexed collection, uint256 price, bool indexed enablePermits);
 
     /*============

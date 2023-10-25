@@ -35,6 +35,7 @@ contract FreeMintController is SetupController, PermitController, FeeController,
         EVENTS
     ============*/
 
+    /// @dev Events share names but differ in parameters to differentiate them between controllers
     event SetUp(address indexed collection, bool indexed enablePermits);
 
     /*============
