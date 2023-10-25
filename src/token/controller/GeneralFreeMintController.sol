@@ -44,7 +44,7 @@ contract GeneralFreeMintController is PermitController, SetupController, Contrac
     /// @dev Function to set up and configure a new collection's purchase prices
     /// @param collection The new collection to configure
     /// @param enablePermits A boolean to represent whether this collection will repeal or support grant functionality
-    function setUp(address collection, bool enablePermits) public canSetUp(collection) {
+    function setUpPermits(address collection, bool enablePermits) public canSetUp(collection) {
         if (_disablePermits[collection] != !enablePermits) {
             _disablePermits[collection] = !enablePermits;
         }
@@ -52,8 +52,8 @@ contract GeneralFreeMintController is PermitController, SetupController, Contrac
     }
     
     /// @dev convenience function for setting up when creating collections, relies on auth done in public setUp
-    function setUp(bool enablePermits) external {
-        setUp(msg.sender, enablePermits);
+    function setUpPermits(bool enablePermits) external {
+        setUpPermits(msg.sender, enablePermits);
     }
 
     /*==========

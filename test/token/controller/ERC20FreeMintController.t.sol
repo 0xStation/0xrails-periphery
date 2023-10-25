@@ -50,9 +50,9 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
         someSigner = vm.addr(somePK);
 
         // deploy infra
-        metadataRouter = new MetadataRouter();
+        _metadataRouter = new MetadataRouter();
         feeManager = new FeeManager(owner, 0, 0, 0, 0);
-        generalFreeMintController = new GeneralFreeMintController();
+        generalFreeMintController = new GeneralFreeMintController(address(_metadataRouter));
 
         // deploy collection & assign for convenience
         erc20Impl = new ERC20Rails();
@@ -69,7 +69,7 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
         vm.stopPrank();
     }
     
-    function test_callWithPermit() public {
+    function test_callWithPermitERC20() public {
         // FORKING
         // Permit memory permit = Permit({
         //     signer: 0xBb942519A1339992630b13c3252F04fCB09D4841,
@@ -86,7 +86,52 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
 
 
         // LOCAL
-        bytes memory mintToCall = abi.encodeWithSelector(GeneralFreeMintController.mintTo.selector, collection, recipient, amount);
+        bytes memory mintToCall = abi.encodeWithSelector(GeneralFreeMintController.mintToERC20.selector, collection, recipient, amount);
+        Permit memory permit = Permit({
+            signer: someSigner,
+            sender: address(0x0),
+            expiration: type(uint48).max,
+            nonce: 1,
+            data: mintToCall,
+            signature: ''
+        });
+        bytes32 valuesHash = keccak256(abi.encode(
+            GRANT_TYPE_HASH,
+            permit.sender,
+            permit.expiration,
+            permit.nonce,
+            keccak256(permit.data)
+        ));
+
+        bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPE_HASH, NAME_HASH, VERSION_HASH, block.chainid, address(generalFreeMintController)));
+
+        bytes32 permitHash = ECDSA.toTypedDataHash(domainSeparator, valuesHash);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(somePK, permitHash);
+        bytes memory sig = abi.encodePacked(r, s, v);
+        permit.signature = sig;
+
+        PermitController(address(generalFreeMintController)).callWithPermit(permit);
+    }
+
+    function test_callWithPermitERC721() public {
+        // FORKING
+        // Permit memory permit = Permit({
+        //     signer: 0xBb942519A1339992630b13c3252F04fCB09D4841,
+        //     sender: address(0x0),
+        //     expiration: 1697820221,
+        //     nonce: 1,
+        //     data: hex'ef9bcb270000000000000000000000008d007613435453041ec6d03e87a90117507065d0000000000000000000000000e7affdb964178261df49b86bfdba78e9d768db6d000000000000000000000000000000000000000000000000000000000000000a',
+        //     signature: hex'5c2599dc721d8c89ea09da1f922a7ac36ae2c4ebdec9d9802e6671d3d240619a2bcb35ac40cb72250ef2a62b614f7562cb26a2c1501e9068be89249add5b323c1b'
+        // });
+
+        // bytes memory mintToCall = abi.encodeWithSignature("mintTo(address,address,uint256)", collection, recipient, amount);
+        // (bool r, ) = generalFreeMintController.call(mintToCall);
+        // require(r);
+
+
+        // LOCAL
+        bytes memory mintToCall = abi.encodeWithSelector(GeneralFreeMintController.mintToERC721.selector, collection, recipient, amount);
         Permit memory permit = Permit({
             signer: someSigner,
             sender: address(0x0),
