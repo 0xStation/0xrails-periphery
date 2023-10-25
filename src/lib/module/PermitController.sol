@@ -105,14 +105,10 @@ abstract contract PermitController is NonceBitMap {
     }
 
     /// @notice Override to customize which signers are allowed
-    function signerCanPermit(address, bytes memory) public view virtual returns (bool) {
-        return false;
-    }
+    function signerCanPermit(address, bytes memory) public view virtual returns (bool);
 
     /// @notice Override to support disabling permits
-    function requirePermits(bytes memory) public view virtual returns (bool) {
-        return true;
-    }
+    function requirePermits(bytes memory) public view virtual returns (bool);
 
     /*=====================
         PRIVATE HELPERS

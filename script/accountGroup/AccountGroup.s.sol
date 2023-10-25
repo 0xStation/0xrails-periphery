@@ -13,7 +13,7 @@ import {InitializeAccountController} from "../../src/accountGroup/module/Initial
 
 contract AccountGroupScript is ScriptUtils {
     /*=================
-        ENVIRONMENT 
+        ENVIRONMENT
     =================*/
 
     // The following contracts will be deployed:
@@ -24,7 +24,7 @@ contract AccountGroupScript is ScriptUtils {
 
     function run() public {
         /*===============
-            BROADCAST 
+            BROADCAST
         ===============*/
 
         vm.startBroadcast();
@@ -42,12 +42,12 @@ contract AccountGroupScript is ScriptUtils {
         // After deployments, format Multicall3 calls and execute it from FounderSafe as module sender
 
         // LOCAL DEPLOY
-        
+
         // accountGroup.setDefaultAccountInitializer(address(permissionGatedInitializer));
         // accountGroup.addPermission(Operations.INITIALIZE_ACCOUNT, address(initializeAccountController));
         // accountGroup.addPermission(Operations.INITIALIZE_ACCOUNT_PERMIT, ScriptUtils.turnkey);
 
-        // PRODUCTION DEPLOY 
+        // PRODUCTION DEPLOY
 
         bytes memory setDefaultAccountInitializer = abi.encodeWithSelector(
             AccountGroup.setDefaultAccountInitializer.selector, address(permissionGatedInitializer)
@@ -58,13 +58,13 @@ contract AccountGroupScript is ScriptUtils {
         bytes memory addPermissionInitializeAccountToController = abi.encodeWithSelector(
             IPermissions.addPermission.selector, Operations.INITIALIZE_ACCOUNT, address(initializeAccountController)
         );
-        Call3 memory addPermissionInitializeAccountToControllerCall = 
+        Call3 memory addPermissionInitializeAccountToControllerCall =
             Call3({target: address(accountGroup), allowFailure: false, callData: addPermissionInitializeAccountToController});
 
         bytes memory addPermissionInitializeAccountPermitToTurnkey = abi.encodeWithSelector(
             IPermissions.addPermission.selector, Operations.INITIALIZE_ACCOUNT_PERMIT, ScriptUtils.turnkey
         );
-        Call3 memory addPermissionInitializeAccountPermitToTurnkeyCall = 
+        Call3 memory addPermissionInitializeAccountPermitToTurnkeyCall =
             Call3({target: address(accountGroup), allowFailure: false, callData: addPermissionInitializeAccountPermitToTurnkey});
 
         Call3[] memory calls = new Call3[](3);
