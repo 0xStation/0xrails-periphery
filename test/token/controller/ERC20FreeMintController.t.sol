@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {FreeMintController} from "src/erc20/modules/FreeMintController.sol";
+import {GeneralFreeMintController} from "src/token/controller/GeneralFreeMintController.sol";
 import {Test} from "forge-std/Test.sol";
 import {PermitController} from "src/lib/module/PermitController.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
@@ -12,9 +12,12 @@ import {Operations} from "0xrails/lib/Operations.sol";
 import {ERC20Rails} from "0xrails/cores/ERC20/ERC20Rails.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 
-contract ERC20FreeMintControllerTest is Test, FreeMintController {
-    FreeMintController public erc20MintModule;
-    MetadataRouter public metadataRouter;
+contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
+    // to satisfy constructor requirements at initialization, address(0x0) is passed
+    constructor() GeneralFreeMintController(address(0x0)) {}
+
+    MetadataRouter public _metadataRouter;
+    GeneralFreeMintController public generalFreeMintController;
     FeeManager public feeManager;
     ERC20Rails public erc20Impl;
     ERC20Rails public erc20Proxy;
@@ -38,7 +41,7 @@ contract ERC20FreeMintControllerTest is Test, FreeMintController {
         // FORKING
         // goerliFork = vm.createFork(GOERLI_RPC_URL);
         // vm.selectFork(goerliFork);
-        // erc20MintModule = 0x8E019DfdA444743CA58065bd9b24Bd569b61fa75;
+        // generalFreeMintController = 0x8E019DfdA444743CA58065bd9b24Bd569b61fa75;
         // collection = 0x8D007613435453041ec6d03E87a90117507065D0;
 
         // LOCAL
@@ -49,7 +52,7 @@ contract ERC20FreeMintControllerTest is Test, FreeMintController {
         // deploy infra
         metadataRouter = new MetadataRouter();
         feeManager = new FeeManager(owner, 0, 0, 0, 0);
-        erc20MintModule = new FreeMintController();
+        generalFreeMintController = new GeneralFreeMintController();
 
         // deploy collection & assign for convenience
         erc20Impl = new ERC20Rails();
@@ -57,9 +60,9 @@ contract ERC20FreeMintControllerTest is Test, FreeMintController {
         erc20Proxy.initialize(owner, '', '', '');
         collection = address(erc20Proxy);
         
-        // add mint permission to erc20MintModule & someSigner
+        // add mint permission to generalFreeMintController & someSigner
         vm.startPrank(owner);
-        IPermissions(address(erc20Proxy)).addPermission(Operations.MINT, address(erc20MintModule));
+        IPermissions(address(erc20Proxy)).addPermission(Operations.MINT, address(generalFreeMintController));
         IPermissions(address(erc20Proxy)).addPermission(Operations.MINT_PERMIT, someSigner);
         recipient = 0xE7affDB964178261Df49B86BFdBA78E9d768Db6D;
         amount = 10;
@@ -78,12 +81,12 @@ contract ERC20FreeMintControllerTest is Test, FreeMintController {
         // });
 
         // bytes memory mintToCall = abi.encodeWithSignature("mintTo(address,address,uint256)", collection, recipient, amount);
-        // (bool r, ) = erc20MintModule.call(mintToCall);
+        // (bool r, ) = generalFreeMintController.call(mintToCall);
         // require(r);
 
 
         // LOCAL
-        bytes memory mintToCall = abi.encodeWithSelector(FreeMintController.mintTo.selector, collection, recipient, amount);
+        bytes memory mintToCall = abi.encodeWithSelector(GeneralFreeMintController.mintTo.selector, collection, recipient, amount);
         Permit memory permit = Permit({
             signer: someSigner,
             sender: address(0x0),
@@ -100,7 +103,7 @@ contract ERC20FreeMintControllerTest is Test, FreeMintController {
             keccak256(permit.data)
         ));
 
-        bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPE_HASH, NAME_HASH, VERSION_HASH, block.chainid, address(erc20MintModule)));
+        bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPE_HASH, NAME_HASH, VERSION_HASH, block.chainid, address(generalFreeMintController)));
 
         bytes32 permitHash = ECDSA.toTypedDataHash(domainSeparator, valuesHash);
 
@@ -108,6 +111,6 @@ contract ERC20FreeMintControllerTest is Test, FreeMintController {
         bytes memory sig = abi.encodePacked(r, s, v);
         permit.signature = sig;
 
-        PermitController(address(erc20MintModule)).callWithPermit(permit);
+        PermitController(address(generalFreeMintController)).callWithPermit(permit);
     }
 }

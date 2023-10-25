@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {ScriptUtils} from "lib/protocol-ops/script/ScriptUtils.sol";
 import {ITokenFactory} from "src/factory/ITokenFactory.sol";
-import {FreeMintController} from "../../../src/erc20/modules/FreeMintController.sol";
+import {GeneralFreeMintController} from "src/token/controller/GeneralFreeMintController.sol";
 import {console2} from "forge-std/console2.sol";
 
 // forge script --keystores $ETH_KEYSTORE --sender $ETH_FROM --broadcast --fork-url $GOERLI_RPC_URL script/erc20/modules/FreeMintController.s.sol
@@ -15,7 +15,7 @@ contract DeployERC20FreeMintModule is ScriptUtils {
     ============*/
 
     // following contract will be deployed
-    FreeMintController erc20FreeMintModule;
+    GeneralFreeMintController generalFreeMintModule;
 
     /*===============
         BROADCAST 
@@ -27,7 +27,7 @@ contract DeployERC20FreeMintModule is ScriptUtils {
         string memory saltString = "station";
         bytes32 salt = bytes32(bytes(saltString));
 
-        new FreeMintController{salt: salt}();
+        new GeneralFreeMintController{salt: salt}();
 
         vm.stopBroadcast();
     }

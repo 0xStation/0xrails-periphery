@@ -7,6 +7,7 @@ import {IERC1155Rails} from "0xrails/cores/ERC1155/interface/IERC1155Rails.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 import {PermitController} from "src/lib/module/PermitController.sol";
+import {SetupController} from "src/lib/module/SetupController.sol";
 import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 
 /// @title Station FreeMintController Contract
@@ -15,7 +16,7 @@ import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 /// @dev Supports all three 0xRails token standard implementations: ERC20, ERC721, ERC1155
 /// @notice As this controller is entirely fee-less, it does not make use of the FeeManager,
 /// which enforces a baseline default mint fee
-contract GeneralFreeMintController is PermitController, ContractMetadta {
+contract GeneralFreeMintController is PermitController, SetupController, ContractMetadata {
     /*=======================
         CONTRACT METADATA
     =======================*/
@@ -41,7 +42,7 @@ contract GeneralFreeMintController is PermitController, ContractMetadta {
         CONFIG
     ============*/
 
-    /// @param metadataRouter The GroupOS MetadataRouter's address
+    /// @param _metadataRouter The GroupOS MetadataRouter's address
     constructor(address _metadataRouter) 
         PermitController() 
         ContractMetadata(_metadataRouter) {}
