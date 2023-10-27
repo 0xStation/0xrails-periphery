@@ -6,7 +6,7 @@ import {console2} from "forge-std/console2.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {ERC6551Registry, ERC6551BytecodeLib} from "erc6551/ERC6551Registry.sol";
 import {ERC6551AccountLib} from "erc6551/lib/ERC6551AccountLib.sol";
-import {ERC721TokenReceiver} from "solmate/src/tokens/ERC721.sol";
+import {ERC721Holder} from "openzeppelin-contracts/token/ERC721/utils/ERC721Holder.sol";
 import {Account} from "test/lib/helpers/Account.sol";
 import {AccountGroupStorage} from "src/accountGroup/implementation/AccountGroupStorage.sol";
 import {AccountGroup} from "src/accountGroup/implementation/AccountGroup.sol";
@@ -30,7 +30,7 @@ contract InitializeAccountControllerTest is Test, Account {
     TokenFactory tokenFactoryProxy;
     ERC721Rails erc721RailsImpl;
     ERC721Rails erc721Rails;
-    ERC721Recipient user;
+    ERC721Holder user;
     BotAccount botAccountImpl;
     BotAccount botAccount;
     AccountGroup accountGroupImpl;
@@ -55,7 +55,7 @@ contract InitializeAccountControllerTest is Test, Account {
 
         erc721RailsImpl = new ERC721Rails();
         erc721Rails = ERC721Rails(tokenFactoryProxy.createERC721(payable(address(erc721RailsImpl)), owner, "test", "tst", ''));
-        user = new ERC721Recipient();
+        user = new ERC721Holder();
         vm.prank(owner);
         erc721Rails.mintTo(address(user), 1);
 
@@ -121,26 +121,5 @@ contract InitializeAccountControllerTest is Test, Account {
 
         vm.expectRevert(abi.encodeWithSelector(PermitController.PermitSignerInvalid.selector, address(0x1)));
         initializeAccountController.createAndInitializeAccount(address(erc6551Registry), address(accountGroup), bytecodeSalt, block.chainid, address(erc721Rails), tokenId, address(botAccountImpl), data);
-    }
-}
-
-contract ERC721Recipient is ERC721TokenReceiver {
-    address public operator;
-    address public from;
-    uint256 public id;
-    bytes public data;
-
-    function onERC721Received(
-        address _operator,
-        address _from,
-        uint256 _id,
-        bytes calldata _data
-    ) public virtual override returns (bytes4) {
-        operator = _operator;
-        from = _from;
-        id = _id;
-        data = _data;
-
-        return ERC721TokenReceiver.onERC721Received.selector;
     }
 }
