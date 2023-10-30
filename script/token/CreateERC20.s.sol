@@ -2,11 +2,11 @@
 pragma solidity ^0.8.13;
 
 import {ScriptUtils} from "lib/protocol-ops/script/ScriptUtils.sol";
+import {JsonManager} from "lib/protocol-ops/script/lib/JsonManager.sol";
 import {Multicall} from "openzeppelin-contracts/utils/Multicall.sol";
 import {Permissions} from "0xrails/access/permissions/Permissions.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 import {TokenFactory} from "src/factory/TokenFactory.sol";
-// import {console2} from "forge-std/console2.sol";
 
 contract CreateERC20 is ScriptUtils {
     /*============
@@ -19,10 +19,10 @@ contract CreateERC20 is ScriptUtils {
     string public symbol = "DP";
 
     /// @notice Checkout lib/protocol-ops vX.Y.Z to automatically get addresses
-    DeploysJson deploys = ScriptUtils.getDeploysJsonStruct();
-    address erc20CoreImpl = deploys.ERC20Rails;
-    address tokenFactory = deploys.TokenFactoryProxy;
-    address erc20FreeMintController = deploys.ERC20FreeMintController;
+    JsonManager.DeploysJson $deploys = setDeploysJsonStruct();
+    address erc20CoreImpl = $deploys.ERC20Rails;
+    address tokenFactory = $deploys.TokenFactoryProxy;
+    address erc20FreeMintController = $deploys.GeneralFreeMintController;
 
     function run() public {
         vm.startBroadcast();
