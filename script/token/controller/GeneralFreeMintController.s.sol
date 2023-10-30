@@ -7,6 +7,7 @@ import {ScriptUtils} from "lib/protocol-ops/script/ScriptUtils.sol";
 import {JsonManager} from "lib/protocol-ops/script/lib/JsonManager.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
+import {Strings} from "openzeppelin-contracts/utils/Strings.sol";
 import {console2} from "forge-std/console2.sol";
 
 // forge script --keystores $ETH_KEYSTORE --sender $ETH_FROM --broadcast --fork-url $GOERLI_RPC_URL script/erc20/modules/FreeMintController.s.sol
