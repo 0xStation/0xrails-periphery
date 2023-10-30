@@ -7,7 +7,6 @@ initial_balance = '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF' # == type(uint120).max for 
 
 # Configures permissions for cheatcodes that touch the filesystem like `vm.readFile`
 fs_permissions = [
-    { access = "read-write", path = "./script/input" },
     { access = "read", path = "./lib/protocol-ops/deploys.json" }
 ]
 
