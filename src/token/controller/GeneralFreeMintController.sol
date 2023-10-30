@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import {Multicall} from "openzeppelin-contracts/utils/Multicall.sol";
 import {IERC20Rails} from "0xrails/cores/ERC20/interface/IERC20Rails.sol";
 import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
 import {IERC1155Rails} from "0xrails/cores/ERC1155/interface/IERC1155Rails.sol";
@@ -16,7 +17,7 @@ import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 /// @dev Supports all three 0xRails token standard implementations: ERC20, ERC721, ERC1155
 /// @notice As this controller is entirely fee-less, it does not make use of the FeeManager,
 /// which enforces a baseline default mint fee
-contract GeneralFreeMintController is PermitController, SetupController, ContractMetadata {
+contract GeneralFreeMintController is PermitController, SetupController, ContractMetadata, Multicall {
 
     /*=============
         STORAGE
@@ -61,18 +62,24 @@ contract GeneralFreeMintController is PermitController, SetupController, Contrac
     ==========*/
 
     /// @dev Function to mint ERC20 collection tokens to a specified recipient
+    /// @notice Can only be called successfully with data signed by a key explicitly granted permission 
+    /// by an authorized address on the target collection
     function mintToERC20(address collection, address recipient, uint256 amount) external payable usePermits(_encodePermitContext(collection)) {
         require(amount > 0, "ZERO_AMOUNT");
         IERC20Rails(collection).mintTo(recipient, amount);
     }
 
     /// @dev Function to mint ERC721 collection tokens to a specified recipient
+    /// @notice Can only be called successfully with data signed by a key explicitly granted permission 
+    /// by an authorized address on the target collection
     function mintToERC721(address collection, address recipient, uint256 amount) external payable usePermits(_encodePermitContext(collection)) {
         require(amount > 0, "ZERO_AMOUNT");
         IERC721Rails(collection).mintTo(recipient, amount);
     }
 
     /// @dev Function to mint ERC20 collection tokens to a specified recipient
+    /// @notice Can only be called successfully with data signed by a key explicitly granted permission 
+    /// by an authorized address on the target collection
     function mintToERC1155(address collection, address recipient, uint256 tokenId, uint256 amount) external payable usePermits(_encodePermitContext(collection)) {
         require(amount > 0, "ZERO_AMOUNT");
         IERC1155Rails(collection).mintTo(recipient, tokenId, amount);
