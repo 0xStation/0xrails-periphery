@@ -52,9 +52,9 @@ contract Deploy is ScriptUtils {
 
         address owner = ScriptUtils.stationFounderSafe;
 
-        string memory saltString = ScriptUtils.readSalt("salt");
-        bytes32 salt = bytes32(bytes(saltString));
-
+        bytes32 salt = ScriptUtils.create2Salt;
+        string memory saltString = Strings.toHexString(uint256(salt), 32);
+        
         // begin deployments
         (metadataRouterImpl, metadataRouter) = deployMetadataRouter(salt, owner);
         (tokenFactoryImpl, tokenFactory) = deployTokenFactory(salt, owner);
@@ -106,32 +106,17 @@ contract Deploy is ScriptUtils {
 
         vm.stopBroadcast();
 
-        writeUsedSalt(
-            saltString, string.concat("MetaDataRouterImpl @", Strings.toHexString(address(metadataRouterImpl)))
-        );
-        writeUsedSalt(saltString, string.concat("MetaDataRouterProxy @", Strings.toHexString(address(metadataRouter))));
-        writeUsedSalt(saltString, string.concat("TokenFactoryImpl @", Strings.toHexString(address(tokenFactoryImpl))));
-        writeUsedSalt(saltString, string.concat("TokenFactoryProxy @", Strings.toHexString(address(tokenFactory))));
-        writeUsedSalt(
-            saltString, string.concat("OnePerAddressGuard @", Strings.toHexString(address(onePerAddressGuard)))
-        );
-        writeUsedSalt(
-            saltString,
-            string.concat("NFTMetadataRouterExtension @", Strings.toHexString(address(nftMetadataRouterExtension)))
-        );
-        writeUsedSalt(
-            saltString, string.concat("PayoutAddressExtension @", Strings.toHexString(address(payoutAddressExtension)))
-        );
-        writeUsedSalt(saltString, string.concat("FeeManager @", Strings.toHexString(address(feeManager))));
-        writeUsedSalt(saltString, string.concat("FreeMintController @", Strings.toHexString(address(freeMintModule))));
-        writeUsedSalt(
-            saltString,
-            string.concat("GasCoinPurchaseController @", Strings.toHexString(address(gasCoinPurchaseController)))
-        );
-        writeUsedSalt(
-            saltString,
-            string.concat("StablecoinPurchaseController @", Strings.toHexString(address(stablecoinPurchaseController)))
-        );
+        logAddress("MetaDataRouterImpl @", Strings.toHexString(address(metadataRouterImpl)));
+        logAddress("MetaDataRouterProxy @", Strings.toHexString(address(metadataRouter)));
+        logAddress("TokenFactoryImpl @", Strings.toHexString(address(tokenFactoryImpl)));
+        logAddress("TokenFactoryProxy @", Strings.toHexString(address(tokenFactory)));
+        logAddress("OnePerAddressGuard @", Strings.toHexString(address(onePerAddressGuard)));
+        logAddress("NFTMetadataRouterExtension @", Strings.toHexString(address(nftMetadataRouterExtension)));
+        logAddress("PayoutAddressExtension @", Strings.toHexString(address(payoutAddressExtension)));
+        logAddress("FeeManager @", Strings.toHexString(address(feeManager)));
+        logAddress("FreeMintController @", Strings.toHexString(address(freeMintModule)));
+        logAddress("GasCoinPurchaseController @", Strings.toHexString(address(gasCoinPurchaseController)));
+        logAddress("StablecoinPurchaseController @", Strings.toHexString(address(stablecoinPurchaseController)));
     }
 
     function deployMetadataRouter(bytes32 _salt, address _owner)

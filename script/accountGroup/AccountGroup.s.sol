@@ -31,8 +31,8 @@ contract AccountGroupScript is ScriptUtils {
 
         address owner = ScriptUtils.stationFounderSafe;
 
-        string memory saltString = "station";
-        bytes32 salt = bytes32(bytes(saltString));
+        bytes32 salt = ScriptUtils.create2Salt;
+        string memory saltString = Strings.toHexString(uint256(salt), 32);
 
         // begin deployments
         (accountGroupImpl, accountGroup) = deployAccountGroup(salt, owner);
@@ -87,16 +87,10 @@ contract AccountGroupScript is ScriptUtils {
 
         vm.stopBroadcast();
 
-        writeUsedSalt(saltString, string.concat("AccountGroupImpl @", Strings.toHexString(address(accountGroupImpl))));
-        writeUsedSalt(saltString, string.concat("AccountGroupProxy @", Strings.toHexString(address(accountGroup))));
-        writeUsedSalt(
-            saltString,
-            string.concat("PermissionGatedInitializer @", Strings.toHexString(address(permissionGatedInitializer)))
-        );
-        writeUsedSalt(
-            saltString,
-            string.concat("InitializeAccountController @", Strings.toHexString(address(initializeAccountController)))
-        );
+        logAddress("AccountGroupImpl @", Strings.toHexString(address(accountGroupImpl)));
+        logAddress("AccountGroupProxy @", Strings.toHexString(address(accountGroup)));
+        logAddress("PermissionGatedInitializer @", Strings.toHexString(address(permissionGatedInitializer)));
+        logAddress("InitializeAccountController @", Strings.toHexString(address(initializeAccountController)));
     }
 
     function deployAccountGroup(bytes32 _salt, address _owner)
