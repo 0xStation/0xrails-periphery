@@ -7,6 +7,7 @@ import {ScriptUtils} from "lib/protocol-ops/script/ScriptUtils.sol";
 import {JsonManager} from "lib/protocol-ops/script/lib/JsonManager.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
+import {Strings} from "openzeppelin-contracts/utils/Strings.sol";
 import {console2} from "forge-std/console2.sol";
 
 // forge script --keystores $ETH_KEYSTORE --sender $ETH_FROM --broadcast --fork-url $GOERLI_RPC_URL script/erc20/modules/FreeMintController.s.sol
@@ -31,10 +32,15 @@ contract DeployGeneralFreeMintModule is ScriptUtils {
     function run() public {
         vm.startBroadcast();
 
-        string memory saltString = "station";
-        bytes32 salt = bytes32(bytes(saltString));
+        // string memory saltString = "station";
+        // bytes32 salt = bytes32(bytes(saltString));
+
+        bytes32 salt = ScriptUtils.create2Salt;
+        string memory saltString = Strings.toHexString(uint256(salt), 32);
 
         generalFreeMintController = new GeneralFreeMintController{salt: salt}(_metadataRouter);
+
+        logAddress("GeneralFreeMintController @", Strings.toHexString(address(generalFreeMintController)));
 
         vm.stopBroadcast();
     }
