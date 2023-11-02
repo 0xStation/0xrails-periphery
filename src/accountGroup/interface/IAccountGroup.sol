@@ -6,5 +6,7 @@ interface IAccountGroup {
     event SubgroupInitializerUpdated(uint64 indexed subgroupId, address indexed initializer);
 
     function initialize(address owner) external;
+    function getDefaultAccountInitializer() external view returns (address);
+    function setDefaultAccountInitializer(address initializer) external;
     function setAccountInitializer(uint64 subgroupId, address initializer) external;
 }
