@@ -145,7 +145,62 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
         assertEq(updatedImpl, address(newImpl));
         assertTrue(updatedImpl != oldImpl);
     }
+
+    function test_removeApprovedImplementation() public {
+        ERC721AccountRails newImpl = new ERC721AccountRails(entryPointAddress);
+
+        // grab relevant subgroupId
+        AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(erc6551UserAccount));
+
+        vm.prank(accountGroupOwner);
+        accountGroupProxy.addApprovedImplementation(params.subgroupId, address(newImpl));
+
+        address[] memory addedImplArray = accountGroupProxy.getApprovedImplementations(address(erc6551UserAccount));
+        assertEq(addedImplArray.length, 1);
+        assertEq(addedImplArray[0], address(newImpl));
+
+        vm.prank(accountGroupOwner);
+        accountGroupProxy.removeApprovedImplementation(params.subgroupId, address(newImpl));
+        address[] memory removedImplArray = accountGroupProxy.getApprovedImplementations(address(erc6551UserAccount));
+        assertEq(removedImplArray.length, 1); // deleted members remain but are set to 0
+        assertEq(removedImplArray[0], address(0x0));
+    }
+
+    function test_permissionBehaviorOnTransfer() public {
+        assertEq(erc6551UserAccount.owner(), tokenOwner);
+        
+        // add high severity ADMIN permission to tokenOwner in AccountGroup contract
+        // note that the token itself also has a permissioning system via AccountRails
+        vm.prank(accountGroupOwner);
+        accountGroupProxy.addPermission(Operations.ADMIN, tokenOwner);
+
+        address newTokenOwner = createAccount();
+        vm.prank(tokenOwner);
+        erc721.transfer(tokenOwner, newTokenOwner, 1);
+
+        assertEq(erc6551UserAccount.owner(), newTokenOwner);
+        // new token owner should not inherit permissions of previous owner
+        assertFalse(accountGroupProxy.hasPermission(Operations.ADMIN, newTokenOwner));
+        // previous owner permission remains
+        assertTrue(accountGroupProxy.hasPermission(Operations.ADMIN, tokenOwner));
+
+        // permissions can also be granted to the TBA itself, which does transmit through transfers
+        vm.prank(accountGroupOwner);
+        accountGroupProxy.addPermission(Operations.ADMIN, address(erc6551UserAccount));
+
+        assertTrue(accountGroupProxy.hasPermission(Operations.ADMIN, address(erc6551UserAccount)));
+
+        erc721.transfer(newTokenOwner, tokenOwner, 1);
+
+        // assert transfer back to original owner succeeded
+        assertEq(erc6551UserAccount.owner(), tokenOwner);
+        // assert TBA's permissions unchanged
+        assertTrue(accountGroupProxy.hasPermission(Operations.ADMIN, address(erc6551UserAccount)));
+        // assert owner address permissions unchanged
+        assertTrue(accountGroupProxy.hasPermission(Operations.ADMIN, tokenOwner));
+        assertFalse(accountGroupProxy.hasPermission(Operations.ADMIN, newTokenOwner));
+    }
+
     // function test_nonOriginOwner() public {}
-    // function test_newTokenOwnerWipedPermission() public {}
     // function test_state
 }

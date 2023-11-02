@@ -89,13 +89,13 @@ contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, A
                 // find match if it exists
                 if (upgradeOptions[i] != implementation) continue;
                 
-                // if found and it is not the final index, swap final member deeper into array
+                // if found and it is not the final index, swap final member deeper into storage array
                 if (i != length - 1) {
-                    upgradeOptions[i] = upgradeOptions[length - 1];
+                    layout.approvedImplementations[subgroupId][i] = layout.approvedImplementations[subgroupId][length - 1];
                 }
 
-                // remove final index of array
-                delete upgradeOptions[length - 1];
+                // remove final index of storage array
+                delete layout.approvedImplementations[subgroupId][length - 1];
             }
         }
     }
