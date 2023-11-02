@@ -201,6 +201,19 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
         assertFalse(accountGroupProxy.hasPermission(Operations.ADMIN, newTokenOwner));
     }
 
+    function test_state() public {
+        uint256 startingState = erc6551UserAccount.state();
+        assertEq(startingState, 0);
+
+        bytes memory burnTBA = abi.encodeWithSelector(erc721.burn.selector, 1);
+        vm.startPrank(tokenOwner);
+        erc721.approve(address(erc6551UserAccount), 1);
+        erc6551UserAccount.executeCall(address(erc721), 0, burnTBA);
+
+        uint256 incrementedState = erc6551UserAccount.state();
+        assertFalse(startingState == incrementedState);
+        assertEq(incrementedState, 1);
+    }
+
     // function test_nonOriginOwner() public {}
-    // function test_state
 }
