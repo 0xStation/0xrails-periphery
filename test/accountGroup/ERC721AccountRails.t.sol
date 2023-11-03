@@ -38,6 +38,7 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
     address public entryPointAddress;
     address public accountGroupOwner; // ie an accountgroup's multisig
     address public tokenOwner; // ie a user
+    address public oracle;
     uint256 public tokenId;
     bytes32 public bytecodeSalt;
     bytes public initData;
@@ -77,14 +78,14 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
         erc721AccountRailsImpl = new ERC721AccountRails(entryPointAddress);
         erc721AccountRailsProxy = ERC721AccountRails(payable(address(new ERC1967Proxy(address(erc721AccountRailsImpl), ''))));
         // it is very important to initialize the ERC721AccountRailsProxy since it is being used as a quasi "implementation"
-        erc721AccountRailsProxy.initialize('');
+        erc721AccountRailsProxy.initialize(oracle, '');
 
         // `subGroupId 0xffffffffffffffff`, `index: 0`
         bytecodeSalt = bytes32(abi.encodePacked(address(accountGroupProxy), type(uint64).max, uint32(0)));
 
         // create ERC6551 account through the InitializeAccountController
         vm.prank(accountGroupOwner);
-        bytes memory erc6551UserAccountInitData = abi.encodeWithSelector(ERC721AccountRails.initialize.selector, '');
+        bytes memory erc6551UserAccountInitData = abi.encodeWithSelector(ERC721AccountRails.initialize.selector, oracle, '');
         erc6551UserAccount = ERC721AccountRails(payable(initializeAccountController.createAndInitializeAccount(
             address(erc6551Registry), 
             address(accountProxy), 
@@ -139,6 +140,8 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
         // AccountGroups have say over how the erc721accountrails gets upgraded via ADMIN permission
         vm.prank(accountGroupOwner);
         accountGroupProxy.addApprovedImplementation(params.subgroupId, address(newImpl));
+
+        vm.prank(tokenOwner);
         UUPSUpgradeable(address(erc6551UserAccount)).upgradeToAndCall(address(newImpl), '');
 
         address updatedImpl = address(uint160(uint256(vm.load(address(erc6551UserAccount), IMPLEMENTATION_SLOT))));
