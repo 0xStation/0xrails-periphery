@@ -126,7 +126,7 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
         assertTrue(erc6551UserAccount.supportsInterface(type(IAccount).interfaceId));
     }
 
-    function test_upgradeToAndCall() public {
+    function test_upgradeToAndCallOwner() public {
         ERC721AccountRails newImpl = new ERC721AccountRails(entryPointAddress);
 
         bytes32 IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
@@ -138,7 +138,7 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
 
         // AccountGroups have say over how the erc721accountrails gets upgraded via ADMIN permission
         vm.prank(accountGroupOwner);
-        accountGroupProxy.addApprovedImplementation(params.subgroupId, address(newImpl));
+        // accountGroupProxy.addApprovedImplementation(params.subgroupId, address(newImpl));
         UUPSUpgradeable(address(erc6551UserAccount)).upgradeToAndCall(address(newImpl), '');
 
         address updatedImpl = address(uint160(uint256(vm.load(address(erc6551UserAccount), IMPLEMENTATION_SLOT))));
@@ -146,25 +146,49 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
         assertTrue(updatedImpl != oldImpl);
     }
 
-    function test_removeApprovedImplementation() public {
+    function test_upgradeToAndCallAdmin() public {
         ERC721AccountRails newImpl = new ERC721AccountRails(entryPointAddress);
 
+        bytes32 IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
+        address oldImpl = address(uint160(uint256(vm.load(address(erc6551UserAccount), IMPLEMENTATION_SLOT))));
+        assertEq(oldImpl, address(erc721AccountRailsImpl));
+        
         // grab relevant subgroupId
         AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(erc6551UserAccount));
 
+        // AccountGroups have say over how the erc721accountrails gets upgraded via ADMIN permission
+        address someAdmin = createAccount();
         vm.prank(accountGroupOwner);
-        accountGroupProxy.addApprovedImplementation(params.subgroupId, address(newImpl));
+        accountGroupProxy.addPermission(Operations.ADMIN, someAdmin);
 
-        address[] memory addedImplArray = accountGroupProxy.getApprovedImplementations(address(erc6551UserAccount));
-        assertEq(addedImplArray.length, 1);
-        assertEq(addedImplArray[0], address(newImpl));
+        vm.prank(someAdmin);
+        // accountGroupProxy.addApprovedImplementation(params.subgroupId, address(newImpl));
+        UUPSUpgradeable(address(erc6551UserAccount)).upgradeToAndCall(address(newImpl), '');
 
-        vm.prank(accountGroupOwner);
-        accountGroupProxy.removeApprovedImplementation(params.subgroupId, address(newImpl));
-        address[] memory removedImplArray = accountGroupProxy.getApprovedImplementations(address(erc6551UserAccount));
-        assertEq(removedImplArray.length, 1); // deleted members remain but are set to 0
-        assertEq(removedImplArray[0], address(0x0));
+        address updatedImpl = address(uint160(uint256(vm.load(address(erc6551UserAccount), IMPLEMENTATION_SLOT))));
+        assertEq(updatedImpl, address(newImpl));
+        assertTrue(updatedImpl != oldImpl);
     }
+
+    // function test_removeApprovedImplementation() public {
+    //     ERC721AccountRails newImpl = new ERC721AccountRails(entryPointAddress);
+
+    //     // grab relevant subgroupId
+    //     AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(erc6551UserAccount));
+
+    //     vm.prank(accountGroupOwner);
+    //     accountGroupProxy.addApprovedImplementation(params.subgroupId, address(newImpl));
+
+    //     address[] memory addedImplArray = accountGroupProxy.getApprovedImplementations(address(erc6551UserAccount));
+    //     assertEq(addedImplArray.length, 1);
+    //     assertEq(addedImplArray[0], address(newImpl));
+
+    //     vm.prank(accountGroupOwner);
+    //     accountGroupProxy.removeApprovedImplementation(params.subgroupId, address(newImpl));
+    //     address[] memory removedImplArray = accountGroupProxy.getApprovedImplementations(address(erc6551UserAccount));
+    //     assertEq(removedImplArray.length, 1); // deleted members remain but are set to 0
+    //     assertEq(removedImplArray[0], address(0x0));
+    // }
 
     function test_permissionBehaviorOnTransfer() public {
         assertEq(erc6551UserAccount.owner(), tokenOwner);
