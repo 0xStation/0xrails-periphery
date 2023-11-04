@@ -170,26 +170,6 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
         assertTrue(updatedImpl != oldImpl);
     }
 
-    // function test_removeApprovedImplementation() public {
-    //     ERC721AccountRails newImpl = new ERC721AccountRails(entryPointAddress);
-
-    //     // grab relevant subgroupId
-    //     AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(erc6551UserAccount));
-
-    //     vm.prank(accountGroupOwner);
-    //     accountGroupProxy.addApprovedImplementation(params.subgroupId, address(newImpl));
-
-    //     address[] memory addedImplArray = accountGroupProxy.getApprovedImplementations(address(erc6551UserAccount));
-    //     assertEq(addedImplArray.length, 1);
-    //     assertEq(addedImplArray[0], address(newImpl));
-
-    //     vm.prank(accountGroupOwner);
-    //     accountGroupProxy.removeApprovedImplementation(params.subgroupId, address(newImpl));
-    //     address[] memory removedImplArray = accountGroupProxy.getApprovedImplementations(address(erc6551UserAccount));
-    //     assertEq(removedImplArray.length, 1); // deleted members remain but are set to 0
-    //     assertEq(removedImplArray[0], address(0x0));
-    // }
-
     function test_permissionBehaviorOnTransfer() public {
         assertEq(erc6551UserAccount.owner(), tokenOwner);
         
