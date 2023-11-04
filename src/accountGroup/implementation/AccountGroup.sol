@@ -44,12 +44,8 @@ contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, A
     }
 
     /// @inheritdoc IERC6551AccountGroup
-    function getApprovedImplementations(address account) external view returns (address[] memory upgradeOptions) {
-        // query namespaced storage for approved implementations associated with `subgroupId`
-        AccountGroupStorage.Layout storage layout = AccountGroupStorage.layout();
-        // fetch subgroupId from account's contract bytecode
-        AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(account);
-        upgradeOptions = layout.approvedImplementations[params.subgroupId];
+    function checkValidAccountUpgrade(address sender, address account, address implementation) external view {
+        _checkPermission(Operations.ADMIN, sender);
     }
 
     /*=============
@@ -65,39 +61,6 @@ contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, A
         _checkCanUpdateSubgroup(subgroupId);
         AccountGroupStorage.layout().initializerOf[subgroupId] = initializer;
         emit SubgroupInitializerUpdated(subgroupId, initializer);
-    }
-
-    /// @inheritdoc IERC6551AccountGroup
-    function addApprovedImplementation(uint64 subgroupId, address implementation) external {
-        _checkCanUpdateSubgroup(subgroupId);
-
-        AccountGroupStorage.Layout storage layout = AccountGroupStorage.layout();
-        address[] storage upgradeOptions = layout.approvedImplementations[subgroupId];
-        upgradeOptions.push(implementation);
-    }
-
-    /// @inheritdoc IERC6551AccountGroup
-    function removeApprovedImplementation(uint64 subgroupId, address implementation) external {
-        _checkCanUpdateSubgroup(subgroupId);
-
-        AccountGroupStorage.Layout storage layout = AccountGroupStorage.layout();
-        // instantiate memory copies to minimize gas cost
-        address[] memory upgradeOptions = layout.approvedImplementations[subgroupId];
-        uint256 length = upgradeOptions.length;
-        unchecked { 
-            for (uint256 i; i < length; ++i) {
-                // find match if it exists
-                if (upgradeOptions[i] != implementation) continue;
-                
-                // if found and it is not the final index, swap final member deeper into storage array
-                if (i != length - 1) {
-                    layout.approvedImplementations[subgroupId][i] = layout.approvedImplementations[subgroupId][length - 1];
-                }
-
-                // remove final index of storage array
-                delete layout.approvedImplementations[subgroupId][length - 1];
-            }
-        }
     }
 
     /*===================
