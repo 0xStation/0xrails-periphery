@@ -12,8 +12,8 @@ import {ERC721Harness} from "lib/0xrails/test/cores/ERC721/helpers/ERC721Harness
 import {ERC721ReceiverImplementer} from "lib/0xrails/test/cores/ERC721/helpers/ERC721ReceiverImplementer.sol";
 import {MockAccountDeployer} from "lib/0xrails/test/lib/MockAccount.sol";
 import {ERC6551Account, IERC6551Account} from "0xrails/lib/ERC6551/ERC6551Account.sol";
-import {ERC6551AccountLib} from "erc6551/lib/ERC6551AccountLib.sol";
-import {ERC6551Registry} from "erc6551/ERC6551Registry.sol";
+import {ERC6551AccountLib} from "0xrails/lib/ERC6551/lib/ERC6551AccountLib.sol";
+import {ERC6551Registry} from "0xrails/lib/ERC6551/ERC6551Registry.sol";
 import {AccountGroup} from "src/accountGroup/implementation/AccountGroup.sol";
 import {AccountGroupLib} from "src/accountGroup/lib/AccountGroupLib.sol";
 import {PermissionGatedInitializer} from "src/accountGroup/initializer/PermissionGatedInitializer.sol";
