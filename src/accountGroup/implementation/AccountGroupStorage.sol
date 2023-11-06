@@ -10,6 +10,7 @@ library AccountGroupStorage {
     struct Layout {
         address defaultInitializer;
         mapping(uint64 => address) initializerOf;
+        address defaultAccountImplementation;
     }
 
     function layout() internal pure returns (Layout storage l) {
