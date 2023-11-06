@@ -6,6 +6,8 @@ interface IAccountGroup {
     event SubgroupInitializerUpdated(uint64 indexed subgroupId, address indexed initializer);
     event DefaultAccountImplementationUpdated(address indexed implementation);
 
+    error UpgradeRestricted(address sender, address account, address implementation);
+
     function initialize(address owner) external;
     function getDefaultAccountInitializer() external view returns (address);
     function setDefaultAccountInitializer(address initializer) external;
