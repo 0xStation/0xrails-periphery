@@ -52,7 +52,7 @@ contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, A
     /// @inheritdoc IERC6551AccountGroup
     function checkValidAccountUpgrade(address sender, address account, address implementation) external view {
         if (implementation == AccountGroupStorage.layout().defaultAccountImplementation &&
-            (sender == Access(account).owner() || _hasPermission(Operations.ADMIN, sender))) {
+            (sender == Access(account).owner() || hasPermission(Operations.ADMIN, sender))) {
                 return;
         }
 

@@ -136,8 +136,11 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
         // grab relevant subgroupId
         AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(erc6551UserAccount));
 
-        // AccountGroups have say over how the erc721accountrails gets upgraded via ADMIN permission
         vm.prank(accountGroupOwner);
+        accountGroupProxy.setDefaultAccountImplementation(address(newImpl));
+
+        // AccountGroups have say over how the erc721accountrails gets upgraded via ADMIN permission
+        vm.prank(tokenOwner);
         // accountGroupProxy.addApprovedImplementation(params.subgroupId, address(newImpl));
         UUPSUpgradeable(address(erc6551UserAccount)).upgradeToAndCall(address(newImpl), '');
 
@@ -158,11 +161,12 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
 
         // AccountGroups have say over how the erc721accountrails gets upgraded via ADMIN permission
         address someAdmin = createAccount();
-        vm.prank(accountGroupOwner);
+        vm.startPrank(accountGroupOwner);
+        accountGroupProxy.setDefaultAccountImplementation(address(newImpl));
         accountGroupProxy.addPermission(Operations.ADMIN, someAdmin);
+        vm.stopPrank();
 
         vm.prank(someAdmin);
-        // accountGroupProxy.addApprovedImplementation(params.subgroupId, address(newImpl));
         UUPSUpgradeable(address(erc6551UserAccount)).upgradeToAndCall(address(newImpl), '');
 
         address updatedImpl = address(uint160(uint256(vm.load(address(erc6551UserAccount), IMPLEMENTATION_SLOT))));
