@@ -7,9 +7,9 @@ import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.so
 import {Operations} from "0xrails/lib/Operations.sol";
 import {IPermissions} from "0xrails/access/permissions/Permissions.sol";
 
-import {AccountGroup} from "../../src/accountGroup/implementation/AccountGroup.sol";
-import {PermissionGatedInitializer} from "../../src/accountGroup/initializer/PermissionGatedInitializer.sol";
-import {InitializeAccountController} from "../../src/accountGroup/module/InitializeAccountController.sol";
+import {AccountGroup} from "src/accountGroup/implementation/AccountGroup.sol";
+import {PermissionGatedInitializer} from "src/accountGroup/initializer/PermissionGatedInitializer.sol";
+import {InitializeAccountController} from "src/accountGroup/module/InitializeAccountController.sol";
 
 contract AccountGroupScript is ScriptUtils {
     /*=================
