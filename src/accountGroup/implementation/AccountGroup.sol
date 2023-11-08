@@ -43,6 +43,22 @@ contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, A
         return AccountGroupStorage.layout().defaultInitializer;
     }
 
+    function getDefaultAccountImplementation() external view returns (address defaultImpl) {
+        // query namespaced storage for the default implementation
+        AccountGroupStorage.Layout storage layout = AccountGroupStorage.layout();
+        defaultImpl = layout.defaultAccountImplementation;
+    }
+
+    /// @inheritdoc IERC6551AccountGroup
+    function checkValidAccountUpgrade(address sender, address account, address implementation) external view {
+        if (implementation == AccountGroupStorage.layout().defaultAccountImplementation &&
+            (sender == Access(account).owner() || hasPermission(Operations.ADMIN, sender))) {
+                return;
+        }
+
+        revert UpgradeRestricted(sender, account, implementation);
+    }
+
     /*=============
         SETTERS
     =============*/
@@ -56,6 +72,12 @@ contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, A
         _checkCanUpdateSubgroup(subgroupId);
         AccountGroupStorage.layout().initializerOf[subgroupId] = initializer;
         emit SubgroupInitializerUpdated(subgroupId, initializer);
+    }
+
+    /// @inheritdoc IAccountGroup
+    function setDefaultAccountImplementation(address implementation) external onlyOwner {
+        AccountGroupStorage.layout().defaultAccountImplementation = implementation;
+        emit DefaultAccountImplementationUpdated(implementation);
     }
 
     /*===================

@@ -91,10 +91,10 @@ contract InitializeAccountControllerTest is Test, Account {
         bytes memory data;
 
         vm.prank(owner);
-        initializeAccountController.createAndInitializeAccount(address(erc6551Registry), address(accountGroup), bytecodeSalt, block.chainid, address(erc721Rails), tokenId, address(botAccountImpl), data);
+        address tba = initializeAccountController.createAndInitializeAccount(address(erc6551Registry), address(accountGroup), bytecodeSalt, block.chainid, address(erc721Rails), tokenId, address(botAccountImpl), data);
 
         // assert contract was created with expected bytecode
-        AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(accountGroup));
+        AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(tba));
         bytes32 packedParams = bytes32(abi.encodePacked(params.accountGroup, params.subgroupId, params.index));
         assertEq(packedParams, bytecodeSalt);
     }
@@ -108,10 +108,10 @@ contract InitializeAccountControllerTest is Test, Account {
         IPermissions(address(accountGroup)).addPermission(Operations.INITIALIZE_ACCOUNT_PERMIT, address(user));
 
         vm.prank(address(user));
-        initializeAccountController.createAndInitializeAccount(address(erc6551Registry), address(accountGroup), bytecodeSalt, block.chainid, address(erc721Rails), tokenId, address(botAccountImpl), data);
+        address tba = initializeAccountController.createAndInitializeAccount(address(erc6551Registry), address(accountGroup), bytecodeSalt, block.chainid, address(erc721Rails), tokenId, address(botAccountImpl), data);
 
         // assert contract was created with expected bytecode
-        AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(accountGroup));
+        AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(tba));
         bytes32 packedParams = bytes32(abi.encodePacked(params.accountGroup, params.subgroupId, params.index));
         assertEq(packedParams, bytecodeSalt);
     }

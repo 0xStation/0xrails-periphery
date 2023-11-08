@@ -5,8 +5,6 @@ import {IERC6551Registry} from "erc6551/ERC6551Registry.sol";
 import {IERC6551AccountInitializer} from "0xrails/lib/ERC6551AccountGroup/interface/IERC6551AccountInitializer.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
-
-import {AccountGroupLib} from "../lib/AccountGroupLib.sol";
 import {PermitController} from "src/lib/module/PermitController.sol";
 
 /// @notice Bundle account creation and initialization into one transaction
