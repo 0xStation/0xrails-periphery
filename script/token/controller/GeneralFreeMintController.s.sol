@@ -18,8 +18,11 @@ contract DeployGeneralFreeMintModule is ScriptUtils {
         CONFIG
     ============*/
 
-    // following contract will be deployed
+    // following production contract will be deployed
     GeneralFreeMintController generalFreeMintController;
+    // following contracts will also be deployed for local and staging environments:
+    GeneralFreeMintController localGeneralFreeMintController;
+    GeneralFreeMintController stagingGeneralFreeMintController;
 
     /// @notice Checkout lib/protocol-ops vX.Y.Z to automatically get addresses
     JsonManager.DeploysJson $deploys = setDeploysJsonStruct();
@@ -32,15 +35,18 @@ contract DeployGeneralFreeMintModule is ScriptUtils {
     function run() public {
         vm.startBroadcast();
 
-        // string memory saltString = "station";
-        // bytes32 salt = bytes32(bytes(saltString));
-
         bytes32 salt = ScriptUtils.create2Salt;
-        string memory saltString = Strings.toHexString(uint256(salt), 32);
+        bytes32 saltLocal = bytes32(uint256(salt) + 1);
+        bytes32 saltStaging = bytes32(uint256(salt) + 2);
 
         generalFreeMintController = new GeneralFreeMintController{salt: salt}(_metadataRouter);
 
+        localGeneralFreeMintController = new GeneralFreeMintController{salt: saltLocal}(_metadataRouter);
+        stagingGeneralFreeMintController = new GeneralFreeMintController{salt: saltStaging}(_metadataRouter);
+
         logAddress("GeneralFreeMintController @", Strings.toHexString(address(generalFreeMintController)));
+        logAddress("GeneralFreeMintController @", Strings.toHexString(address(localGeneralFreeMintController)));
+        logAddress("GeneralFreeMintController @", Strings.toHexString(address(stagingGeneralFreeMintController)));
 
         vm.stopBroadcast();
     }

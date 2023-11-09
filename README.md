@@ -91,7 +91,7 @@ Direct inquiries for using GroupOS in your own project via [Twitter DM](https://
 | ERC721FreeMintController | 1,906,671 | 0x6c7760b08ca1eed25fcff6f628eeda369ce11334 | 
 | ERC721GasCoinPurchaseController | 2,013,611 | 0x39af6209325eb501361ccc33b36f589444959f9d | 
 | ERC721StablecoinPurchaseController | 2,926,173 | 0x6c1ca4dd00c4bbd2a5d06b6b0bf3a80dcce0ba14 | 
-| GeneralFreeMintController | 996,693 | 0x067EF1a8E8D79E55B94d9C8096FFb927108A53b3 | 
+| GeneralFreeMintController | 996,693 | 0xA9Cc8369e1259E01eef79a3B3Fb293578F0D3760 | 
 | PermissionGatedInitializer | 318,755 | 0x97a44D858c6B79E456828bfD86c1A0aD86b1677b | 
 | InitializeAccountController | 961,478 | 0x6dBa22C55eA4549d1c92F181Cb33D7fe016E2f45 | 
 | ERC721AccountRails | 4,117,521 | 0xD8dDE27Bd469148CD014c3C7CB1Eedf62C4949C0 | 
