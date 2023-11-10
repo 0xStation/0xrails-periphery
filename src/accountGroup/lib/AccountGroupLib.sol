@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {ERC6551AccountLib} from "erc6551/lib/ERC6551AccountLib.sol";
+import {ERC6551AccountLib} from "0xrails/lib/ERC6551/lib/ERC6551AccountLib.sol";
 
 library AccountGroupLib {
     struct AccountParams {
