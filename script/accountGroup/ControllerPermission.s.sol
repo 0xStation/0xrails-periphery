@@ -29,20 +29,25 @@ contract ControllerPermissionScript is ScriptUtils {
         ===============*/
 
         function run() public {
-                bytes memory addPermissionData = abi.encodeWithSelector(IPermissions.addPermission.selector, Operations.INITIALIZE_ACCOUNT, controller);
-                Call3 memory addPermissionCall = Call3({target: accountGroup, allowFailure: false, callData: addPermissionData});
+            
+            vm.startBroadcast();
 
-                Call3[] memory calls = new Call3[](1);
-                calls[0] = addPermissionCall;
-                bytes memory multicallData = abi.encodeWithSignature("aggregate3((address,bool,bytes)[])", calls);
+            bytes memory addPermissionData = abi.encodeWithSelector(IPermissions.addPermission.selector, Operations.INITIALIZE_ACCOUNT, controller);
+            Call3 memory addPermissionCall = Call3({target: accountGroup, allowFailure: false, callData: addPermissionData});
 
-                bytes memory safeCall = abi.encodeWithSignature(
-                    "execTransactionFromModule(address,uint256,bytes,uint8)", multicall3, 0, multicallData, uint8(1)
-                );
+            Call3[] memory calls = new Call3[](1);
+            calls[0] = addPermissionCall;
+            bytes memory multicallData = abi.encodeWithSignature("aggregate3((address,bool,bytes)[])", calls);
 
-                (bool r, ) = owner.call(safeCall);
-                require(r);
+            bytes memory safeCall = abi.encodeWithSignature(
+                "execTransactionFromModule(address,uint256,bytes,uint8)", multicall3, 0, multicallData, uint8(1)
+            );
 
-                assert(IPermissions(accountGroup).hasPermission(Operations.INITIALIZE_ACCOUNT, controller));
+            (bool r, ) = owner.call(safeCall);
+            require(r);
+
+            assert(IPermissions(accountGroup).hasPermission(Operations.INITIALIZE_ACCOUNT, controller));
+
+            vm.stopBroadcast();
         }
 }
