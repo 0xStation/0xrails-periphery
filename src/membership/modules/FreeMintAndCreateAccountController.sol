@@ -56,8 +56,7 @@ contract FreeMintAndCreateAccountController is PermitController, SetupController
         MINT
     ==========*/
 
-    /// @dev Mint a single ERC721Rails token and deploy its tokenbound account
-    // function mintAndCreateAccount(address collection, address recipient, AccountConfig calldata accountConfig)
+    /// @dev Mint a single ERC721Rails token and create+initialize its tokenbound account
     function mintAndCreateAccount(
         address collection,
         address recipient,
@@ -92,7 +91,7 @@ contract FreeMintAndCreateAccountController is PermitController, SetupController
     function requirePermits(bytes memory context) public view override returns (bool) {
         address collection = _decodePermitContext(context);
         return
-            !_disablePermits[collection] || !IPermissions(collection).hasPermission(Operations.MINT_PERMIT, msg.sender);
+            !_disablePermits[collection] && !IPermissions(collection).hasPermission(Operations.MINT_PERMIT, msg.sender);
     }
 
     function signerCanPermit(address signer, bytes memory context) public view override returns (bool) {
