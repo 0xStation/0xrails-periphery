@@ -16,7 +16,7 @@ abstract contract ERC6551AccountController {
         account = IERC6551Registry(registry).createAccount(accountProxy, salt, chainId, collection, tokenId);
     }
 
-    function _initializeAccount(address account, address accountImpl, bytes calldata initData) internal {
+    function _initializeAccount(address account, address accountImpl, bytes memory initData) internal {
         IERC6551AccountInitializer(account).initializeAccount(accountImpl, initData);
     }
 }
