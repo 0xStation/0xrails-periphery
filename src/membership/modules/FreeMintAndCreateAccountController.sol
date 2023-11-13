@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {IERC6551Registry} from "erc6551/ERC6551Registry.sol";
+import {IERC6551Registry} from "0xrails/lib/ERC6551/ERC6551Registry.sol";
 import {IERC6551AccountInitializer} from "0xrails/lib/ERC6551AccountGroup/interface/IERC6551AccountInitializer.sol";
 import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
