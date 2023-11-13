@@ -97,31 +97,37 @@ contract MintCreateInitializeControllerTest is Test, Account {
 
     function test_mintAndCreateAccount() public {
         address mintedTBA;
+        uint256 mintStart;
         assertFalse(mintedTBA.code.length > 0);
 
         vm.prank(owner);
-        mintedTBA = mintCreateInitializeController.mintAndCreateAccount(mintParams);
+        (mintedTBA, mintStart) = mintCreateInitializeController.mintAndCreateAccount(mintParams);
         assertTrue(mintedTBA.code.length > 0);
         
         // assert contract was created with expected bytecode
         AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(mintedTBA));
         bytes32 packedParams = bytes32(abi.encodePacked(params.accountGroup, params.subgroupId, params.index));
         assertEq(packedParams, bytecodeSalt);
+
+        assertTrue(mintStart == 1);
     }
 
     function test_mintAndCreateAccountPermission() public {        
         address mintedTBA;
+        uint256 mintStart;
 
         // grant turnkey permission to create accounts
         vm.prank(owner);
         IPermissions(address(erc721Rails)).addPermission(Operations.MINT_PERMIT, turnkey);
 
         vm.prank(turnkey);
-        mintedTBA = mintCreateInitializeController.mintAndCreateAccount(mintParams);
+        (mintedTBA, mintStart) = mintCreateInitializeController.mintAndCreateAccount(mintParams);
 
         // assert contract was created with expected bytecode
         AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(mintedTBA));
         bytes32 packedParams = bytes32(abi.encodePacked(params.accountGroup, params.subgroupId, params.index));
         assertEq(packedParams, bytecodeSalt);
+
+        assertTrue(mintStart == 1);
     }
 }
