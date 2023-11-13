@@ -17,6 +17,15 @@ interface IERC721RailsV2 is IERC721Rails {
 }
 
 contract MintCreateInitializeController is PermitController, SetupController, ERC6551AccountController {
+
+    struct MintParams {
+        address collection;
+        address recipient;
+        address registry;
+        address accountProxy;
+        bytes32 salt;
+    }
+    
     /*=============
         STORAGE
     =============*/
@@ -57,22 +66,18 @@ contract MintCreateInitializeController is PermitController, SetupController, ER
     ==========*/
 
     /// @dev Mint a single ERC721Rails token and create+initialize its tokenbound account
-    function mintAndCreateAccount(
-        address collection,
-        address recipient,
-        address registry,
-        address accountProxy,
-        bytes32 salt
-    ) external usePermits(_encodePermitContext(collection)) {
-        address accountGroup = address(bytes20(salt));
+    function mintAndCreateAccount(MintParams calldata mintParams) 
+        external usePermits(_encodePermitContext(mintParams.collection)) returns(address account) 
+    {
+        address accountGroup = address(bytes20(mintParams.salt));
         address accountImpl = IAccountGroup(accountGroup).getDefaultAccountImplementation();
         require(accountImpl.code.length > 0);
 
-        IERC721RailsV2(collection).mintTo(recipient, 1);
+        IERC721RailsV2(mintParams.collection).mintTo(mintParams.recipient, 1);
         // assumes that startTokenId = 1 -> true for our default ERC721Rails implementation
         // assumes that tokens are only minted in sequential order -> true for our default ERC721Rails implementation, but may change with the introduction of counterfactual tokenIds
-        uint256 newTokenId = IERC721RailsV2(collection).totalMinted();
-        address account = _createAccount(registry, accountProxy, salt, block.chainid, collection, newTokenId);
+        uint256 newTokenId = IERC721RailsV2(mintParams.collection).totalMinted();
+        account = _createAccount(mintParams.registry, mintParams.accountProxy, mintParams.salt, block.chainid, mintParams.collection, newTokenId);
         _initializeAccount(account, accountImpl, bytes(""));
     }
 
