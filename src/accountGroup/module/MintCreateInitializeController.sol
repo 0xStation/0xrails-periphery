@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {IERC6551Registry} from "0xrails/lib/ERC6551/ERC6551Registry.sol";
 import {IERC6551AccountInitializer} from "0xrails/lib/ERC6551AccountGroup/interface/IERC6551AccountInitializer.sol";
 import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
+import {IERC721} from "0xrails/cores/ERC721/interface/IERC721.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 // module utils
@@ -11,10 +12,6 @@ import {PermitController} from "src/lib/module/PermitController.sol";
 import {SetupController} from "src/lib/module/SetupController.sol";
 import {ERC6551AccountController} from "src/lib/module/ERC6551AccountController.sol";
 import {IAccountGroup} from "src/accountGroup/interface/IAccountGroup.sol";
-
-interface IERC721RailsV2 is IERC721Rails {
-    function totalMinted() external view returns (uint256);
-}
 
 contract MintCreateInitializeController is PermitController, SetupController, ERC6551AccountController {
 
@@ -25,7 +22,7 @@ contract MintCreateInitializeController is PermitController, SetupController, ER
         address accountProxy;
         bytes32 salt;
     }
-    
+
     /*=============
         STORAGE
     =============*/
@@ -67,16 +64,13 @@ contract MintCreateInitializeController is PermitController, SetupController, ER
 
     /// @dev Mint a single ERC721Rails token and create+initialize its tokenbound account
     function mintAndCreateAccount(MintParams calldata mintParams) 
-        external usePermits(_encodePermitContext(mintParams.collection)) returns(address account) 
+        external usePermits(_encodePermitContext(mintParams.collection)) returns (address account, uint256 newTokenId) 
     {
         address accountGroup = address(bytes20(mintParams.salt));
         address accountImpl = IAccountGroup(accountGroup).getDefaultAccountImplementation();
         require(accountImpl.code.length > 0);
 
-        IERC721RailsV2(mintParams.collection).mintTo(mintParams.recipient, 1);
-        // assumes that startTokenId = 1 -> true for our default ERC721Rails implementation
-        // assumes that tokens are only minted in sequential order -> true for our default ERC721Rails implementation, but may change with the introduction of counterfactual tokenIds
-        uint256 newTokenId = IERC721RailsV2(mintParams.collection).totalMinted();
+        newTokenId = IERC721Rails(mintParams.collection).mintTo(mintParams.recipient, 1);
         account = _createAccount(mintParams.registry, mintParams.accountProxy, mintParams.salt, block.chainid, mintParams.collection, newTokenId);
         _initializeAccount(account, accountImpl, bytes(""));
     }
