@@ -16,7 +16,7 @@ interface IERC721RailsV2 is IERC721Rails {
     function totalMinted() external view returns (uint256);
 }
 
-contract FreeMintAndCreateAccountController is PermitController, SetupController, ERC6551AccountController {
+contract MintCreateInitializeController is PermitController, SetupController, ERC6551AccountController {
     /*=============
         STORAGE
     =============*/
