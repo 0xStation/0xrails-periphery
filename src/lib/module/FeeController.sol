@@ -114,14 +114,18 @@ abstract contract FeeController is Ownable {
 
         // for ETH context, accept funds only if the msg.value sent matches the FeeManager's calculation
         if (paymentToken == address(0x0)) {
-            // collect fees
+            // collect fees- baseFee is still applied in FreeMintController context
             if (msg.value != total) revert InvalidFee(total, msg.value);
-            // forward revenue to payoutAddress
-            (bool success,) = payoutAddress.call{value: quantity * unitPrice}("");
-            require(success, "PAYMENT_FAIL");
+
+            // only perform external call + value to `payoutAddress` if called in GasCoinPurchaseController context
+            if (unitPrice != 0) {
+                // forward revenue to payoutAddress
+                (bool success,) = payoutAddress.call{value: quantity * unitPrice}("");
+                require(success, "PAYMENT_FAIL");
+            }
         } else {
             // collect fees
-            // transfer total to this contract first to update ERC20 approval storage once
+            // transfer total to this contract first to update ERC20 approval storage
             // approval must have been made prior to top-level mint call
             IERC20Metadata(paymentToken).safeTransferFrom(msg.sender, address(this), total);
             // forward revenue to payoutAddress

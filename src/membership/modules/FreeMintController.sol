@@ -106,7 +106,7 @@ contract FreeMintController is SetupController, PermitController, FeeController,
         require(quantity > 0, "ZERO_AMOUNT");
 
         // calculate fee, require fee sent to this contract, transfer collection's revenue to payoutAddress
-        // however there is no payoutAddress, payment token is network token
+        // for free mints there is no payoutAddress && payment token is network token
         _collectFeeAndForwardCollectionRevenue(collection, address(0), address(0), recipient, quantity, 0);
 
         // mint NFTs
