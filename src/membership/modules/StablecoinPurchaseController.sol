@@ -14,7 +14,7 @@ import {FeeController} from "src/lib/module/FeeController.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 
-/// @title Station Network StablecoinPurchaseControllerV2 Contract
+/// @title Station Network StablecoinPurchaseController Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg)
 /// @notice Mint membership tokens when users pay a fixed quantity of a stablecoin
 /// @dev Storage is designed to minimize costs for accepting multiple stablecoins as
@@ -248,18 +248,18 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
     ==========*/
 
     /// @dev Function to mint a single collection token to the caller, ie a user
-    function mint(address collection, address paymentCoin) external payable {
+    function mint(address collection, address paymentCoin) external {
         _batchMint(collection, paymentCoin, msg.sender, 1);
     }
 
     /// @dev Function to mint a single collection token to a specified recipient
-    function mintTo(address collection, address paymentCoin, address recipient) external payable {
+    function mintTo(address collection, address paymentCoin, address recipient) external {
         _batchMint(collection, paymentCoin, recipient, 1);
     }
 
     /// @dev Function to mint collection tokens in batches to the caller, ie a user
     /// @notice returned tokenId range is inclusive
-    function batchMint(address collection, address paymentCoin, uint256 quantity) external payable {
+    function batchMint(address collection, address paymentCoin, uint256 quantity) external {
         _batchMint(collection, paymentCoin, msg.sender, quantity);
     }
 
@@ -267,7 +267,6 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
     /// @notice returned tokenId range is inclusive
     function batchMintTo(address collection, address paymentCoin, address recipient, uint256 quantity)
         external
-        payable
     {
         _batchMint(collection, paymentCoin, recipient, quantity);
     }
