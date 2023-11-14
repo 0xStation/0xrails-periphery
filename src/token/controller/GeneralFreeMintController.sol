@@ -102,7 +102,7 @@ contract GeneralFreeMintController is PermitController, SetupController, Contrac
         return IPermissions(collection).hasPermission(Operations.MINT_PERMIT, signer);
     }
 
-    function requirePermits(bytes memory context) public view override returns (bool) {
+    function requirePermits(bytes memory) public pure override returns (bool) {
         return true;
     }
 
