@@ -78,7 +78,7 @@ abstract contract FeeController is Ownable {
             uint256 amount;
             if (paymentTokens[i] == address(0)) {
                 amount = address(this).balance;
-                (bool success,) = payable(recipient).call{value: amount}("");
+                (bool success,) = recipient.call{value: amount}("");
                 require(success);
             } else {
                 amount = IERC20Metadata(paymentTokens[i]).balanceOf(address(this));
