@@ -6,9 +6,8 @@ import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 /// @title Station Network Fee Manager Contract
 /// @author 👦🏻👦🏻.eth
 
-/// @dev This contract stores state for all fees set on both a one-size fits all default basis and per-collection basis
-/// Handles fee calculations when called by modules inquiring about the total fees involved in a mint, including ERC20 support and Station discounts
-
+/// @dev This contract stores state for all fees set on both default and per-collection basis
+/// Handles fee calculations when called by modules inquiring about the total fees involved in a mint, including ERC20 support
 contract FeeManager is Ownable {
     /// @dev Struct of fee data, including FeeSetting enum and both base and variable fees, all packed into 1 slot
     /// Since `type(uint120).max` ~= 1.3e36, it suffices for fees of up to 1.3e18 ETH or ERC20 tokens, far beyond realistic scenarios.
@@ -212,7 +211,7 @@ contract FeeManager is Ownable {
     {
         // calculate baseFee total (quantity * unitPrice), set to baseFee
         baseFeeTotal = quantity * baseFee;
-        // apply variable fee on baseFee total, set to variableFee
+        // apply variable fee on total volume
         variableFeeTotal = unitPrice * quantity * variableFee / bpsDenominator;
     }
 }

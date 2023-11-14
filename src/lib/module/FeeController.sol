@@ -10,8 +10,8 @@ import {FeeManager} from "./FeeManager.sol";
 /// @title Station Network Fee Manager Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg), 👦🏻👦🏻.eth
 /// @dev This contract enables payment by handling funds when charging base and variable fees on each Membership's mints
-/// @notice FeeControllerV2 differs from FeeController in that it is intended to be inherited by all purchase modules
-/// The goal is to abstract all payment logic so this module can handle fees for every client's desired Membership implementation
+/// @notice The FeeController is intended to be inherited by all purchase modules to abstract all payment logic 
+/// and handle fees for every client's desired Membership implementation
 abstract contract FeeController is Ownable {
     // using SafeERC20 for covering USDT no-return and other transfer issues
     using SafeERC20 for IERC20Metadata;
@@ -71,10 +71,10 @@ abstract contract FeeController is Ownable {
     /// @dev Function to withdraw the total balances of accrued base and variable eth fees collected from mints
     /// @dev Sends fees to the module's owner address, which is managed by Station Network
     /// @dev Access control enforced for tax implications
-    /// @param paymentTokens The token addresses to call, where address(0) represent network token
+    /// @param paymentTokens The token addresses to call, where address(0) represents network token
     function withdrawFees(address[] calldata paymentTokens) external onlyOwner {
         address recipient = owner();
-        for (uint256 i; i < paymentTokens.length; i++) {
+        for (uint256 i; i < paymentTokens.length; ++i) {
             uint256 amount;
             if (paymentTokens[i] == address(0)) {
                 amount = address(this).balance;
