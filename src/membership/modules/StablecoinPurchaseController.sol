@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 // use SafeERC20: https://soliditydeveloper.com/safe-erc20
 import {SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {Pausable} from "openzeppelin-contracts/security/Pausable.sol";
 import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
@@ -23,7 +24,7 @@ import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 /// will use the same price value and can never get out of sync. Deploy one instance
 /// of this module per currency, per chain (e.g. USD, EUR, BTC).
 
-contract StablecoinPurchaseController is SetupController, PermitController, FeeController, ContractMetadata {
+contract StablecoinPurchaseController is SetupController, PermitController, FeeController, ContractMetadata, Pausable {
     using SafeERC20 for IERC20Metadata;
 
     /// @dev Struct of collection price data
@@ -75,7 +76,7 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
         CONFIG
     ============*/
 
-    /// @param _owner The owner of the FeeController, an address managed by Station Network
+    /// @param _owner The owner of this contract
     /// @param _feeManager The FeeManager module's address
     /// @param _decimals The decimals value for this module's supported stablecoin payments
     /// @param _currency The type of currency managed by this module
@@ -248,25 +249,29 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
     ==========*/
 
     /// @dev Function to mint a single collection token to the caller, ie a user
-    function mint(address collection, address paymentCoin) external {
+    function mint(address collection, address paymentCoin) external whenNotPaused {
         _batchMint(collection, paymentCoin, msg.sender, 1);
     }
 
     /// @dev Function to mint a single collection token to a specified recipient
-    function mintTo(address collection, address paymentCoin, address recipient) external {
+    function mintTo(address collection, address paymentCoin, address recipient) 
+        external whenNotPaused 
+    {
         _batchMint(collection, paymentCoin, recipient, 1);
     }
 
     /// @dev Function to mint collection tokens in batches to the caller, ie a user
     /// @notice returned tokenId range is inclusive
-    function batchMint(address collection, address paymentCoin, uint256 quantity) external {
+    function batchMint(address collection, address paymentCoin, uint256 quantity) 
+        external whenNotPaused 
+    {
         _batchMint(collection, paymentCoin, msg.sender, quantity);
     }
 
     /// @dev Function to mint collection tokens in batches to a specified recipient
     /// @notice returned tokenId range is inclusive
     function batchMintTo(address collection, address paymentCoin, address recipient, uint256 quantity)
-        external
+        external whenNotPaused
     {
         _batchMint(collection, paymentCoin, recipient, quantity);
     }
@@ -300,7 +305,18 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
         // mint NFTs
         IERC721Rails(collection).mintTo(recipient, quantity);
     }
+    /*===========
+        PAUSE
+    ===========*/
 
+    function pause() public onlyOwner {
+        _pause();
+    }
+
+    function unpause() public onlyOwner {
+        _unpause();
+    }
+    
     /*============
         PERMIT
     ============*/
