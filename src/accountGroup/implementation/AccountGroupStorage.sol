@@ -2,7 +2,8 @@
 pragma solidity ^0.8.13;
 
 library AccountGroupStorage {
-    bytes32 internal constant SLOT = keccak256(abi.encode(uint256(keccak256("groupos.AccountGroup")) - 1));
+    // `keccak256(abi.encode(uint256(keccak256("groupos.AccountGroup")) - 1)) & ~bytes32(uint256(0xff));`
+    bytes32 internal constant SLOT = 0x39147b94183d90fe4f0d54eaae4f5ad1ed9977a9eea5a3e80ef285bd9a9b9300;
 
     /// @param defaultInitializer The default initialize controller used to configure ERC6551 accounts on deployment
     /// @param initializerOf Mapping to override the default initialize controller for a subgroupId

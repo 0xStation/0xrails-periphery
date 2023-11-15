@@ -2,7 +2,8 @@
 pragma solidity ^0.8.13;
 
 library TokenFactoryStorage {
-    bytes32 internal constant SLOT = keccak256(abi.encode(uint256(keccak256("groupos.TokenFactory")) - 1));
+    // `keccak256(abi.encode(uint256(keccak256("groupos.TokenFactory")) - 1)) & ~bytes32(uint256(0xff));`
+    bytes32 internal constant SLOT = 0x64845bb1a7fed623f1c8977452fce5f130e7bb0b16e10b907dc7aaef22fcc200;
 
     struct Layout {
         address erc20Implementation;
