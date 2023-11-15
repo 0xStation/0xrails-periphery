@@ -6,10 +6,9 @@ import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 import {IERC721} from "0xrails/cores/ERC721/interface/IERC721.sol";
 import {IPermissionsInternal as IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
+import {IOwnableInternal} from "0xrails/access/ownable/interface/IOwnable.sol";
 import {IGuardsInternal as IGuards} from "0xrails/guard/interface/IGuards.sol";
-
 // src
-
 import {SetupController} from "src/lib/module/SetupController.sol";
 import {StablecoinPurchaseController} from "src/membership/modules/StablecoinPurchaseController.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
@@ -95,7 +94,7 @@ contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
 
         vm.assume(caller != owner);
         vm.prank(caller);
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(abi.encodeWithSelector(IOwnableInternal.OwnerUnauthorizedAccount.selector, caller));
         stablecoinModule.register(address(stablecoin));
         // check stablecoin NOT registered
         vm.expectRevert("STABLECOIN_NOT_REGISTERED");
