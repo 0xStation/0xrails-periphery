@@ -8,11 +8,11 @@ import {IERC721} from "openzeppelin-contracts/token/ERC721/IERC721.sol";
 import {IERC1155} from "openzeppelin-contracts/token/ERC1155/IERC1155.sol";
 import {Ownable} from "0xrails/access/ownable/Ownable.sol";
 import {Initializable} from "0xrails/lib/initializable/Initializable.sol";
-import {ISupportsInterface} from "0xrails/lib/ERC165/ISupportsInterface.sol";
 import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
 import {IERC20Rails} from "0xrails/cores/ERC20/interface/IERC20Rails.sol";
 import {IERC1155Rails} from "0xrails/cores/ERC1155/interface/IERC1155Rails.sol";
 import {ITokenFactory} from "src/factory/ITokenFactory.sol";
+import {TokenFactoryStorage} from "src/factory/TokenFactoryStorage.sol";
 
 contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory {
     /*============
@@ -22,8 +22,11 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
     constructor() Initializable() {}
 
     /// @inheritdoc ITokenFactory
-    function initialize(address owner_) external initializer {
+    function initialize(address owner_, address erc20Impl_, address erc721Impl_, address erc1155Impl_) external initializer {
         _transferOwnership(owner_);
+        _setImplementation(erc20Impl_, ITokenFactory.TokenStandard.ERC20);
+        _setImplementation(erc721Impl_, ITokenFactory.TokenStandard.ERC721);
+        _setImplementation(erc1155Impl_, ITokenFactory.TokenStandard.ERC1155);
     }
 
     /*============
@@ -38,9 +41,6 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         string memory symbol,
         bytes calldata initData
     ) public returns (address payable token) {
-        if (!ISupportsInterface(implementation).supportsInterface(type(IERC20).interfaceId)) {
-            revert InvalidImplementation();
-        }
         token = payable(address(new ERC1967Proxy(implementation, bytes(""))));
         emit ERC20Created(token);
         IERC20Rails(token).initialize(owner, name, symbol, initData);
@@ -54,9 +54,6 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         string memory symbol,
         bytes calldata initData
     ) public returns (address payable token) {
-        if (!ISupportsInterface(implementation).supportsInterface(type(IERC721).interfaceId)) {
-            revert InvalidImplementation();
-        }
         token = payable(address(new ERC1967Proxy(implementation, bytes(""))));
         emit ERC721Created(token);
         IERC721Rails(token).initialize(owner, name, symbol, initData);
@@ -70,12 +67,28 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         string memory symbol,
         bytes calldata initData
     ) public returns (address payable token) {
-        if (!ISupportsInterface(implementation).supportsInterface(type(IERC1155).interfaceId)) {
-            revert InvalidImplementation();
-        }
         token = payable(address(new ERC1967Proxy(implementation, bytes(""))));
         emit ERC1155Created(token);
         IERC1155Rails(token).initialize(owner, name, symbol, initData);
+    }
+
+    function setImplementation(address newImplementation, ITokenFactory.TokenStandard standard) public onlyOwner {
+        _setImplementation(newImplementation, standard);
+    }
+
+    function _setImplementation(address _newImplementation, ITokenFactory.TokenStandard _standard)
+        internal
+    {
+        if (_standard == ITokenFactory.TokenStandard.ERC20) {
+            TokenFactoryStorage.layout().erc20Implementation = _newImplementation;
+            emit ImplementationSet(_newImplementation, ITokenFactory.TokenStandard.ERC20);
+        } else if (_standard == ITokenFactory.TokenStandard.ERC721) {
+            TokenFactoryStorage.layout().erc721Implementation = _newImplementation;
+            emit ImplementationSet(_newImplementation, ITokenFactory.TokenStandard.ERC721);
+        } else {
+            TokenFactoryStorage.layout().erc1155Implementation = _newImplementation;
+            emit ImplementationSet(_newImplementation, ITokenFactory.TokenStandard.ERC1155);
+        }
     }
 
     /*===============

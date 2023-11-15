@@ -52,9 +52,10 @@ contract InitializeAccountControllerTest is Test, Account {
         
         tokenFactoryImpl = new TokenFactory();
         tokenFactoryProxy = TokenFactory(address(new ERC1967Proxy(address(tokenFactoryImpl), '')));
-        tokenFactoryProxy.initialize(owner);
 
         erc721RailsImpl = new ERC721Rails();
+        tokenFactoryProxy.initialize(owner, address(0x0), address(erc721RailsImpl), address(0x0)); // erc20, erc1155 impls not needed
+
         erc721Rails = ERC721Rails(tokenFactoryProxy.createERC721(payable(address(erc721RailsImpl)), owner, "test", "tst", ''));
         user = new ERC721Holder();
         vm.prank(owner);

@@ -2,15 +2,22 @@
 pragma solidity ^0.8.13;
 
 interface ITokenFactory {
+    enum TokenStandard {
+        ERC20,
+        ERC721,
+        ERC1155
+    }
+
     event ERC20Created(address indexed token);
     event ERC721Created(address indexed token);
     event ERC1155Created(address indexed token);
+    event ImplementationSet(address indexed newImplementation, TokenStandard indexed standard);
 
     error InvalidImplementation();
 
     /// @dev Initializes the proxy for the factory
     /// @param owner_ The owner address to be set for the factory contract
-    function initialize(address owner_) external;
+    function initialize(address owner_, address erc20Impl_, address erc721Impl_, address erc1155Impl_) external;
 
     /// @dev Function to create a new ERC20 token proxy using given data
     /// @param implementation The logic implementation address to be set for the created proxy
