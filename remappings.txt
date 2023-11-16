@@ -4,4 +4,3 @@ openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/
 openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
 test/=test/
 0xrails/=lib/0xrails/src/
-erc6551/=lib/erc6551/src/

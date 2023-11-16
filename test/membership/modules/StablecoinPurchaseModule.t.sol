@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Test} from "forge-std/Test.sol";
 import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
-import {IERC721Internal} from "0xrails/cores/ERC721/interface/IERC721.sol";
+import {IERC721} from "0xrails/cores/ERC721/interface/IERC721.sol";
 import {IPermissionsInternal as IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {IGuardsInternal as IGuards} from "0xrails/guard/interface/IGuards.sol";
 
@@ -726,7 +726,7 @@ contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
         ) = initModuleAndBuyer(coinDecimals, moduleDecimals, baseFee, variableFee, price, balanceOffset);
 
         vm.prank(buyer);
-        vm.expectRevert(IERC721Internal.TransferToNonERC721ReceiverImplementer.selector);
+        vm.expectRevert(IERC721.TransferToNonERC721ReceiverImplementer.selector);
         stablecoinModule.mintTo(address(proxy), address(stablecoin), address(stablecoinModule));
         // no token minted
         assertEq(proxy.balanceOf(buyer), 0);
@@ -757,7 +757,7 @@ contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
         stablecoin.toggleRevert();
 
         vm.prank(buyer);
-        vm.expectRevert(IERC721Internal.TransferToNonERC721ReceiverImplementer.selector);
+        vm.expectRevert(IERC721.TransferToNonERC721ReceiverImplementer.selector);
         stablecoinModule.mintTo(address(proxy), address(stablecoin), address(stablecoinModule));
         // no token minted
         assertEq(proxy.balanceOf(buyer), 0);
@@ -860,7 +860,7 @@ contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
         ) = initModuleAndBuyer(coinDecimals, moduleDecimals, baseFee, variableFee, price, balanceOffset);
 
         vm.prank(buyer);
-        vm.expectRevert(IERC721Internal.MintToZeroAddress.selector);
+        vm.expectRevert(IERC721.MintToZeroAddress.selector);
         stablecoinModule.mintTo(address(proxy), address(stablecoin), address(0));
         // no token minted
         assertEq(proxy.balanceOf(buyer), 0);
