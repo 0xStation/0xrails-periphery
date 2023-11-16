@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
 import {IERC6551AccountGroup} from "0xrails/lib/ERC6551AccountGroup/interface/IERC6551AccountGroup.sol";
-import {Ownable, OwnableInternal} from "0xrails/access/ownable/Ownable.sol";
+import {Ownable, Ownable} from "0xrails/access/ownable/Ownable.sol";
 import {Access} from "0xrails/access/Access.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 import {Initializable} from "0xrails/lib/initializable/Initializable.sol";
@@ -84,9 +84,9 @@ contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, A
         AUTHORIZATION
     ===================*/
 
-    /// @dev Owner address is implemented using the `OwnableInternal` contract's function
-    function owner() public view override(Access, OwnableInternal) returns (address) {
-        return OwnableInternal.owner();
+    /// @dev Owner address is implemented using the `Ownable` contract's function
+    function owner() public view override(Access, Ownable) returns (address) {
+        return Ownable.owner();
     }
 
     function _checkCanUpdateSubgroup(uint64) internal view {

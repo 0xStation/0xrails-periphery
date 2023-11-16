@@ -7,7 +7,7 @@ import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.so
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
 import {IAccount} from "0xrails/lib/ERC4337/interface/IAccount.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
-import {IPermissions, IPermissionsInternal} from "0xrails/access/permissions/interface/IPermissions.sol";
+import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {ERC721Harness} from "lib/0xrails/test/cores/ERC721/helpers/ERC721Harness.sol";
 import {ERC721ReceiverImplementer} from "lib/0xrails/test/cores/ERC721/helpers/ERC721ReceiverImplementer.sol";
 import {MockAccountDeployer} from "lib/0xrails/test/lib/MockAccount.sol";
