@@ -11,7 +11,7 @@ import {FeeController} from "src/lib/module/FeeController.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 
-/// @title Station Network GasCoinPurchaseControllerV2 Contract
+/// @title Station Network GasCoinPurchaseController Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg), 👦🏻👦🏻.eth
 /// @dev Provides a modular contract to handle collections who wish for their membership mints to be
 /// paid in the native currency of the chain this contract is deployed to

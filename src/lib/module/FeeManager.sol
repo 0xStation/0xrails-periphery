@@ -6,9 +6,8 @@ import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 /// @title Station Network Fee Manager Contract
 /// @author 👦🏻👦🏻.eth
 
-/// @dev This contract stores state for all fees set on both a one-size fits all default basis and per-collection basis
-/// Handles fee calculations when called by modules inquiring about the total fees involved in a mint, including ERC20 support and Station discounts
-
+/// @dev This contract stores state for all fees set on both default and per-collection basis
+/// Handles fee calculations when called by modules inquiring about the total fees involved in a mint, including ERC20 support
 contract FeeManager is Ownable {
     /// @dev Struct of fee data, including FeeSetting enum and both base and variable fees, all packed into 1 slot
     /// Since `type(uint120).max` ~= 1.3e36, it suffices for fees of up to 1.3e18 ETH or ERC20 tokens, far beyond realistic scenarios.
@@ -143,14 +142,14 @@ contract FeeManager is Ownable {
     /// @dev Function to get collection fees
     /// @param collection The collection whose fees will be read, including checks for client-specific fee discounts
     /// @param paymentToken The ERC20 token address used to pay fees. Will use base currency (ETH, MATIC, etc) when == address(0)
-    /// @param recipient The address to mint to. Checked to apply discounts per user for Station Network incentives
+    /// @param /*recipient*/ The address to mint to. Included to support future discounts on a per user basis 
     /// @param quantity The amount of tokens for which to compute total baseFee
     /// @param unitPrice The price of each token, used to compute subtotal on which to apply variableFee
     /// @param feeTotal The returned total incl fees for the given collection.
     function getFeeTotals(
         address collection,
         address paymentToken,
-        address recipient,
+        address /*recipient*/,
         uint256 quantity,
         uint256 unitPrice
     ) external view returns (uint256 feeTotal) {
@@ -212,7 +211,7 @@ contract FeeManager is Ownable {
     {
         // calculate baseFee total (quantity * unitPrice), set to baseFee
         baseFeeTotal = quantity * baseFee;
-        // apply variable fee on baseFee total, set to variableFee
+        // apply variable fee on total volume
         variableFeeTotal = unitPrice * quantity * variableFee / bpsDenominator;
     }
 }

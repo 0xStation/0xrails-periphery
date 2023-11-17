@@ -3,15 +3,15 @@ pragma solidity ^0.8.13;
 
 import {SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {Ownable} from "openzeppelin-contracts/access/Ownable.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {Ownable} from "0xrails/access/ownable/Ownable.sol";
 import {FeeManager} from "./FeeManager.sol";
 
 /// @title Station Network Fee Manager Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg), 👦🏻👦🏻.eth
 /// @dev This contract enables payment by handling funds when charging base and variable fees on each Membership's mints
-/// @notice FeeControllerV2 differs from FeeController in that it is intended to be inherited by all purchase modules
-/// The goal is to abstract all payment logic so this module can handle fees for every client's desired Membership implementation
+/// @notice The FeeController is intended to be inherited by all purchase modules to abstract all payment logic 
+/// and handle fees for every client's desired Membership implementation
 abstract contract FeeController is Ownable {
     // using SafeERC20 for covering USDT no-return and other transfer issues
     using SafeERC20 for IERC20Metadata;
@@ -71,14 +71,14 @@ abstract contract FeeController is Ownable {
     /// @dev Function to withdraw the total balances of accrued base and variable eth fees collected from mints
     /// @dev Sends fees to the module's owner address, which is managed by Station Network
     /// @dev Access control enforced for tax implications
-    /// @param paymentTokens The token addresses to call, where address(0) represent network token
+    /// @param paymentTokens The token addresses to call, where address(0) represents network token
     function withdrawFees(address[] calldata paymentTokens) external onlyOwner {
         address recipient = owner();
-        for (uint256 i; i < paymentTokens.length; i++) {
+        for (uint256 i; i < paymentTokens.length; ++i) {
             uint256 amount;
             if (paymentTokens[i] == address(0)) {
                 amount = address(this).balance;
-                (bool success,) = payable(recipient).call{value: amount}("");
+                (bool success,) = recipient.call{value: amount}("");
                 require(success);
             } else {
                 amount = IERC20Metadata(paymentTokens[i]).balanceOf(address(this));
@@ -114,14 +114,18 @@ abstract contract FeeController is Ownable {
 
         // for ETH context, accept funds only if the msg.value sent matches the FeeManager's calculation
         if (paymentToken == address(0x0)) {
-            // collect fees
+            // collect fees- baseFee is still applied in FreeMintController context
             if (msg.value != total) revert InvalidFee(total, msg.value);
-            // forward revenue to payoutAddress
-            (bool success,) = payoutAddress.call{value: quantity * unitPrice}("");
-            require(success, "PAYMENT_FAIL");
+
+            // only perform external call + value to `payoutAddress` if called in GasCoinPurchaseController context
+            if (unitPrice != 0) {
+                // forward revenue to payoutAddress
+                (bool success,) = payoutAddress.call{value: quantity * unitPrice}("");
+                require(success, "PAYMENT_FAIL");
+            }
         } else {
             // collect fees
-            // transfer total to this contract first to update ERC20 approval storage once
+            // transfer total to this contract first to update ERC20 approval storage
             // approval must have been made prior to top-level mint call
             IERC20Metadata(paymentToken).safeTransferFrom(msg.sender, address(this), total);
             // forward revenue to payoutAddress

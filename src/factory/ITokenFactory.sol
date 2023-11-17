@@ -1,16 +1,22 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
+import {TokenFactoryStorage} from "src/factory/TokenFactoryStorage.sol";
+
 interface ITokenFactory {
     event ERC20Created(address indexed token);
     event ERC721Created(address indexed token);
     event ERC1155Created(address indexed token);
+    event ImplementationSet(
+        address indexed newImplementation, 
+        TokenFactoryStorage.TokenStandard indexed standard
+    );
 
     error InvalidImplementation();
 
     /// @dev Initializes the proxy for the factory
     /// @param owner_ The owner address to be set for the factory contract
-    function initialize(address owner_) external;
+    function initialize(address owner_, address erc20Impl_, address erc721Impl_, address erc1155Impl_) external;
 
     /// @dev Function to create a new ERC20 token proxy using given data
     /// @param implementation The logic implementation address to be set for the created proxy
@@ -56,4 +62,9 @@ interface ITokenFactory {
         string memory symbol,
         bytes calldata initData
     ) external returns (address payable token);
+
+    /// @dev Function to add a recognized token implementation (packed with its ERC standard enum)
+    function addImplementation(TokenFactoryStorage.TokenImpl memory tokenImpl) external;
+    /// @dev Function to remove a recognized token implementation (packed with its ERC standard enum)
+    function removeImplementation(TokenFactoryStorage.TokenImpl memory tokenImpl) external;
 }

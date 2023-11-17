@@ -38,7 +38,7 @@ contract OnePerAddressGuardTest is Test, SetUpMembership {
         assertEq(proxy.totalSupply(), 1);
     }
 
-    function test_mintRevertOnePerAddress(uint16 quantity) public {
+    function test_mintRevertOnePerAddress(uint8 quantity) public {
         address to = owner;
         vm.assume(to != address(0));
         vm.assume(quantity > 1);
