@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-interface ITokenFactory {
-    enum TokenStandard {
-        ERC20,
-        ERC721,
-        ERC1155
-    }
+import {TokenFactoryStorage} from "src/factory/TokenFactoryStorage.sol";
 
+interface ITokenFactory {
     event ERC20Created(address indexed token);
     event ERC721Created(address indexed token);
     event ERC1155Created(address indexed token);
-    event ImplementationSet(address indexed newImplementation, TokenStandard indexed standard);
+    event ImplementationSet(
+        address indexed newImplementation, 
+        TokenFactoryStorage.TokenStandard indexed standard
+    );
 
     error InvalidImplementation();
 
@@ -63,4 +62,9 @@ interface ITokenFactory {
         string memory symbol,
         bytes calldata initData
     ) external returns (address payable token);
+
+    /// @dev Function to add a recognized token implementation (packed with its ERC standard enum)
+    function addImplementation(TokenFactoryStorage.TokenImpl memory tokenImpl) external;
+    /// @dev Function to remove a recognized token implementation (packed with its ERC standard enum)
+    function removeImplementation(TokenFactoryStorage.TokenImpl memory tokenImpl) external;
 }
