@@ -24,9 +24,15 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
     /// @inheritdoc ITokenFactory
     function initialize(address owner_, address erc20Impl_, address erc721Impl_, address erc1155Impl_) external initializer {
         _transferOwnership(owner_);
-        _setImplementation(erc20Impl_, ITokenFactory.TokenStandard.ERC20);
-        _setImplementation(erc721Impl_, ITokenFactory.TokenStandard.ERC721);
-        _setImplementation(erc1155Impl_, ITokenFactory.TokenStandard.ERC1155);
+        _addImplementation(
+            TokenFactoryStorage.TokenImpl({implementation: erc20Impl_, tokenStandard: TokenFactoryStorage.TokenStandard.ERC20})
+        );
+        _addImplementation(
+            TokenFactoryStorage.TokenImpl({implementation: erc721Impl_, tokenStandard: TokenFactoryStorage.TokenStandard.ERC721})
+        );
+        _addImplementation(
+            TokenFactoryStorage.TokenImpl({implementation: erc1155Impl_, tokenStandard: TokenFactoryStorage.TokenStandard.ERC1155})
+        );
     }
 
     /*============
@@ -41,6 +47,8 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         string memory symbol,
         bytes calldata initData
     ) public returns (address payable token) {
+        _checkIsApprovedImplementation(implementation, TokenFactoryStorage.TokenStandard.ERC20);
+
         token = payable(address(new ERC1967Proxy(implementation, bytes(""))));
         emit ERC20Created(token);
         IERC20Rails(token).initialize(owner, name, symbol, initData);
@@ -54,6 +62,8 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         string memory symbol,
         bytes calldata initData
     ) public returns (address payable token) {
+        _checkIsApprovedImplementation(implementation, TokenFactoryStorage.TokenStandard.ERC721);
+
         token = payable(address(new ERC1967Proxy(implementation, bytes(""))));
         emit ERC721Created(token);
         IERC721Rails(token).initialize(owner, name, symbol, initData);
@@ -67,27 +77,102 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         string memory symbol,
         bytes calldata initData
     ) public returns (address payable token) {
+        _checkIsApprovedImplementation(implementation, TokenFactoryStorage.TokenStandard.ERC1155);
+
         token = payable(address(new ERC1967Proxy(implementation, bytes(""))));
         emit ERC1155Created(token);
         IERC1155Rails(token).initialize(owner, name, symbol, initData);
     }
 
-    function setImplementation(address newImplementation, ITokenFactory.TokenStandard standard) public onlyOwner {
-        _setImplementation(newImplementation, standard);
+    /*===========
+        VIEWS
+    ===========*/
+
+    function getApprovedImplementations() public view returns (TokenFactoryStorage.TokenImpl[] memory allImpls) {
+        allImpls = TokenFactoryStorage.layout().tokenImplementations;
     }
 
-    function _setImplementation(address _newImplementation, ITokenFactory.TokenStandard _standard)
-        internal
+    function getApprovedImplementations(TokenFactoryStorage.TokenStandard standard) 
+        public
+        view 
+        returns (TokenFactoryStorage.TokenImpl[] memory) 
     {
-        if (_standard == ITokenFactory.TokenStandard.ERC20) {
-            TokenFactoryStorage.layout().erc20Implementation = _newImplementation;
-            emit ImplementationSet(_newImplementation, ITokenFactory.TokenStandard.ERC20);
-        } else if (_standard == ITokenFactory.TokenStandard.ERC721) {
-            TokenFactoryStorage.layout().erc721Implementation = _newImplementation;
-            emit ImplementationSet(_newImplementation, ITokenFactory.TokenStandard.ERC721);
-        } else {
-            TokenFactoryStorage.layout().erc1155Implementation = _newImplementation;
-            emit ImplementationSet(_newImplementation, ITokenFactory.TokenStandard.ERC1155);
+        TokenFactoryStorage.Layout storage layout = TokenFactoryStorage.layout();
+        TokenFactoryStorage.TokenImpl[] memory allImpls = getApprovedImplementations();
+
+        // Solidity cannot elegantly handle resizing dynamic arrays in memory so loop is performed twice
+        uint256 lenCounter;
+        for (uint256 i; i < allImpls.length; ++i) {
+            if (allImpls[i].tokenStandard == standard) {
+                ++lenCounter;
+            }
+        }
+
+        TokenFactoryStorage.TokenImpl[] memory filteredImpls = new TokenFactoryStorage.TokenImpl[](lenCounter);
+        uint256 k;
+        for (uint256 j; j < allImpls.length; ++j) {
+            if (allImpls[j].tokenStandard == standard) {
+                filteredImpls[k] = allImpls[j];
+                ++k;
+            }
+        }
+
+        return filteredImpls;
+    }
+
+    /*=============
+        SETTERS
+    =============*/
+
+    /// @inheritdoc ITokenFactory
+    function addImplementation(TokenFactoryStorage.TokenImpl memory tokenImpl) public onlyOwner {
+        _addImplementation(tokenImpl);
+    }
+
+    /// @inheritdoc ITokenFactory
+    function removeImplementation(TokenFactoryStorage.TokenImpl memory tokenImpl) public onlyOwner {
+        _removeImplementation(tokenImpl);
+    }
+
+    /*===============
+        INTERNALS
+    ===============*/
+
+    function _checkIsApprovedImplementation(address _implementation, TokenFactoryStorage.TokenStandard _standard) internal {
+        TokenFactoryStorage.TokenImpl[] memory filteredImpls = getApprovedImplementations(_standard);
+        for (uint256 i; i < filteredImpls.length; ++i) {
+            // if match is found, exit without reverting
+            if (filteredImpls[i].implementation == _implementation) return;
+        }
+
+        revert InvalidImplementation();
+    }
+
+    function _addImplementation(TokenFactoryStorage.TokenImpl memory _tokenImpl) internal {
+        TokenFactoryStorage.Layout storage layout = TokenFactoryStorage.layout();
+        layout.tokenImplementations.push(_tokenImpl);
+    }
+
+    function _removeImplementation(TokenFactoryStorage.TokenImpl memory _tokenImpl) internal {
+        // instantiate memory copies to minimize gas cost
+        TokenFactoryStorage.TokenImpl[] memory allImpls = getApprovedImplementations();
+
+        unchecked {
+            uint256 length = allImpls.length;
+            for (uint256 i; i < length; ++i) {
+                // find match if it exists
+                if (allImpls[i].implementation != _tokenImpl.implementation) continue;
+
+                // if match found && it is not final index, copy final member deeper into array
+                TokenFactoryStorage.Layout storage layout = TokenFactoryStorage.layout();
+                if (i != length - 1) {
+                    // only write to storage once match is found
+                    layout.tokenImplementations[i] = allImpls[length - 1];
+                }
+
+                // remove final index of storage array after copying its data deeper into array
+                delete layout.tokenImplementations[length - 1];
+            }
         }
     }
 

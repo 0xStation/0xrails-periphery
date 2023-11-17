@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
+import {TokenFactoryStorage} from "src/factory/TokenFactoryStorage.sol";
+
 interface ITokenFactory {
     enum TokenStandard {
         ERC20,
@@ -63,4 +65,9 @@ interface ITokenFactory {
         string memory symbol,
         bytes calldata initData
     ) external returns (address payable token);
+
+    /// @dev Function to add a recognized token implementation (packed with its ERC standard enum)
+    function addImplementation(TokenFactoryStorage.TokenImpl memory tokenImpl) external;
+    /// @dev Function to remove a recognized token implementation (packed with its ERC standard enum)
+    function removeImplementation(TokenFactoryStorage.TokenImpl memory tokenImpl) external;
 }
