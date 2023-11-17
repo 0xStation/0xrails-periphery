@@ -10,8 +10,8 @@ import {PermissionGatedInitializer} from "src/accountGroup/initializer/Permissio
 import {IAccountGroup} from "src/accountGroup/interface/IAccountGroup.sol";
 import {AccountGroupLib} from "src/accountGroup/lib/AccountGroupLib.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
-import {IOwnableInternal} from "0xrails/access/ownable/interface/IOwnable.sol";
-import {IPermissionsInternal} from "0xrails/access/permissions/interface/IPermissions.sol";
+import {IOwnable} from "0xrails/access/ownable/interface/IOwnable.sol";
+import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 
 
 contract AccountGroupTest is Test, Account {
@@ -60,7 +60,7 @@ contract AccountGroupTest is Test, Account {
         assertEq(accountGroup.getDefaultAccountInitializer(), address(0x0));
 
         // attempt to set initializer as not owner
-        vm.expectRevert(abi.encodeWithSelector(IOwnableInternal.OwnerUnauthorizedAccount.selector, address(this)));
+        vm.expectRevert(abi.encodeWithSelector(IOwnable.OwnerUnauthorizedAccount.selector, address(this)));
         accountGroup.setDefaultAccountInitializer(address(permissionGatedInitializer));
 
         // assert no state changes
@@ -87,7 +87,7 @@ contract AccountGroupTest is Test, Account {
         AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(accountGroup));
         
         // attempt to set initializer without permission
-        vm.expectRevert(abi.encodeWithSelector(IPermissionsInternal.PermissionDoesNotExist.selector, Operations.ADMIN, address(this)));
+        vm.expectRevert(abi.encodeWithSelector(IPermissions.PermissionDoesNotExist.selector, Operations.ADMIN, address(this)));
         accountGroup.setAccountInitializer(params.subgroupId, address(permissionGatedInitializer));
         // assert no state changes made
         assertEq(accountGroup.getAccountInitializer(address(accountGroup)), address(0x0));

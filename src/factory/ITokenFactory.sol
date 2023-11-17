@@ -4,13 +4,16 @@ pragma solidity ^0.8.13;
 import {TokenFactoryStorage} from "src/factory/TokenFactoryStorage.sol";
 
 interface ITokenFactory {
+    enum TokenStandard {
+        ERC20,
+        ERC721,
+        ERC1155
+    }
+
     event ERC20Created(address indexed token);
     event ERC721Created(address indexed token);
     event ERC1155Created(address indexed token);
-    event ImplementationSet(
-        address indexed newImplementation, 
-        TokenFactoryStorage.TokenStandard indexed standard
-    );
+    event ImplementationSet(address indexed newImplementation, TokenStandard indexed standard);
 
     error InvalidImplementation();
 

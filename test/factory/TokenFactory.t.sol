@@ -9,7 +9,7 @@ import {ITokenFactory} from "src/factory/ITokenFactory.sol";
 import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
 import {ERC20Rails} from "0xrails/cores/ERC20/ERC20Rails.sol";
 import {ERC1155Rails} from "0xrails/cores/ERC1155/ERC1155Rails.sol";
-import {IInitializableInternal} from "0xrails/lib/initializable/IInitializable.sol";
+import {IInitializable} from "0xrails/lib/initializable/IInitializable.sol";
 import {IOwnable} from "0xrails/access/ownable/interface/IOwnable.sol";
 import {TokenFactoryStorage} from "src/factory/TokenFactoryStorage.sol";
 
@@ -145,7 +145,7 @@ contract TokenFactoryTest is Test, IERC1967 {
         assertEq(tokenFactoryProxy.owner(), owner);
 
         // attempt re initialization
-        err = abi.encodeWithSelector(IInitializableInternal.AlreadyInitialized.selector);
+        err = abi.encodeWithSelector(IInitializable.AlreadyInitialized.selector);
         vm.expectRevert(err);
         tokenFactoryProxy.initialize(owner, address(erc20RailsImpl), address(erc721RailsImpl), address(erc1155RailsImpl));
     }
