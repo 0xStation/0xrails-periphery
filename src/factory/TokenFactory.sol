@@ -62,7 +62,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
     ) public returns (address payable token) {
         _checkIsApprovedImplementation(implementation, TokenFactoryStorage.TokenStandard.ERC20);
 
-        bytes32 deploymentSalt = keccak256(abi.encodePacked(inputSalt, owner, name, symbol, initData));
+        bytes32 deploymentSalt = keccak256(abi.encode(inputSalt, owner, name, symbol, initData));
         token = payable(address(new ERC1967Proxy{salt: deploymentSalt}(implementation, bytes(""))));
         emit ERC20Created(token);
 
@@ -80,7 +80,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
     ) public returns (address payable token) {
         _checkIsApprovedImplementation(implementation, TokenFactoryStorage.TokenStandard.ERC721);
 
-        bytes32 deploymentSalt = keccak256(abi.encodePacked(inputSalt, owner, name, symbol, initData));
+        bytes32 deploymentSalt = keccak256(abi.encode(inputSalt, owner, name, symbol, initData));
         token = payable(address(new ERC1967Proxy{salt: deploymentSalt}(implementation, bytes(""))));
         emit ERC721Created(token);
 
@@ -98,7 +98,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
     ) public returns (address payable token) {
         _checkIsApprovedImplementation(implementation, TokenFactoryStorage.TokenStandard.ERC1155);
 
-        bytes32 deploymentSalt = keccak256(abi.encodePacked(inputSalt, owner, name, symbol, initData));
+        bytes32 deploymentSalt = keccak256(abi.encode(inputSalt, owner, name, symbol, initData));
         token = payable(address(new ERC1967Proxy{salt: deploymentSalt}(implementation, bytes(""))));
         emit ERC1155Created(token);
 
