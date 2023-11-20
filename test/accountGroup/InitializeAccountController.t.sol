@@ -38,12 +38,14 @@ contract InitializeAccountControllerTest is Test, Account {
     PermissionGatedInitializer permissionGatedInitializer;
     InitializeAccountController initializeAccountController;
 
+    bytes32 inputSalt;
     address owner;
     address entryPointAddress;
     bytes32 bytecodeSalt;
     bytes initData;
 
     function setUp() public {
+        inputSalt = bytes32(0x0);
         owner = createAccount();
         entryPointAddress = 0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789;
 
@@ -55,7 +57,7 @@ contract InitializeAccountControllerTest is Test, Account {
         erc721RailsImpl = new ERC721Rails();
         tokenFactoryProxy.initialize(owner, address(0x0), address(erc721RailsImpl), address(0x0)); // erc20, erc1155 impls not needed
 
-        erc721Rails = ERC721Rails(tokenFactoryProxy.createERC721(payable(address(erc721RailsImpl)), owner, "test", "tst", ''));
+        erc721Rails = ERC721Rails(tokenFactoryProxy.createERC721(payable(address(erc721RailsImpl)), inputSalt, owner, "test", "tst", ''));
         user = new ERC721Holder();
         vm.prank(owner);
         erc721Rails.mintTo(address(user), 1);

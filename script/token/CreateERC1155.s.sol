@@ -19,7 +19,10 @@ contract CreateERC1155 is ScriptUtils {
         CONFIG 
     ============*/
 
-    /// @notice LINEA: v.1.10
+    /// @notice MAINNET: v0.4.0 introduced a create2 salt for counterfactual collections & cross chain support
+    bytes32 inputSalt = bytes32(0x0);
+
+    /// @notice LINEA: v0.1.0
     address coreImpl = 0x7a391860CF812E8151d9c578ca4CF36a015ddb79; // ERC1155Rails Linea
 
     address public owner = ScriptUtils.symmetry;
@@ -28,7 +31,7 @@ contract CreateERC1155 is ScriptUtils {
 
     address public payoutAddress = ScriptUtils.turnkey;
 
-    /// @notice GOERLI: v1.0.0
+    /// @notice GOERLI: v0.0.0
     // address public mintModule = 0x8226Ff7e6F1CD020dC23901f71265D7d47a636d4; // Free mint goerli
     // address public metadataURIExtension = 0xD130547Bfcb52f66d0233F0206A6C427d89F81ED; // goerli
     // address public payoutAddressExtension = 0x52Db1fa1B82B63842513Da4482Cd41b26c1Bc307; // goerli
@@ -73,7 +76,7 @@ contract CreateERC1155 is ScriptUtils {
 
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, initCalls);
 
-        TokenFactory(tokenFactory).createERC1155(payable(coreImpl), owner, name, symbol, initData);
+        TokenFactory(tokenFactory).createERC1155(payable(coreImpl), inputSalt, owner, name, symbol, initData);
 
         vm.stopBroadcast();
     }

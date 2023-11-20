@@ -17,6 +17,9 @@ contract CreateERC20 is ScriptUtils {
     address public owner = 0x016562aA41A8697720ce0943F003141f5dEAe006;
     string public name = "DonkeyPoints";
     string public symbol = "DP";
+    
+    /// @notice MAINNET: v0.4.0 introduced a create2 salt for counterfactual collections & cross chain support
+    bytes32 inputSalt = bytes32(0x0);
 
     /// @notice Checkout lib/protocol-ops vX.Y.Z to automatically get addresses
     JsonManager.DeploysJson $deploys = setDeploysJsonStruct();
@@ -46,7 +49,7 @@ contract CreateERC20 is ScriptUtils {
 
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, initCalls);
 
-        TokenFactory(tokenFactory).createERC20(payable(erc20CoreImpl), owner, name, symbol, initData);
+        TokenFactory(tokenFactory).createERC20(payable(erc20CoreImpl), inputSalt, owner, name, symbol, initData);
 
         vm.stopBroadcast();
     }

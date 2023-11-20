@@ -23,6 +23,7 @@ interface ITokenFactory {
 
     /// @dev Function to create a new ERC20 token proxy using given data
     /// @param implementation The logic implementation address to be set for the created proxy
+    /// @param inputSalt A 32-byte salt to enable consistent addresses across chains and prevent collision
     /// @param owner The owner address to be set for the new token proxy
     /// @param name The token name string
     /// @param symbol The token symbol string
@@ -30,6 +31,7 @@ interface ITokenFactory {
     /// @return token The created token proxy address
     function createERC20(
         address payable implementation,
+        bytes32 inputSalt,
         address owner,
         string memory name,
         string memory symbol,
@@ -38,6 +40,7 @@ interface ITokenFactory {
 
     /// @dev Function to create a new ERC721 token proxy using given data
     /// @param implementation The logic implementation address to be set for the created proxy
+    /// @param inputSalt A 32-byte salt to enable consistent addresses across chains and prevent collision
     /// @param owner The owner address to be set for the new token proxy
     /// @param name The token name string
     /// @param symbol The token symbol string
@@ -45,6 +48,7 @@ interface ITokenFactory {
     /// @return token The created token proxy address
     function createERC721(
         address payable implementation,
+        bytes32 inputSalt,
         address owner,
         string memory name,
         string memory symbol,
@@ -53,6 +57,7 @@ interface ITokenFactory {
 
     /// @dev Function to create a new ERC1155 token proxy using given data
     /// @param implementation The logic implementation address to be set for the created proxy
+    /// @param inputSalt A 32-byte salt to enable consistent addresses across chains and prevent collision
     /// @param owner The owner address to be set for the new token proxy
     /// @param name The token name string
     /// @param symbol The token symbol string
@@ -60,6 +65,7 @@ interface ITokenFactory {
     /// @return token The created token proxy address
     function createERC1155(
         address payable implementation,
+        bytes32 inputSalt,
         address owner,
         string memory name,
         string memory symbol,

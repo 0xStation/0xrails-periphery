@@ -23,6 +23,7 @@ contract TokenFactoryTest is Test, IERC1967 {
     TokenFactory public tokenFactoryImpl;
     TokenFactory public tokenFactoryProxy; // ERC1967 proxy wrapped in TokenFactory for convenience
 
+    bytes32 inputSalt;
     address owner;
     string public name;
     string public symbol;
@@ -39,6 +40,7 @@ contract TokenFactoryTest is Test, IERC1967 {
         // deploy badge implementation
         erc1155RailsImpl = new ERC1155Rails();
 
+        inputSalt = bytes32(0x0);
         // configure testing initData for all Rails contracts
         owner = address(0xbeefEbabe);
         name = "Station";
@@ -167,7 +169,7 @@ contract TokenFactoryTest is Test, IERC1967 {
 
         address oldMembership = address(erc721RailsProxy);
         ERC721Rails newMembership = ERC721Rails(
-            payable(tokenFactoryProxy.createERC721(payable(address(erc721RailsImpl)), newOwner, newName, newSymbol, ""))
+            payable(tokenFactoryProxy.createERC721(payable(address(erc721RailsImpl)), inputSalt, newOwner, newName, newSymbol, ""))
         );
         assertFalse(oldMembership == address(newMembership));
         assertEq(newMembership.owner(), newOwner);
@@ -182,7 +184,7 @@ contract TokenFactoryTest is Test, IERC1967 {
         address oldPoints = address(erc20RailsProxy);
 
         ERC20Rails newPoints = ERC20Rails(
-            payable(tokenFactoryProxy.createERC20(payable(address(erc20RailsImpl)), newOwner, newName, newSymbol, ""))
+            payable(tokenFactoryProxy.createERC20(payable(address(erc20RailsImpl)), inputSalt, newOwner, newName, newSymbol, ""))
         );
         assertFalse(oldPoints == address(newPoints));
         assertEq(newPoints.owner(), newOwner);
@@ -197,7 +199,7 @@ contract TokenFactoryTest is Test, IERC1967 {
         address oldBadges = address(erc1155RailsProxy);
         ERC1155Rails newBadges = ERC1155Rails(
             payable(
-                tokenFactoryProxy.createERC1155(payable(address(erc1155RailsImpl)), newOwner, newName, newSymbol, "")
+                tokenFactoryProxy.createERC1155(payable(address(erc1155RailsImpl)), inputSalt, newOwner, newName, newSymbol, "")
             )
         );
         assertFalse(oldBadges == address(newBadges));
