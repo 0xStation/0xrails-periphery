@@ -42,6 +42,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
     /// @inheritdoc ITokenFactory
     function createERC20(
         address payable implementation,
+        bytes32 inputSalt,
         address owner,
         string memory name,
         string memory symbol,
@@ -49,14 +50,17 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
     ) public returns (address payable token) {
         _checkIsApprovedImplementation(implementation, TokenFactoryStorage.TokenStandard.ERC20);
 
-        token = payable(address(new ERC1967Proxy(implementation, bytes(""))));
+        bytes32 deploymentSalt = keccak256(inputSalt, owner, name, symbol, initData);
+        token = payable(address(new ERC1967Proxy{salt: deploymentSalt}(implementation, bytes(""))));
         emit ERC20Created(token);
+        
         IERC20Rails(token).initialize(owner, name, symbol, initData);
     }
 
     /// @inheritdoc ITokenFactory
     function createERC721(
         address payable implementation,
+        bytes32 inputSalt,
         address owner,
         string memory name,
         string memory symbol,
@@ -64,14 +68,17 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
     ) public returns (address payable token) {
         _checkIsApprovedImplementation(implementation, TokenFactoryStorage.TokenStandard.ERC721);
 
-        token = payable(address(new ERC1967Proxy(implementation, bytes(""))));
+        bytes32 deploymentSalt = keccak256(inputSalt, owner, name, symbol, initData);
+        token = payable(address(new ERC1967Proxy{salt: deploymentSalt}(implementation, bytes(""))));
         emit ERC721Created(token);
+
         IERC721Rails(token).initialize(owner, name, symbol, initData);
     }
 
     /// @inheritdoc ITokenFactory
     function createERC1155(
         address payable implementation,
+        bytes32 inputSalt,
         address owner,
         string memory name,
         string memory symbol,
@@ -79,8 +86,10 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
     ) public returns (address payable token) {
         _checkIsApprovedImplementation(implementation, TokenFactoryStorage.TokenStandard.ERC1155);
 
-        token = payable(address(new ERC1967Proxy(implementation, bytes(""))));
+        bytes32 deploymentSalt = keccak256(inputSalt, owner, name, symbol, initData);
+        token = payable(address(new ERC1967Proxy{salt: deploymentSalt}(implementation, bytes(""))));
         emit ERC1155Created(token);
+
         IERC1155Rails(token).initialize(owner, name, symbol, initData);
     }
 
