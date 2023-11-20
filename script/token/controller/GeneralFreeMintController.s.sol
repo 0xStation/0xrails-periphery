@@ -21,10 +21,6 @@ contract DeployGeneralFreeMintModule is ScriptUtils {
     // following contract will be deployed
     GeneralFreeMintController generalFreeMintController;
 
-    /// @notice Checkout lib/protocol-ops vX.Y.Z to automatically get addresses
-    JsonManager.DeploysJson $deploys = setDeploysJsonStruct();
-    address _metadataRouter = $deploys.MetadataRouterProxy;
-
     /*===============
         BROADCAST 
     ===============*/
@@ -32,13 +28,10 @@ contract DeployGeneralFreeMintModule is ScriptUtils {
     function run() public {
         vm.startBroadcast();
 
-        // string memory saltString = "station";
-        // bytes32 salt = bytes32(bytes(saltString));
-
         bytes32 salt = ScriptUtils.create2Salt;
         string memory saltString = Strings.toHexString(uint256(salt), 32);
 
-        generalFreeMintController = new GeneralFreeMintController{salt: salt}(_metadataRouter);
+        generalFreeMintController = new GeneralFreeMintController{salt: salt}();
 
         logAddress("GeneralFreeMintController @", Strings.toHexString(address(generalFreeMintController)));
 

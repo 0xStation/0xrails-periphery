@@ -9,22 +9,13 @@ import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {PayoutAddress} from "src/membership/extensions/PayoutAddress/PayoutAddress.sol";
 import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
-import {MetadataRouter} from "src/metadataRouter/MetadataRouter.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
     PayoutAddressExtension public payoutAddressExtension;
-    MetadataRouter public exampleRouterImpl;
-    MetadataRouter public exampleRouterProxy;
 
     address public owner_;
     address public initialPayoutAddress;
-    string public someRoute;
-    string public defaultURI;
-    string public someURI;
-    string[] public routes;
-    string[] public uris;
-    bytes public initData;
     bytes public payoutAddressCall;
     bytes public getAllSelectorsCall;
 
@@ -33,25 +24,9 @@ contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
 
     function setUp() public {
         owner_ = vm.addr(0xbeefEEbabe);
-        someRoute = "token";
-        routes = new string[](1);
-        routes[0] = someRoute;
-        defaultURI = "default";
-        someURI = "someURI";
-        uris = new string[](1);
-        uris[0] = someURI;
-        initData = abi.encodeWithSelector(MetadataRouter.initialize.selector, owner_); //, defaultURI, routes, uris);
-
-        exampleRouterImpl = new MetadataRouter();
-        exampleRouterProxy = MetadataRouter(address(new ERC1967Proxy(address(exampleRouterImpl), initData)));
-
-        // initialize MetadataRouter defaultURI and routeURI
-        vm.startPrank(owner_);
-        exampleRouterProxy.setDefaultURI(defaultURI);
-        exampleRouterProxy.setRouteURI(someRoute, someURI);
 
         // deploy payoutAddressExtension as `owner` so it grants `owner` ADMIN permission
-        payoutAddressExtension = new PayoutAddressExtension(address(exampleRouterProxy));
+        payoutAddressExtension = new PayoutAddressExtension();
         vm.stopPrank();
 
         // ERC721Rails is just used to access the `Permissions::hasPermission()` method,
@@ -71,14 +46,6 @@ contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
     }
 
     function test_setUp() public {
-        string memory returnedURI = exampleRouterProxy.routeURI(someRoute);
-        string memory expectedURI = someURI;
-        assertEq(returnedURI, expectedURI);
-
-        string memory returnedDefault = exampleRouterProxy.defaultURI();
-        string memory expectedDefault = defaultURI;
-        assertEq(returnedDefault, expectedDefault);
-
         (, bytes memory ret) = address(this).call(payoutAddressCall);
         address returnedPayoutAddress = abi.decode(ret, (address));
         assertEq(returnedPayoutAddress, initialPayoutAddress);

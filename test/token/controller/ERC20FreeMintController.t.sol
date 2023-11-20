@@ -5,7 +5,6 @@ import {GeneralFreeMintController} from "src/token/controller/GeneralFreeMintCon
 import {Test} from "forge-std/Test.sol";
 import {PermitController} from "src/lib/module/PermitController.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
-import {MetadataRouter} from "src/metadataRouter/MetadataRouter.sol";
 import {ECDSA} from "openzeppelin-contracts/utils/cryptography/SignatureChecker.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
@@ -13,10 +12,7 @@ import {ERC20Rails} from "0xrails/cores/ERC20/ERC20Rails.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 
 contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
-    // to satisfy constructor requirements at initialization, address(0x0) is passed
-    constructor() GeneralFreeMintController(address(0x0)) {}
 
-    MetadataRouter public _metadataRouter;
     GeneralFreeMintController public generalFreeMintController;
     FeeManager public feeManager;
     ERC20Rails public erc20Impl;
@@ -50,9 +46,8 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
         someSigner = vm.addr(somePK);
 
         // deploy infra
-        _metadataRouter = new MetadataRouter();
         feeManager = new FeeManager(owner, 0, 0, 0, 0);
-        generalFreeMintController = new GeneralFreeMintController(address(_metadataRouter));
+        generalFreeMintController = new GeneralFreeMintController();
 
         // deploy collection & assign for convenience
         erc20Impl = new ERC20Rails();

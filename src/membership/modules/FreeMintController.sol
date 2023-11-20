@@ -8,21 +8,13 @@ import {Operations} from "0xrails/lib/Operations.sol";
 import {SetupController} from "src/lib/module/SetupController.sol";
 import {PermitController} from "src/lib/module/PermitController.sol";
 import {FeeController} from "src/lib/module/FeeController.sol";
-import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 
 /// @title Station Network FreeMintController Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg), 👦🏻👦🏻.eth
 /// @dev Provides a modular contract to handle collections who wish for their membership mints to be
 /// free of charge, save for Station Network's base fee
 
-contract FreeMintController is SetupController, PermitController, FeeController, ContractMetadata {
-    /*=======================
-        CONTRACT METADATA
-    =======================*/
-
-    function _contractRoute() internal pure override returns (string memory route) {
-        return "module";
-    }
+contract FreeMintController is SetupController, PermitController, FeeController {
 
     /*=============
         STORAGE
@@ -44,10 +36,9 @@ contract FreeMintController is SetupController, PermitController, FeeController,
 
     /// @param _newOwner The owner of the FeeControllerV2, an address managed by Station Network
     /// @param _feeManager The FeeManager's address
-    constructor(address _newOwner, address _feeManager, address metadataRouter)
+    constructor(address _newOwner, address _feeManager)
         PermitController()
         FeeController(_newOwner, _feeManager)
-        ContractMetadata(metadataRouter)
     {}
 
     /// @dev Function to set up and configure a new collection

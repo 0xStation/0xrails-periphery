@@ -59,18 +59,18 @@ contract Deploy is ScriptUtils {
         (metadataRouterImpl, metadataRouter) = deployMetadataRouter(salt, owner);
         (tokenFactoryImpl, tokenFactory) = deployTokenFactory(salt, owner);
 
-        onePerAddressGuard = deployOnePerAddressGuard(address(metadataRouter), salt);
-        nftMetadataRouterExtension = deployNFTMetadataRouterExtension(address(metadataRouter), salt);
-        payoutAddressExtension = deployPayoutAddressExtension(address(metadataRouter), salt);
+        onePerAddressGuard = deployOnePerAddressGuard(salt);
+        nftMetadataRouterExtension = deployNFTMetadataRouterExtension(salt, address(metadataRouter));
+        payoutAddressExtension = deployPayoutAddressExtension(salt);
 
         feeManager = FeeManager(deployFeeManager(owner, salt));
-        freeMintModule = deployFreeMintController(owner, address(feeManager), address(metadataRouter), salt);
+        freeMintModule = deployFreeMintController(owner, address(feeManager), salt);
         gasCoinPurchaseController =
-            deployGasCoinPurchaseController(owner, address(feeManager), address(metadataRouter), salt);
+            deployGasCoinPurchaseController(owner, address(feeManager), salt);
 
         // using stablecoin 'environment' params above
         stablecoinPurchaseController = deployStablecoinPurchaseController(
-            owner, address(feeManager), decimals, currency, stablecoins, address(metadataRouter), salt
+            owner, address(feeManager), decimals, currency, stablecoins, salt
         );
 
         // After deployments, format Multicall3 calls and execute it from FounderSafe as module sender
@@ -137,22 +137,22 @@ contract Deploy is ScriptUtils {
         _proxy = TokenFactory(address(new ERC1967Proxy{salt: _salt}(address(_impl), tokenFactoryInitData)));
     }
 
-    function deployOnePerAddressGuard(address _metadataRouter, bytes32 _salt) internal returns (OnePerAddressGuard) {
-        return new OnePerAddressGuard{salt: _salt}(_metadataRouter);
+    function deployOnePerAddressGuard(bytes32 _salt) internal returns (OnePerAddressGuard) {
+        return new OnePerAddressGuard{salt: _salt}();
     }
 
-    function deployNFTMetadataRouterExtension(address _metadataRouter, bytes32 _salt)
+    function deployNFTMetadataRouterExtension(bytes32 _salt, address _metadataRouter)
         internal
         returns (NFTMetadataRouterExtension)
     {
         return new NFTMetadataRouterExtension{salt: _salt}(_metadataRouter);
     }
 
-    function deployPayoutAddressExtension(address _metadataRouter, bytes32 _salt)
+    function deployPayoutAddressExtension(bytes32 _salt)
         internal
         returns (PayoutAddressExtension)
     {
-        return new PayoutAddressExtension{salt: _salt}(_metadataRouter);
+        return new PayoutAddressExtension{salt: _salt}();
     }
 
     function deployFeeManager(address _owner, bytes32 _salt) internal returns (FeeManager) {
@@ -164,20 +164,19 @@ contract Deploy is ScriptUtils {
             new FeeManager{salt: _salt}(_owner, _defaultBaseFee, _defaultVariableFee, _ethBaseFee, _defaultVariableFee);
     }
 
-    function deployFreeMintController(address _owner, address _feeManager, address _metadataRouter, bytes32 _salt)
+    function deployFreeMintController(address _owner, address _feeManager, bytes32 _salt)
         internal
         returns (FreeMintController)
     {
-        return new FreeMintController{salt: _salt}(_owner, _feeManager, _metadataRouter);
+        return new FreeMintController{salt: _salt}(_owner, _feeManager);
     }
 
     function deployGasCoinPurchaseController(
         address _owner,
         address _feeManager,
-        address _metadataRouter,
         bytes32 _salt
     ) internal returns (GasCoinPurchaseController) {
-        return new GasCoinPurchaseController{salt: _salt}(_owner, _feeManager, _metadataRouter);
+        return new GasCoinPurchaseController{salt: _salt}(_owner, _feeManager);
     }
 
     function deployStablecoinPurchaseController(
@@ -186,10 +185,9 @@ contract Deploy is ScriptUtils {
         uint8 _decimals,
         string memory _currency,
         address[] memory _stablecoins,
-        address _metadataRouter,
         bytes32 _salt
     ) internal returns (StablecoinPurchaseController) {
         return
-        new StablecoinPurchaseController{salt: _salt}(_owner, _feeManager, _decimals, _currency, _stablecoins, _metadataRouter);
+        new StablecoinPurchaseController{salt: _salt}(_owner, _feeManager, _decimals, _currency, _stablecoins);
     }
 }

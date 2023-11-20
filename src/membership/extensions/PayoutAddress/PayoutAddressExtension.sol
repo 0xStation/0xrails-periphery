@@ -2,20 +2,9 @@
 pragma solidity ^0.8.13;
 
 import {Extension} from "0xrails/extension/Extension.sol";
-
-import {ContractMetadata} from "../../../lib/ContractMetadata.sol";
 import {PayoutAddress} from "./PayoutAddress.sol";
 
-contract PayoutAddressExtension is PayoutAddress, Extension, ContractMetadata {
-    /*=======================
-        CONTRACT METADATA
-    =======================*/
-
-    constructor(address router) Extension() ContractMetadata(router) {}
-
-    function _contractRoute() internal pure override returns (string memory route) {
-        return "extension";
-    }
+contract PayoutAddressExtension is PayoutAddress, Extension {
 
     /*===============
         EXTENSION

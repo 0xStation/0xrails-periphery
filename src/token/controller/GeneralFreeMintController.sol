@@ -9,7 +9,6 @@ import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.so
 import {Operations} from "0xrails/lib/Operations.sol";
 import {PermitController} from "src/lib/module/PermitController.sol";
 import {SetupController} from "src/lib/module/SetupController.sol";
-import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 
 /// @title Station FreeMintController Contract
 /// @author frog (@0xmcg), 👦🏻👦🏻.eth
@@ -17,7 +16,7 @@ import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 /// @dev Supports all three 0xRails token standard implementations: ERC20, ERC721, ERC1155
 /// @notice As this controller is entirely fee-less, it does not make use of the FeeManager,
 /// which enforces a baseline default mint fee
-contract GeneralFreeMintController is PermitController, SetupController, ContractMetadata, Multicall {
+contract GeneralFreeMintController is PermitController, SetupController, Multicall {
 
     /*=============
         STORAGE
@@ -37,10 +36,7 @@ contract GeneralFreeMintController is PermitController, SetupController, Contrac
         CONFIG
     ============*/
 
-    /// @param _metadataRouter The GroupOS MetadataRouter's address
-    constructor(address _metadataRouter) 
-        PermitController() 
-        ContractMetadata(_metadataRouter) {}
+    constructor() PermitController() {}
 
     /// @dev Function to set up and configure a new collection's purchase prices
     /// @param collection The new collection to configure
@@ -104,13 +100,5 @@ contract GeneralFreeMintController is PermitController, SetupController, Contrac
 
     function requirePermits(bytes memory) public pure override returns (bool) {
         return true;
-    }
-
-    /*==============
-        OVERRIDE
-    ==============*/
-
-    function _contractRoute() internal pure override returns (string memory route) {
-        return "module";
     }
 }

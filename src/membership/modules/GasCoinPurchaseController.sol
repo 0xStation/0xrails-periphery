@@ -9,21 +9,13 @@ import {SetupController} from "src/lib/module/SetupController.sol";
 import {PermitController} from "src/lib/module/PermitController.sol";
 import {FeeController} from "src/lib/module/FeeController.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
-import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 
 /// @title Station Network GasCoinPurchaseController Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg), 👦🏻👦🏻.eth
 /// @dev Provides a modular contract to handle collections who wish for their membership mints to be
 /// paid in the native currency of the chain this contract is deployed to
 
-contract GasCoinPurchaseController is SetupController, PermitController, FeeController, ContractMetadata {
-    /*=======================
-        CONTRACT METADATA
-    =======================*/
-
-    function _contractRoute() internal pure override returns (string memory route) {
-        return "module";
-    }
+contract GasCoinPurchaseController is SetupController, PermitController, FeeController {
 
     /*=============
         STORAGE
@@ -47,10 +39,9 @@ contract GasCoinPurchaseController is SetupController, PermitController, FeeCont
 
     /// @param _newOwner The owner of the FeeControllerV2, an address managed by Station Network
     /// @param _feeManager The FeeManager's address
-    constructor(address _newOwner, address _feeManager, address metadataRouter)
+    constructor(address _newOwner, address _feeManager)
         PermitController()
         FeeController(_newOwner, _feeManager)
-        ContractMetadata(metadataRouter)
     {}
 
     /// @dev Function to set up and configure a new collection's purchase prices

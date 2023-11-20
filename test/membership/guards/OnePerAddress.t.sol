@@ -19,7 +19,7 @@ contract OnePerAddressGuardTest is Test, SetUpMembership {
 
     function setUp() public override {
         SetUpMembership.setUp(); // implementation, factory, extensions
-        guard = new OnePerAddressGuard(address(0));
+        guard = new OnePerAddressGuard();
         proxy = SetUpMembership.create();
 
         vm.startPrank(owner);

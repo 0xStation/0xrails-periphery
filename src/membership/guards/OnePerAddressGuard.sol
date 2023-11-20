@@ -4,24 +4,12 @@ pragma solidity ^0.8.13;
 import {IGuard} from "0xrails/guard/interface/IGuard.sol";
 import {IERC721} from "0xrails/cores/ERC721/interface/IERC721.sol";
 
-import {ContractMetadata} from "../../lib/ContractMetadata.sol";
-
 /// @title GroupOS OnePerAddressGuard Contract
 /// @author symmetry (@symmtry69)
 /// @notice This contract serves as a guard pattern implementation, similar to that of Gnosis Safe contracts,
 /// designed to ensure that an address can only own one ERC-721 token at a time.
-contract OnePerAddressGuard is ContractMetadata, IGuard {
+contract OnePerAddressGuard is IGuard {
     error OnePerAddress(address owner, uint256 balance);
-
-    /*=======================
-        CONTRACT METADATA
-    =======================*/
-
-    constructor(address metadataRouter) ContractMetadata(metadataRouter) {}
-
-    function _contractRoute() internal pure override returns (string memory route) {
-        return "guard";
-    }
 
     /*===========
         VIEWS
