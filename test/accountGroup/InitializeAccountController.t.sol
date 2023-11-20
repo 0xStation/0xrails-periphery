@@ -24,7 +24,6 @@ import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
 import {BotAccount} from "0xrails/cores/account/BotAccount.sol";
 
 contract InitializeAccountControllerTest is Test, Account {
-
     ERC6551Registry erc6551Registry;
     TokenFactory tokenFactoryImpl;
     TokenFactory tokenFactoryProxy;
@@ -50,14 +49,16 @@ contract InitializeAccountControllerTest is Test, Account {
         entryPointAddress = 0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789;
 
         erc6551Registry = new ERC6551Registry();
-        
+
         tokenFactoryImpl = new TokenFactory();
         tokenFactoryProxy = TokenFactory(address(new ERC1967Proxy(address(tokenFactoryImpl), '')));
 
         erc721RailsImpl = new ERC721Rails();
         tokenFactoryProxy.initialize(owner, address(0x0), address(erc721RailsImpl), address(0x0)); // erc20, erc1155 impls not needed
 
-        erc721Rails = ERC721Rails(tokenFactoryProxy.createERC721(payable(address(erc721RailsImpl)), inputSalt, owner, "test", "tst", ''));
+        erc721Rails = ERC721Rails(
+            tokenFactoryProxy.createERC721(payable(address(erc721RailsImpl)), inputSalt, owner, "test", "tst", "")
+        );
         user = new ERC721Holder();
         vm.prank(owner);
         erc721Rails.mintTo(address(user), 1);
@@ -88,12 +89,21 @@ contract InitializeAccountControllerTest is Test, Account {
         assertEq(accountGroup.getAccountInitializer(address(accountGroup)), address(0x0));
     }
 
-    function test_createAndInitializeAccountOwner() public {        
+    function test_createAndInitializeAccountOwner() public {
         uint256 tokenId = 1;
         bytes memory data;
 
         vm.prank(owner);
-        address tba = initializeAccountController.createAndInitializeAccount(address(erc6551Registry), address(accountGroup), bytecodeSalt, block.chainid, address(erc721Rails), tokenId, address(botAccountImpl), data);
+        address tba = initializeAccountController.createAndInitializeAccount(
+            address(erc6551Registry),
+            address(accountGroup),
+            bytecodeSalt,
+            block.chainid,
+            address(erc721Rails),
+            tokenId,
+            address(botAccountImpl),
+            data
+        );
 
         // assert contract was created with expected bytecode
         AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(tba));
@@ -101,7 +111,7 @@ contract InitializeAccountControllerTest is Test, Account {
         assertEq(packedParams, bytecodeSalt);
     }
 
-    function test_createAndInitializeAccountPermission() public {        
+    function test_createAndInitializeAccountPermission() public {
         uint256 tokenId = 1;
         bytes memory data;
 
@@ -110,7 +120,16 @@ contract InitializeAccountControllerTest is Test, Account {
         IPermissions(address(accountGroup)).addPermission(Operations.INITIALIZE_ACCOUNT_PERMIT, address(user));
 
         vm.prank(address(user));
-        address tba = initializeAccountController.createAndInitializeAccount(address(erc6551Registry), address(accountGroup), bytecodeSalt, block.chainid, address(erc721Rails), tokenId, address(botAccountImpl), data);
+        address tba = initializeAccountController.createAndInitializeAccount(
+            address(erc6551Registry),
+            address(accountGroup),
+            bytecodeSalt,
+            block.chainid,
+            address(erc721Rails),
+            tokenId,
+            address(botAccountImpl),
+            data
+        );
 
         // assert contract was created with expected bytecode
         AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(tba));
@@ -118,11 +137,20 @@ contract InitializeAccountControllerTest is Test, Account {
         assertEq(packedParams, bytecodeSalt);
     }
 
-    function test_createAndInitializeAccountRevertPermitSignerInvalid() public {        
+    function test_createAndInitializeAccountRevertPermitSignerInvalid() public {
         uint256 tokenId = 1;
         bytes memory data;
 
         vm.expectRevert(abi.encodeWithSelector(PermitController.PermitSignerInvalid.selector, address(0x1)));
-        initializeAccountController.createAndInitializeAccount(address(erc6551Registry), address(accountGroup), bytecodeSalt, block.chainid, address(erc721Rails), tokenId, address(botAccountImpl), data);
+        initializeAccountController.createAndInitializeAccount(
+            address(erc6551Registry),
+            address(accountGroup),
+            bytecodeSalt,
+            block.chainid,
+            address(erc721Rails),
+            tokenId,
+            address(botAccountImpl),
+            data
+        );
     }
 }

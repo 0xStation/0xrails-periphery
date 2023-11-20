@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {ITokenFactory} from "src/factory/ITokenFactory.sol";
-import {GeneralFreeMintController} from "src/token/controller/GeneralFreeMintController.sol";
+import {PermitMintController} from "src/token/controller/PermitMintController.sol";
 import {ScriptUtils} from "lib/protocol-ops/script/ScriptUtils.sol";
 import {JsonManager} from "lib/protocol-ops/script/lib/JsonManager.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
@@ -12,18 +12,13 @@ import {console2} from "forge-std/console2.sol";
 
 // forge script --keystores $ETH_KEYSTORE --sender $ETH_FROM --broadcast --fork-url $GOERLI_RPC_URL script/erc20/modules/FreeMintController.s.sol
 // See deployed FreeMintController address in `Protocol-Ops::deploys.json`
-contract DeployGeneralFreeMintModule is ScriptUtils {
-
+contract DeployPermitMintController is ScriptUtils {
     /*============
         CONFIG
     ============*/
 
     // following contract will be deployed
-    GeneralFreeMintController generalFreeMintController;
-
-    /// @notice Checkout lib/protocol-ops vX.Y.Z to automatically get addresses
-    JsonManager.DeploysJson $deploys = setDeploysJsonStruct();
-    address _metadataRouter = $deploys.MetadataRouterProxy;
+    PermitMintController permitMintController;
 
     /*===============
         BROADCAST 
@@ -32,15 +27,12 @@ contract DeployGeneralFreeMintModule is ScriptUtils {
     function run() public {
         vm.startBroadcast();
 
-        // string memory saltString = "station";
-        // bytes32 salt = bytes32(bytes(saltString));
-
         bytes32 salt = ScriptUtils.create2Salt;
         string memory saltString = Strings.toHexString(uint256(salt), 32);
 
-        generalFreeMintController = new GeneralFreeMintController{salt: salt}(_metadataRouter);
+        permitMintController = new PermitMintController{salt: salt}();
 
-        logAddress("GeneralFreeMintController @", Strings.toHexString(address(generalFreeMintController)));
+        logAddress("PermitMintController @", Strings.toHexString(address(permitMintController)));
 
         vm.stopBroadcast();
     }

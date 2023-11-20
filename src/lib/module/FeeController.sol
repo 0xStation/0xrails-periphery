@@ -10,7 +10,7 @@ import {FeeManager} from "./FeeManager.sol";
 /// @title Station Network Fee Manager Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg), 👦🏻👦🏻.eth
 /// @dev This contract enables payment by handling funds when charging base and variable fees on each Membership's mints
-/// @notice The FeeController is intended to be inherited by all purchase modules to abstract all payment logic 
+/// @notice The FeeController is intended to be inherited by all purchase modules to abstract all payment logic
 /// and handle fees for every client's desired Membership implementation
 abstract contract FeeController is Ownable {
     // using SafeERC20 for covering USDT no-return and other transfer issues

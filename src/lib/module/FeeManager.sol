@@ -142,14 +142,14 @@ contract FeeManager is Ownable {
     /// @dev Function to get collection fees
     /// @param collection The collection whose fees will be read, including checks for client-specific fee discounts
     /// @param paymentToken The ERC20 token address used to pay fees. Will use base currency (ETH, MATIC, etc) when == address(0)
-    /// @param /*recipient*/ The address to mint to. Included to support future discounts on a per user basis 
+    /// @param /*recipient*/ The address to mint to. Included to support future discounts on a per user basis
     /// @param quantity The amount of tokens for which to compute total baseFee
     /// @param unitPrice The price of each token, used to compute subtotal on which to apply variableFee
     /// @param feeTotal The returned total incl fees for the given collection.
     function getFeeTotals(
         address collection,
         address paymentToken,
-        address /*recipient*/,
+        address, /*recipient*/
         uint256 quantity,
         uint256 unitPrice
     ) external view returns (uint256 feeTotal) {

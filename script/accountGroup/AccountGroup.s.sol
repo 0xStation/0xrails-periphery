@@ -58,23 +58,28 @@ contract AccountGroupScript is ScriptUtils {
         Call3 memory accountGroupSetDefaultAccountInitializerCall =
             Call3({target: address(accountGroup), allowFailure: false, callData: setDefaultAccountInitializer});
 
-        bytes memory setDefaultAccountImplementation = abi.encodeWithSelector(
-            AccountGroup.setDefaultAccountImplementation.selector, address(erc721AccountRails)
-        );
+        bytes memory setDefaultAccountImplementation =
+            abi.encodeWithSelector(AccountGroup.setDefaultAccountImplementation.selector, address(erc721AccountRails));
         Call3 memory accountGroupSetDefaultAccountImplementationCall =
             Call3({target: address(accountGroup), allowFailure: false, callData: setDefaultAccountImplementation});
 
         bytes memory addPermissionInitializeAccountToController = abi.encodeWithSelector(
             IPermissions.addPermission.selector, Operations.INITIALIZE_ACCOUNT, address(initializeAccountController)
         );
-        Call3 memory addPermissionInitializeAccountToControllerCall =
-            Call3({target: address(accountGroup), allowFailure: false, callData: addPermissionInitializeAccountToController});
+        Call3 memory addPermissionInitializeAccountToControllerCall = Call3({
+            target: address(accountGroup),
+            allowFailure: false,
+            callData: addPermissionInitializeAccountToController
+        });
 
         bytes memory addPermissionInitializeAccountPermitToTurnkey = abi.encodeWithSelector(
             IPermissions.addPermission.selector, Operations.INITIALIZE_ACCOUNT_PERMIT, ScriptUtils.turnkey
         );
-        Call3 memory addPermissionInitializeAccountPermitToTurnkeyCall =
-            Call3({target: address(accountGroup), allowFailure: false, callData: addPermissionInitializeAccountPermitToTurnkey});
+        Call3 memory addPermissionInitializeAccountPermitToTurnkeyCall = Call3({
+            target: address(accountGroup),
+            allowFailure: false,
+            callData: addPermissionInitializeAccountPermitToTurnkey
+        });
 
         Call3[] memory calls = new Call3[](4);
         calls[0] = accountGroupSetDefaultAccountInitializerCall;

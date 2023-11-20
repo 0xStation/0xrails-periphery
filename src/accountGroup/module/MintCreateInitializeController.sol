@@ -14,7 +14,6 @@ import {ERC6551AccountController} from "src/lib/module/ERC6551AccountController.
 import {IAccountGroup} from "src/accountGroup/interface/IAccountGroup.sol";
 
 contract MintCreateInitializeController is PermitController, SetupController, ERC6551AccountController {
-
     struct MintParams {
         address collection;
         address recipient;
@@ -63,15 +62,24 @@ contract MintCreateInitializeController is PermitController, SetupController, ER
     ==========*/
 
     /// @dev Mint a single ERC721Rails token and create+initialize its tokenbound account
-    function mintAndCreateAccount(MintParams calldata mintParams) 
-        external usePermits(_encodePermitContext(mintParams.collection)) returns (address account, uint256 newTokenId) 
+    function mintAndCreateAccount(MintParams calldata mintParams)
+        external
+        usePermits(_encodePermitContext(mintParams.collection))
+        returns (address account, uint256 newTokenId)
     {
         address accountGroup = address(bytes20(mintParams.salt));
         address accountImpl = IAccountGroup(accountGroup).getDefaultAccountImplementation();
         require(accountImpl.code.length > 0);
 
         newTokenId = IERC721Rails(mintParams.collection).mintTo(mintParams.recipient, 1);
-        account = _createAccount(mintParams.registry, mintParams.accountProxy, mintParams.salt, block.chainid, mintParams.collection, newTokenId);
+        account = _createAccount(
+            mintParams.registry,
+            mintParams.accountProxy,
+            mintParams.salt,
+            block.chainid,
+            mintParams.collection,
+            newTokenId
+        );
         _initializeAccount(account, accountImpl, bytes(""));
     }
 

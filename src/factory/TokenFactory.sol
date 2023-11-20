@@ -22,16 +22,28 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
     constructor() Initializable() {}
 
     /// @inheritdoc ITokenFactory
-    function initialize(address owner_, address erc20Impl_, address erc721Impl_, address erc1155Impl_) external initializer {
+    function initialize(address owner_, address erc20Impl_, address erc721Impl_, address erc1155Impl_)
+        external
+        initializer
+    {
         _transferOwnership(owner_);
         _addImplementation(
-            TokenFactoryStorage.TokenImpl({implementation: erc20Impl_, tokenStandard: TokenFactoryStorage.TokenStandard.ERC20})
+            TokenFactoryStorage.TokenImpl({
+                implementation: erc20Impl_,
+                tokenStandard: TokenFactoryStorage.TokenStandard.ERC20
+            })
         );
         _addImplementation(
-            TokenFactoryStorage.TokenImpl({implementation: erc721Impl_, tokenStandard: TokenFactoryStorage.TokenStandard.ERC721})
+            TokenFactoryStorage.TokenImpl({
+                implementation: erc721Impl_,
+                tokenStandard: TokenFactoryStorage.TokenStandard.ERC721
+            })
         );
         _addImplementation(
-            TokenFactoryStorage.TokenImpl({implementation: erc1155Impl_, tokenStandard: TokenFactoryStorage.TokenStandard.ERC1155})
+            TokenFactoryStorage.TokenImpl({
+                implementation: erc1155Impl_,
+                tokenStandard: TokenFactoryStorage.TokenStandard.ERC1155
+            })
         );
     }
 
@@ -50,7 +62,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
     ) public returns (address payable token) {
         _checkIsApprovedImplementation(implementation, TokenFactoryStorage.TokenStandard.ERC20);
 
-        bytes32 deploymentSalt = keccak256(abi.encodePacked(inputSalt, owner, name, symbol, initData));
+        bytes32 deploymentSalt = keccak256(abi.encode(inputSalt, owner, name, symbol, initData));
         token = payable(address(new ERC1967Proxy{salt: deploymentSalt}(implementation, bytes(""))));
         emit ERC20Created(token);
 
@@ -68,7 +80,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
     ) public returns (address payable token) {
         _checkIsApprovedImplementation(implementation, TokenFactoryStorage.TokenStandard.ERC721);
 
-        bytes32 deploymentSalt = keccak256(abi.encodePacked(inputSalt, owner, name, symbol, initData));
+        bytes32 deploymentSalt = keccak256(abi.encode(inputSalt, owner, name, symbol, initData));
         token = payable(address(new ERC1967Proxy{salt: deploymentSalt}(implementation, bytes(""))));
         emit ERC721Created(token);
 
@@ -86,7 +98,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
     ) public returns (address payable token) {
         _checkIsApprovedImplementation(implementation, TokenFactoryStorage.TokenStandard.ERC1155);
 
-        bytes32 deploymentSalt = keccak256(abi.encodePacked(inputSalt, owner, name, symbol, initData));
+        bytes32 deploymentSalt = keccak256(abi.encode(inputSalt, owner, name, symbol, initData));
         token = payable(address(new ERC1967Proxy{salt: deploymentSalt}(implementation, bytes(""))));
         emit ERC1155Created(token);
 
@@ -101,10 +113,10 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         allImpls = TokenFactoryStorage.layout().tokenImplementations;
     }
 
-    function getApprovedImplementations(TokenFactoryStorage.TokenStandard standard) 
+    function getApprovedImplementations(TokenFactoryStorage.TokenStandard standard)
         public
-        view 
-        returns (TokenFactoryStorage.TokenImpl[] memory) 
+        view
+        returns (TokenFactoryStorage.TokenImpl[] memory)
     {
         TokenFactoryStorage.Layout storage layout = TokenFactoryStorage.layout();
         TokenFactoryStorage.TokenImpl[] memory allImpls = getApprovedImplementations();
@@ -147,7 +159,9 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         INTERNALS
     ===============*/
 
-    function _checkIsApprovedImplementation(address _implementation, TokenFactoryStorage.TokenStandard _standard) internal {
+    function _checkIsApprovedImplementation(address _implementation, TokenFactoryStorage.TokenStandard _standard)
+        internal
+    {
         TokenFactoryStorage.TokenImpl[] memory filteredImpls = getApprovedImplementations(_standard);
         for (uint256 i; i < filteredImpls.length; ++i) {
             // if match is found, exit without reverting

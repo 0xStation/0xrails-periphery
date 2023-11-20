@@ -9,7 +9,6 @@ import {AccountGroupLib} from "../lib/AccountGroupLib.sol";
 
 /// @notice Verify sender has INITIALIZE_ACCOUNT permission
 contract PermissionGatedInitializer is AccountInitializer {
-
     /// @dev delegatecall'ed by 6551 Account
     function _authenticateInitialization(address, bytes memory initData)
         internal

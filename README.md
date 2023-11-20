@@ -24,12 +24,26 @@ _A Solidity framework for creating complex and evolving onchain structures._
 * = deployed contract
 
 src
+├── accountGroup
+│   ├── implementation
+│   │   ├── AccountGroup.sol*
+│   │   └── AccountGroupStorage.sol
+│   ├── initializer
+│   │   └── PermissionGatedInitializer.sol*
+│   ├── interface
+│   │   └── IAccountGroup.sol
+│   ├── lib
+│   │   └── AccountGroupLib.sol
+│   └── module
+│       ├── InitializeAccountController.sol*
+│       └── MintCreateInitializeController.sol*
 ├── factory
 │   ├── ITokenFactory.sol
-│   └── TokenFactory.sol*
+│   ├── TokenFactory.sol*
+│   └── TokenFactoryStorage.sol
 ├── lib
-│   ├── ContractMetadata.sol
 │   ├── module
+│   │   ├── ERC6551AccountController.sol
 │   │   ├── FeeController.sol
 │   │   ├── FeeManager.sol*
 │   │   ├── PermitController.sol
@@ -52,10 +66,13 @@ src
 │       ├── FreeMintController.sol*
 │       ├── GasCoinPurchaseController.sol*
 │       └── StablecoinPurchaseController.sol*
-└── metadataRouter
-    ├── IMetadataRouter.sol
-    ├── MetadataRouter.sol*
-    └── MetadataRouterStorage.sol
+├── metadataRouter
+│   ├── IMetadataRouter.sol
+│   ├── MetadataRouter.sol*
+│   └── MetadataRouterStorage.sol
+└── token
+    └── controller
+        └── GeneralFreeMintController.sol*
 ```
 
 ## Contributing

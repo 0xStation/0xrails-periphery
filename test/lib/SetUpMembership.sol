@@ -20,7 +20,6 @@ abstract contract SetUpMembership is Helpers {
     TokenFactory public membershipFactoryImpl;
     TokenFactory public membershipFactory;
     PayoutAddressExtension public payoutAddressExtension;
-    address public metadataRouter = address(0);
 
     function setUp() public virtual {
         owner = createAccount();
@@ -29,7 +28,7 @@ abstract contract SetUpMembership is Helpers {
         membershipFactoryImpl = new TokenFactory();
         membershipFactory = TokenFactory(address(new ERC1967Proxy(address(membershipFactoryImpl), bytes(""))));
         membershipFactory.initialize(owner, address(0x0), address(membershipImpl), address(0x0));
-        payoutAddressExtension = new PayoutAddressExtension(address(0));
+        payoutAddressExtension = new PayoutAddressExtension();
     }
 
     function create() public returns (ERC721Rails proxy) {
@@ -54,7 +53,11 @@ abstract contract SetUpMembership is Helpers {
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, calls);
 
         proxy = ERC721Rails(
-            payable(membershipFactory.createERC721(payable(address(membershipImpl)), inputSalt, owner, "Test", "TEST", initData))
+            payable(
+                membershipFactory.createERC721(
+                    payable(address(membershipImpl)), inputSalt, owner, "Test", "TEST", initData
+                )
+            )
         );
     }
 }

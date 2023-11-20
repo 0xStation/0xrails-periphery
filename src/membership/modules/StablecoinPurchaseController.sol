@@ -13,7 +13,6 @@ import {SetupController} from "src/lib/module/SetupController.sol";
 import {PermitController} from "src/lib/module/PermitController.sol";
 import {FeeController} from "src/lib/module/FeeController.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
-import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 
 /// @title Station Network StablecoinPurchaseController Contract
 /// @author symmetry (@symmtry69), frog (@0xmcg)
@@ -24,7 +23,7 @@ import {ContractMetadata} from "src/lib/ContractMetadata.sol";
 /// will use the same price value and can never get out of sync. Deploy one instance
 /// of this module per currency, per chain (e.g. USD, EUR, BTC).
 
-contract StablecoinPurchaseController is SetupController, PermitController, FeeController, ContractMetadata, Pausable {
+contract StablecoinPurchaseController is SetupController, PermitController, FeeController, Pausable {
     using SafeERC20 for IERC20Metadata;
 
     /// @dev Struct of collection price data
@@ -34,14 +33,6 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
     struct Parameters {
         uint128 price;
         bytes16 enabledCoins;
-    }
-
-    /*=======================
-        CONTRACT METADATA
-    =======================*/
-
-    function _contractRoute() internal pure override returns (string memory route) {
-        return "module";
     }
 
     /*=============
@@ -86,9 +77,8 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
         address _feeManager,
         uint8 _decimals,
         string memory _currency,
-        address[] memory stablecoins,
-        address metadataRouter
-    ) PermitController() FeeController(_owner, _feeManager) ContractMetadata(metadataRouter) {
+        address[] memory stablecoins
+    ) PermitController() FeeController(_owner, _feeManager) {
         decimals = _decimals;
         currency = _currency;
         for (uint256 i; i < stablecoins.length; i++) {
@@ -254,24 +244,21 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
     }
 
     /// @dev Function to mint a single collection token to a specified recipient
-    function mintTo(address collection, address paymentCoin, address recipient) 
-        external whenNotPaused 
-    {
+    function mintTo(address collection, address paymentCoin, address recipient) external whenNotPaused {
         _batchMint(collection, paymentCoin, recipient, 1);
     }
 
     /// @dev Function to mint collection tokens in batches to the caller, ie a user
     /// @notice returned tokenId range is inclusive
-    function batchMint(address collection, address paymentCoin, uint256 quantity) 
-        external whenNotPaused 
-    {
+    function batchMint(address collection, address paymentCoin, uint256 quantity) external whenNotPaused {
         _batchMint(collection, paymentCoin, msg.sender, quantity);
     }
 
     /// @dev Function to mint collection tokens in batches to a specified recipient
     /// @notice returned tokenId range is inclusive
     function batchMintTo(address collection, address paymentCoin, address recipient, uint256 quantity)
-        external whenNotPaused
+        external
+        whenNotPaused
     {
         _batchMint(collection, paymentCoin, recipient, quantity);
     }
@@ -316,7 +303,7 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
     function unpause() public onlyOwner {
         _unpause();
     }
-    
+
     /*============
         PERMIT
     ============*/
