@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {GeneralFreeMintController} from "src/token/controller/GeneralFreeMintController.sol";
+import {PermitMintController} from "src/token/controller/PermitMintController.sol";
 import {Test} from "forge-std/Test.sol";
 import {PermitController} from "src/lib/module/PermitController.sol";
 import {FeeManager} from "src/lib/module/FeeManager.sol";
@@ -11,8 +11,8 @@ import {Operations} from "0xrails/lib/Operations.sol";
 import {ERC20Rails} from "0xrails/cores/ERC20/ERC20Rails.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 
-contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
-    GeneralFreeMintController public generalFreeMintController;
+contract PermitMintControllerTest is Test, PermitMintController {
+    PermitMintController public permitMintController;
     FeeManager public feeManager;
     ERC20Rails public erc20Impl;
     ERC20Rails public erc20Proxy;
@@ -37,7 +37,7 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
         // FORKING
         // goerliFork = vm.createFork(GOERLI_RPC_URL);
         // vm.selectFork(goerliFork);
-        // generalFreeMintController = 0x8E019DfdA444743CA58065bd9b24Bd569b61fa75;
+        // permitMintController = 0x8E019DfdA444743CA58065bd9b24Bd569b61fa75;
         // collection = 0x8D007613435453041ec6d03E87a90117507065D0;
 
         // LOCAL
@@ -47,7 +47,7 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
 
         // deploy infra
         feeManager = new FeeManager(owner, 0, 0, 0, 0);
-        generalFreeMintController = new GeneralFreeMintController();
+        permitMintController = new PermitMintController();
 
         // deploy collection & assign for convenience
         erc20Impl = new ERC20Rails();
@@ -55,9 +55,9 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
         erc20Proxy.initialize(owner, "", "", "");
         collection = address(erc20Proxy);
 
-        // add mint permission to generalFreeMintController & someSigner
+        // add mint permission to permitMintController & someSigner
         vm.startPrank(owner);
-        IPermissions(address(erc20Proxy)).addPermission(Operations.MINT, address(generalFreeMintController));
+        IPermissions(address(erc20Proxy)).addPermission(Operations.MINT, address(permitMintController));
         IPermissions(address(erc20Proxy)).addPermission(Operations.MINT_PERMIT, someSigner);
         recipient = 0xE7affDB964178261Df49B86BFdBA78E9d768Db6D;
         amount = 10;
@@ -76,12 +76,12 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
         // });
 
         // bytes memory mintToCall = abi.encodeWithSignature("mintTo(address,address,uint256)", collection, recipient, amount);
-        // (bool r, ) = generalFreeMintController.call(mintToCall);
+        // (bool r, ) = permitMintController.call(mintToCall);
         // require(r);
 
         // LOCAL
         bytes memory mintToCall =
-            abi.encodeWithSelector(GeneralFreeMintController.mintToERC20.selector, collection, recipient, amount);
+            abi.encodeWithSelector(PermitMintController.mintToERC20.selector, collection, recipient, amount);
         Permit memory permit = Permit({
             signer: someSigner,
             sender: address(0x0),
@@ -95,7 +95,7 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
         );
 
         bytes32 domainSeparator = keccak256(
-            abi.encode(DOMAIN_TYPE_HASH, NAME_HASH, VERSION_HASH, block.chainid, address(generalFreeMintController))
+            abi.encode(DOMAIN_TYPE_HASH, NAME_HASH, VERSION_HASH, block.chainid, address(permitMintController))
         );
 
         bytes32 permitHash = ECDSA.toTypedDataHash(domainSeparator, valuesHash);
@@ -104,7 +104,7 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
         bytes memory sig = abi.encodePacked(r, s, v);
         permit.signature = sig;
 
-        PermitController(address(generalFreeMintController)).callWithPermit(permit);
+        PermitController(address(permitMintController)).callWithPermit(permit);
     }
 
     function test_callWithPermitERC721() public {
@@ -119,12 +119,12 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
         // });
 
         // bytes memory mintToCall = abi.encodeWithSignature("mintTo(address,address,uint256)", collection, recipient, amount);
-        // (bool r, ) = generalFreeMintController.call(mintToCall);
+        // (bool r, ) = permitMintController.call(mintToCall);
         // require(r);
 
         // LOCAL
         bytes memory mintToCall =
-            abi.encodeWithSelector(GeneralFreeMintController.mintToERC721.selector, collection, recipient, amount);
+            abi.encodeWithSelector(PermitMintController.mintToERC721.selector, collection, recipient, amount);
         Permit memory permit = Permit({
             signer: someSigner,
             sender: address(0x0),
@@ -138,7 +138,7 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
         );
 
         bytes32 domainSeparator = keccak256(
-            abi.encode(DOMAIN_TYPE_HASH, NAME_HASH, VERSION_HASH, block.chainid, address(generalFreeMintController))
+            abi.encode(DOMAIN_TYPE_HASH, NAME_HASH, VERSION_HASH, block.chainid, address(permitMintController))
         );
 
         bytes32 permitHash = ECDSA.toTypedDataHash(domainSeparator, valuesHash);
@@ -147,6 +147,6 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
         bytes memory sig = abi.encodePacked(r, s, v);
         permit.signature = sig;
 
-        PermitController(address(generalFreeMintController)).callWithPermit(permit);
+        PermitController(address(permitMintController)).callWithPermit(permit);
     }
 }
