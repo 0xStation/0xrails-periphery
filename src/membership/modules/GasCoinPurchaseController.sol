@@ -16,7 +16,6 @@ import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/Pa
 /// paid in the native currency of the chain this contract is deployed to
 
 contract GasCoinPurchaseController is SetupController, PermitController, FeeController {
-
     /*=============
         STORAGE
     =============*/
@@ -39,10 +38,7 @@ contract GasCoinPurchaseController is SetupController, PermitController, FeeCont
 
     /// @param _newOwner The owner of the FeeControllerV2, an address managed by Station Network
     /// @param _feeManager The FeeManager's address
-    constructor(address _newOwner, address _feeManager)
-        PermitController()
-        FeeController(_newOwner, _feeManager)
-    {}
+    constructor(address _newOwner, address _feeManager) PermitController() FeeController(_newOwner, _feeManager) {}
 
     /// @dev Function to set up and configure a new collection's purchase prices
     /// @param collection The new collection to configure

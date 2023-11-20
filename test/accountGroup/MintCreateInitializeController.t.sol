@@ -25,7 +25,6 @@ import {ERC721AccountRails} from "0xrails/cores/ERC721Account/ERC721AccountRails
 import {AccountProxy} from "0xrails/lib/ERC6551AccountGroup/AccountProxy.sol";
 
 contract MintCreateInitializeControllerTest is Test, Account {
-
     ERC6551Registry erc6551Registry;
     AccountProxy accountProxy;
     TokenFactory tokenFactoryImpl;
@@ -56,15 +55,17 @@ contract MintCreateInitializeControllerTest is Test, Account {
 
         erc6551Registry = new ERC6551Registry();
         accountProxy = new AccountProxy();
-        
+
         tokenFactoryImpl = new TokenFactory();
         tokenFactoryProxy = TokenFactory(address(new ERC1967Proxy(address(tokenFactoryImpl), '')));
 
         erc721RailsImpl = new ERC721Rails();
         tokenFactoryProxy.initialize(owner, address(0x0), address(erc721RailsImpl), address(0x0)); // erc20 and erc1155 implementations not needed for testing
 
-        erc721Rails = ERC721Rails(tokenFactoryProxy.createERC721(payable(address(erc721RailsImpl)), inputSalt, owner, "test", "tst", ''));
-        
+        erc721Rails = ERC721Rails(
+            tokenFactoryProxy.createERC721(payable(address(erc721RailsImpl)), inputSalt, owner, "test", "tst", "")
+        );
+
         user = new ERC721Holder();
 
         erc721AccountRails = new ERC721AccountRails(entryPointAddress);
@@ -72,7 +73,7 @@ contract MintCreateInitializeControllerTest is Test, Account {
         accountGroupImpl = new AccountGroup();
         initData = abi.encodeWithSelector(AccountGroup.initialize.selector, owner);
         accountGroup = AccountGroup(address(new ERC1967Proxy(address(accountGroupImpl), initData)));
-        
+
         bytecodeSalt = bytes32(abi.encodePacked(address(accountGroup), type(uint64).max, uint32(0)));
 
         permissionGatedInitializer = new PermissionGatedInitializer();
@@ -89,10 +90,10 @@ contract MintCreateInitializeControllerTest is Test, Account {
         vm.stopPrank();
 
         mintParams = MintCreateInitializeController.MintParams({
-            collection: address(erc721Rails), 
-            recipient: address(user), 
-            registry: address(erc6551Registry), 
-            accountProxy: address(accountProxy), 
+            collection: address(erc721Rails),
+            recipient: address(user),
+            registry: address(erc6551Registry),
+            accountProxy: address(accountProxy),
             salt: bytecodeSalt
         });
     }
@@ -105,7 +106,7 @@ contract MintCreateInitializeControllerTest is Test, Account {
         vm.prank(owner);
         (mintedTBA, mintStart) = mintCreateInitializeController.mintAndCreateAccount(mintParams);
         assertTrue(mintedTBA.code.length > 0);
-        
+
         // assert contract was created with expected bytecode
         AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(mintedTBA));
         bytes32 packedParams = bytes32(abi.encodePacked(params.accountGroup, params.subgroupId, params.index));
@@ -114,7 +115,7 @@ contract MintCreateInitializeControllerTest is Test, Account {
         assertTrue(mintStart == 1);
     }
 
-    function test_mintAndCreateAccountPermission() public {        
+    function test_mintAndCreateAccountPermission() public {
         address mintedTBA;
         uint256 mintStart;
 

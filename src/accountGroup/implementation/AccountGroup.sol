@@ -31,7 +31,7 @@ contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, A
         // query namespaced storage for initializer associated with `subgroupId`
         AccountGroupStorage.Layout storage layout = AccountGroupStorage.layout();
         address initializer = layout.initializerOf[params.subgroupId];
-        
+
         // handle unset initializer using default
         if (initializer == address(0)) {
             initializer = layout.defaultInitializer;
@@ -51,9 +51,11 @@ contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, A
 
     /// @inheritdoc IERC6551AccountGroup
     function checkValidAccountUpgrade(address sender, address account, address implementation) external view {
-        if (implementation == AccountGroupStorage.layout().defaultAccountImplementation &&
-            (sender == Access(account).owner() || hasPermission(Operations.ADMIN, sender))) {
-                return;
+        if (
+            implementation == AccountGroupStorage.layout().defaultAccountImplementation
+                && (sender == Access(account).owner() || hasPermission(Operations.ADMIN, sender))
+        ) {
+            return;
         }
 
         revert UpgradeRestricted(sender, account, implementation);

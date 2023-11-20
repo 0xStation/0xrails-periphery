@@ -54,7 +54,7 @@ contract Deploy is ScriptUtils {
 
         bytes32 salt = ScriptUtils.create2Salt;
         string memory saltString = Strings.toHexString(uint256(salt), 32);
-        
+
         // begin deployments
         (metadataRouterImpl, metadataRouter) = deployMetadataRouter(salt, owner);
         (tokenFactoryImpl, tokenFactory) = deployTokenFactory(salt, owner);
@@ -65,13 +65,11 @@ contract Deploy is ScriptUtils {
 
         feeManager = FeeManager(deployFeeManager(owner, salt));
         freeMintModule = deployFreeMintController(owner, address(feeManager), salt);
-        gasCoinPurchaseController =
-            deployGasCoinPurchaseController(owner, address(feeManager), salt);
+        gasCoinPurchaseController = deployGasCoinPurchaseController(owner, address(feeManager), salt);
 
         // using stablecoin 'environment' params above
-        stablecoinPurchaseController = deployStablecoinPurchaseController(
-            owner, address(feeManager), decimals, currency, stablecoins, salt
-        );
+        stablecoinPurchaseController =
+            deployStablecoinPurchaseController(owner, address(feeManager), decimals, currency, stablecoins, salt);
 
         // After deployments, format Multicall3 calls and execute it from FounderSafe as module sender
         // `MetadataRouter::setDefaultURI()` configuration
@@ -148,10 +146,7 @@ contract Deploy is ScriptUtils {
         return new NFTMetadataRouterExtension{salt: _salt}(_metadataRouter);
     }
 
-    function deployPayoutAddressExtension(bytes32 _salt)
-        internal
-        returns (PayoutAddressExtension)
-    {
+    function deployPayoutAddressExtension(bytes32 _salt) internal returns (PayoutAddressExtension) {
         return new PayoutAddressExtension{salt: _salt}();
     }
 
@@ -171,11 +166,10 @@ contract Deploy is ScriptUtils {
         return new FreeMintController{salt: _salt}(_owner, _feeManager);
     }
 
-    function deployGasCoinPurchaseController(
-        address _owner,
-        address _feeManager,
-        bytes32 _salt
-    ) internal returns (GasCoinPurchaseController) {
+    function deployGasCoinPurchaseController(address _owner, address _feeManager, bytes32 _salt)
+        internal
+        returns (GasCoinPurchaseController)
+    {
         return new GasCoinPurchaseController{salt: _salt}(_owner, _feeManager);
     }
 
@@ -187,7 +181,6 @@ contract Deploy is ScriptUtils {
         address[] memory _stablecoins,
         bytes32 _salt
     ) internal returns (StablecoinPurchaseController) {
-        return
-        new StablecoinPurchaseController{salt: _salt}(_owner, _feeManager, _decimals, _currency, _stablecoins);
+        return new StablecoinPurchaseController{salt: _salt}(_owner, _feeManager, _decimals, _currency, _stablecoins);
     }
 }

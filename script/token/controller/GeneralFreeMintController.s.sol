@@ -13,7 +13,6 @@ import {console2} from "forge-std/console2.sol";
 // forge script --keystores $ETH_KEYSTORE --sender $ETH_FROM --broadcast --fork-url $GOERLI_RPC_URL script/erc20/modules/FreeMintController.s.sol
 // See deployed FreeMintController address in `Protocol-Ops::deploys.json`
 contract DeployGeneralFreeMintModule is ScriptUtils {
-
     /*============
         CONFIG
     ============*/

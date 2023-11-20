@@ -244,24 +244,21 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
     }
 
     /// @dev Function to mint a single collection token to a specified recipient
-    function mintTo(address collection, address paymentCoin, address recipient) 
-        external whenNotPaused 
-    {
+    function mintTo(address collection, address paymentCoin, address recipient) external whenNotPaused {
         _batchMint(collection, paymentCoin, recipient, 1);
     }
 
     /// @dev Function to mint collection tokens in batches to the caller, ie a user
     /// @notice returned tokenId range is inclusive
-    function batchMint(address collection, address paymentCoin, uint256 quantity) 
-        external whenNotPaused 
-    {
+    function batchMint(address collection, address paymentCoin, uint256 quantity) external whenNotPaused {
         _batchMint(collection, paymentCoin, msg.sender, quantity);
     }
 
     /// @dev Function to mint collection tokens in batches to a specified recipient
     /// @notice returned tokenId range is inclusive
     function batchMintTo(address collection, address paymentCoin, address recipient, uint256 quantity)
-        external whenNotPaused
+        external
+        whenNotPaused
     {
         _batchMint(collection, paymentCoin, recipient, quantity);
     }
@@ -306,7 +303,7 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
     function unpause() public onlyOwner {
         _unpause();
     }
-    
+
     /*============
         PERMIT
     ============*/

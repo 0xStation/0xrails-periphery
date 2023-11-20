@@ -13,9 +13,7 @@ import {Operations} from "0xrails/lib/Operations.sol";
 import {IOwnable} from "0xrails/access/ownable/interface/IOwnable.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 
-
 contract AccountGroupTest is Test, Account {
-
     AccountGroup accountGroupImpl;
     AccountGroup accountGroup; // proxy
     PermissionGatedInitializer permissionGatedInitializer;
@@ -26,7 +24,7 @@ contract AccountGroupTest is Test, Account {
 
     function setUp() public {
         owner = createAccount();
-        salt = bytes32(hex'ff');
+        salt = bytes32(hex"ff");
 
         accountGroupImpl = new AccountGroup{salt: salt}();
         initData = abi.encodeWithSelector(AccountGroup.initialize.selector, owner);
@@ -48,7 +46,7 @@ contract AccountGroupTest is Test, Account {
 
     function test_setDefaultAccountInitializer() public {
         assertEq(accountGroup.getDefaultAccountInitializer(), address(0x0));
-        
+
         // set initializer
         vm.prank(owner);
         accountGroup.setDefaultAccountInitializer(address(permissionGatedInitializer));
@@ -72,7 +70,7 @@ contract AccountGroupTest is Test, Account {
 
         // fetch subgroupId
         AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(accountGroup));
-        
+
         // set initializer
         vm.prank(owner);
         accountGroup.setAccountInitializer(params.subgroupId, address(permissionGatedInitializer));
@@ -85,9 +83,11 @@ contract AccountGroupTest is Test, Account {
 
         // fetch subgroupId
         AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(accountGroup));
-        
+
         // attempt to set initializer without permission
-        vm.expectRevert(abi.encodeWithSelector(IPermissions.PermissionDoesNotExist.selector, Operations.ADMIN, address(this)));
+        vm.expectRevert(
+            abi.encodeWithSelector(IPermissions.PermissionDoesNotExist.selector, Operations.ADMIN, address(this))
+        );
         accountGroup.setAccountInitializer(params.subgroupId, address(permissionGatedInitializer));
         // assert no state changes made
         assertEq(accountGroup.getAccountInitializer(address(accountGroup)), address(0x0));

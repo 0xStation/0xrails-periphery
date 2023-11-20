@@ -12,7 +12,6 @@ import {ERC20Rails} from "0xrails/cores/ERC20/ERC20Rails.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 
 contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
-
     GeneralFreeMintController public generalFreeMintController;
     FeeManager public feeManager;
     ERC20Rails public erc20Impl;
@@ -26,7 +25,8 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
     uint256 public amount;
 
     bytes32 public GRANT_TYPE_HASH = keccak256("Permit(address sender,uint48 expiration,uint256 nonce,bytes data)");
-    bytes32 public DOMAIN_TYPE_HASH = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
+    bytes32 public DOMAIN_TYPE_HASH =
+        keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
     bytes32 public VERSION_HASH = keccak256("0.0.1");
     bytes32 public NAME_HASH = keccak256("GroupOS");
 
@@ -52,9 +52,9 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
         // deploy collection & assign for convenience
         erc20Impl = new ERC20Rails();
         erc20Proxy = ERC20Rails(payable(address(new ERC1967Proxy(address(erc20Impl), bytes("")))));
-        erc20Proxy.initialize(owner, '', '', '');
+        erc20Proxy.initialize(owner, "", "", "");
         collection = address(erc20Proxy);
-        
+
         // add mint permission to generalFreeMintController & someSigner
         vm.startPrank(owner);
         IPermissions(address(erc20Proxy)).addPermission(Operations.MINT, address(generalFreeMintController));
@@ -63,7 +63,7 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
         amount = 10;
         vm.stopPrank();
     }
-    
+
     function test_callWithPermitERC20() public {
         // FORKING
         // Permit memory permit = Permit({
@@ -79,26 +79,24 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
         // (bool r, ) = generalFreeMintController.call(mintToCall);
         // require(r);
 
-
         // LOCAL
-        bytes memory mintToCall = abi.encodeWithSelector(GeneralFreeMintController.mintToERC20.selector, collection, recipient, amount);
+        bytes memory mintToCall =
+            abi.encodeWithSelector(GeneralFreeMintController.mintToERC20.selector, collection, recipient, amount);
         Permit memory permit = Permit({
             signer: someSigner,
             sender: address(0x0),
             expiration: type(uint48).max,
             nonce: 1,
             data: mintToCall,
-            signature: ''
+            signature: ""
         });
-        bytes32 valuesHash = keccak256(abi.encode(
-            GRANT_TYPE_HASH,
-            permit.sender,
-            permit.expiration,
-            permit.nonce,
-            keccak256(permit.data)
-        ));
+        bytes32 valuesHash = keccak256(
+            abi.encode(GRANT_TYPE_HASH, permit.sender, permit.expiration, permit.nonce, keccak256(permit.data))
+        );
 
-        bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPE_HASH, NAME_HASH, VERSION_HASH, block.chainid, address(generalFreeMintController)));
+        bytes32 domainSeparator = keccak256(
+            abi.encode(DOMAIN_TYPE_HASH, NAME_HASH, VERSION_HASH, block.chainid, address(generalFreeMintController))
+        );
 
         bytes32 permitHash = ECDSA.toTypedDataHash(domainSeparator, valuesHash);
 
@@ -124,26 +122,24 @@ contract GeneralFreeMintControllerTest is Test, GeneralFreeMintController {
         // (bool r, ) = generalFreeMintController.call(mintToCall);
         // require(r);
 
-
         // LOCAL
-        bytes memory mintToCall = abi.encodeWithSelector(GeneralFreeMintController.mintToERC721.selector, collection, recipient, amount);
+        bytes memory mintToCall =
+            abi.encodeWithSelector(GeneralFreeMintController.mintToERC721.selector, collection, recipient, amount);
         Permit memory permit = Permit({
             signer: someSigner,
             sender: address(0x0),
             expiration: type(uint48).max,
             nonce: 1,
             data: mintToCall,
-            signature: ''
+            signature: ""
         });
-        bytes32 valuesHash = keccak256(abi.encode(
-            GRANT_TYPE_HASH,
-            permit.sender,
-            permit.expiration,
-            permit.nonce,
-            keccak256(permit.data)
-        ));
+        bytes32 valuesHash = keccak256(
+            abi.encode(GRANT_TYPE_HASH, permit.sender, permit.expiration, permit.nonce, keccak256(permit.data))
+        );
 
-        bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPE_HASH, NAME_HASH, VERSION_HASH, block.chainid, address(generalFreeMintController)));
+        bytes32 domainSeparator = keccak256(
+            abi.encode(DOMAIN_TYPE_HASH, NAME_HASH, VERSION_HASH, block.chainid, address(generalFreeMintController))
+        );
 
         bytes32 permitHash = ECDSA.toTypedDataHash(domainSeparator, valuesHash);
 

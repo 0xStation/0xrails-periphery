@@ -15,7 +15,6 @@ import {FeeController} from "src/lib/module/FeeController.sol";
 /// free of charge, save for Station Network's base fee
 
 contract FreeMintController is SetupController, PermitController, FeeController {
-
     /*=============
         STORAGE
     =============*/
@@ -36,10 +35,7 @@ contract FreeMintController is SetupController, PermitController, FeeController 
 
     /// @param _newOwner The owner of the FeeControllerV2, an address managed by Station Network
     /// @param _feeManager The FeeManager's address
-    constructor(address _newOwner, address _feeManager)
-        PermitController()
-        FeeController(_newOwner, _feeManager)
-    {}
+    constructor(address _newOwner, address _feeManager) PermitController() FeeController(_newOwner, _feeManager) {}
 
     /// @dev Function to set up and configure a new collection
     /// @param collection The new collection to configure

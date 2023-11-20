@@ -5,7 +5,6 @@ import {Extension} from "0xrails/extension/Extension.sol";
 import {PayoutAddress} from "./PayoutAddress.sol";
 
 contract PayoutAddressExtension is PayoutAddress, Extension {
-
     /*===============
         EXTENSION
     ===============*/

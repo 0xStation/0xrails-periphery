@@ -23,17 +23,15 @@ contract UpgradeAccountGroupProxyScript is ScriptUtils {
     // The following contracts will be deployed:
     AccountGroup accountGroupImpl;
 
-
     /// @notice Checkout lib/protocol-ops vX.Y.Z to automatically get addresses
     JsonManager.DeploysJson $deploys = setDeploysJsonStruct();
     address owner = $deploys.StationFounderSafe;
     address erc721AccountRails = $deploys.ERC721AccountRails;
-    
+
     // The following contracts will be upgraded:
     address accountGroup = $deploys.AccountGroupProxy; // production proxy
 
     bytes upgradeData; // configure if a function call is desired with the upgrade
-
 
     function run() public {
         /*===============
@@ -47,13 +45,11 @@ contract UpgradeAccountGroupProxyScript is ScriptUtils {
         // begin deployments
         accountGroupImpl = new AccountGroup{salt: salt}();
 
-        bytes memory upgradeCall = abi.encodeWithSelector(
-            UUPSUpgradeable.upgradeToAndCall.selector, address(accountGroupImpl), upgradeData
-        );
+        bytes memory upgradeCall =
+            abi.encodeWithSelector(UUPSUpgradeable.upgradeToAndCall.selector, address(accountGroupImpl), upgradeData);
 
-        Call3 memory accountGroupUpgradeCall =
-            Call3({target: accountGroup, allowFailure: false, callData: upgradeCall});
-        
+        Call3 memory accountGroupUpgradeCall = Call3({target: accountGroup, allowFailure: false, callData: upgradeCall});
+
         Call3[] memory calls = new Call3[](1);
         calls[0] = accountGroupUpgradeCall;
 

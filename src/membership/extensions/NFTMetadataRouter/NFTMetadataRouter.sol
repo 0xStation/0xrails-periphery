@@ -5,7 +5,6 @@ import {INFTMetadata} from "./INFTMetadata.sol";
 import {IMetadataRouter} from "../../../metadataRouter/IMetadataRouter.sol";
 
 contract NFTMetadataRouter is INFTMetadata {
-
     address public immutable metadataRouter;
 
     constructor(address _metadataRouter) {

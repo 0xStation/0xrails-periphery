@@ -22,7 +22,6 @@ import {ERC721AccountRails} from "0xrails/cores/ERC721Account/ERC721AccountRails
 import {AccountProxy} from "0xrails/lib/ERC6551AccountGroup/AccountProxy.sol";
 
 contract ERC721AccountRailsTest is Test, MockAccountDeployer {
-
     ERC721Harness erc721;
     ERC6551Registry erc6551Registry;
     AccountProxy accountProxy;
@@ -53,7 +52,7 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
     function setUp() public {
         entryPointAddress = 0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789;
         IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
-        
+
         // instantiate local blockchains forked from live networks
         goerliFork = vm.createFork(GOERLI_RPC_URL);
         mainnetFork = vm.createFork(MAINNET_RPC_URL);
@@ -95,11 +94,11 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
         vm.selectFork(mainnetFork);
         accountGroupProxy.setDefaultAccountInitializer(address(permissionGatedInitializer));
         vm.selectFork(goerliFork);
-        
+
         // deploy and grant INITIALIZE_ACCOUNT permission to the InitializeAccountController
         initializeAccountController = new InitializeAccountController();
         vm.makePersistent(address(initializeAccountController));
-        
+
         accountGroupProxy.addPermission(Operations.INITIALIZE_ACCOUNT, address(initializeAccountController));
         vm.stopPrank();
 
@@ -117,28 +116,36 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
 
         // create ERC6551 account through the InitializeAccountController
         vm.startPrank(accountGroupOwner);
-        bytes memory erc6551UserAccountInitData = abi.encodeWithSelector(ERC721AccountRails.initialize.selector, '');
-        erc6551UserAccount = ERC721AccountRails(payable(initializeAccountController.createAndInitializeAccount(
-            address(erc6551Registry), 
-            address(accountProxy), 
-            bytecodeSalt, 
-            originChainId, 
-            address(erc721), 
-            tokenId, 
-            address(erc721AccountRails),
-            erc6551UserAccountInitData
-        )));
+        bytes memory erc6551UserAccountInitData = abi.encodeWithSelector(ERC721AccountRails.initialize.selector, "");
+        erc6551UserAccount = ERC721AccountRails(
+            payable(
+                initializeAccountController.createAndInitializeAccount(
+                    address(erc6551Registry),
+                    address(accountProxy),
+                    bytecodeSalt,
+                    originChainId,
+                    address(erc721),
+                    tokenId,
+                    address(erc721AccountRails),
+                    erc6551UserAccountInitData
+                )
+            )
+        );
         vm.selectFork(mainnetFork);
-        erc6551UserAccountFork = ERC721AccountRails(payable(initializeAccountController.createAndInitializeAccount(
-            address(erc6551Registry), 
-            address(accountProxy), 
-            bytecodeSalt, 
-            originChainId, 
-            address(erc721), 
-            tokenId, 
-            address(erc721AccountRails),
-            erc6551UserAccountInitData
-        )));
+        erc6551UserAccountFork = ERC721AccountRails(
+            payable(
+                initializeAccountController.createAndInitializeAccount(
+                    address(erc6551Registry),
+                    address(accountProxy),
+                    bytecodeSalt,
+                    originChainId,
+                    address(erc721),
+                    tokenId,
+                    address(erc721AccountRails),
+                    erc6551UserAccountInitData
+                )
+            )
+        );
         vm.stopPrank();
     }
 
@@ -153,7 +160,7 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
         AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams(address(erc6551UserAccount));
         bytes32 packedParams = bytes32(abi.encodePacked(params.accountGroup, params.subgroupId, params.index));
         assertEq(packedParams, bytecodeSalt);
-        
+
         assertTrue(erc721AccountRails.initialized());
         assertTrue(erc6551UserAccount.initialized()); // initialized by InitializeAccountController
 
@@ -164,7 +171,7 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
         // check support for ERC6551Account interface
         assertTrue(erc721AccountRails.supportsInterface(type(IERC6551Account).interfaceId));
         assertTrue(erc6551UserAccount.supportsInterface(type(IERC6551Account).interfaceId));
-        
+
         // check support for ERC4337Account interface via inheritance of AccountRails
         assertTrue(erc721AccountRails.supportsInterface(type(IAccount).interfaceId));
         assertTrue(erc6551UserAccount.supportsInterface(type(IAccount).interfaceId));
@@ -175,13 +182,13 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
 
         address oldImpl = address(uint160(uint256(vm.load(address(erc6551UserAccount), IMPLEMENTATION_SLOT))));
         assertEq(oldImpl, address(erc721AccountRails));
-        
+
         vm.prank(accountGroupOwner);
         accountGroupProxy.setDefaultAccountImplementation(address(newImpl));
 
         // AccountGroups have say over how the erc721accountrails gets upgraded via ADMIN permission
         vm.prank(tokenOwner);
-        UUPSUpgradeable(address(erc6551UserAccount)).upgradeToAndCall(address(newImpl), '');
+        UUPSUpgradeable(address(erc6551UserAccount)).upgradeToAndCall(address(newImpl), "");
 
         address updatedImpl = address(uint160(uint256(vm.load(address(erc6551UserAccount), IMPLEMENTATION_SLOT))));
         assertEq(updatedImpl, address(newImpl));
@@ -202,7 +209,7 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
         vm.stopPrank();
 
         vm.prank(someAdmin);
-        UUPSUpgradeable(address(erc6551UserAccount)).upgradeToAndCall(address(newImpl), '');
+        UUPSUpgradeable(address(erc6551UserAccount)).upgradeToAndCall(address(newImpl), "");
 
         address updatedImpl = address(uint160(uint256(vm.load(address(erc6551UserAccount), IMPLEMENTATION_SLOT))));
         assertEq(updatedImpl, address(newImpl));
@@ -211,7 +218,7 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
 
     function test_permissionBehaviorOnTransfer() public {
         assertEq(erc6551UserAccount.owner(), tokenOwner);
-        
+
         // add high severity ADMIN permission to tokenOwner in AccountGroup contract
         // note that the token itself also has a permissioning system via AccountRails
         vm.prank(accountGroupOwner);
@@ -281,7 +288,7 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
 
         vm.selectFork(goerliFork);
         vm.prank(someAdmin);
-        UUPSUpgradeable(address(erc6551UserAccount)).upgradeToAndCall(address(newImpl), '');
+        UUPSUpgradeable(address(erc6551UserAccount)).upgradeToAndCall(address(newImpl), "");
 
         address updatedImpl = address(uint160(uint256(vm.load(address(erc6551UserAccount), IMPLEMENTATION_SLOT))));
         assertEq(updatedImpl, address(newImpl));
@@ -292,9 +299,10 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
         assertEq(oldImplFork, address(erc721AccountRails));
 
         vm.prank(someAdmin);
-        UUPSUpgradeable(address(erc6551UserAccountFork)).upgradeToAndCall(address(newImpl), '');
+        UUPSUpgradeable(address(erc6551UserAccountFork)).upgradeToAndCall(address(newImpl), "");
 
-        address updatedImplFork = address(uint160(uint256(vm.load(address(erc6551UserAccountFork), IMPLEMENTATION_SLOT))));
+        address updatedImplFork =
+            address(uint160(uint256(vm.load(address(erc6551UserAccountFork), IMPLEMENTATION_SLOT))));
         assertEq(updatedImplFork, address(newImpl));
         assertTrue(updatedImplFork != oldImplFork);
     }

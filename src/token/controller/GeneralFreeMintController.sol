@@ -17,7 +17,6 @@ import {SetupController} from "src/lib/module/SetupController.sol";
 /// @notice As this controller is entirely fee-less, it does not make use of the FeeManager,
 /// which enforces a baseline default mint fee
 contract GeneralFreeMintController is PermitController, SetupController, Multicall {
-
     /*=============
         STORAGE
     =============*/
@@ -47,7 +46,7 @@ contract GeneralFreeMintController is PermitController, SetupController, Multica
         }
         emit SetUp(collection, enablePermits);
     }
-    
+
     /// @dev convenience function for setting up when creating collections, relies on auth done in public setUp
     function setUpPermits(bool enablePermits) external {
         setUpPermits(msg.sender, enablePermits);
@@ -58,25 +57,37 @@ contract GeneralFreeMintController is PermitController, SetupController, Multica
     ==========*/
 
     /// @dev Function to mint ERC20 collection tokens to a specified recipient
-    /// @notice Can only be called successfully with data signed by a key explicitly granted permission 
+    /// @notice Can only be called successfully with data signed by a key explicitly granted permission
     /// by an authorized address on the target collection
-    function mintToERC20(address collection, address recipient, uint256 amount) external payable usePermits(_encodePermitContext(collection)) {
+    function mintToERC20(address collection, address recipient, uint256 amount)
+        external
+        payable
+        usePermits(_encodePermitContext(collection))
+    {
         require(amount > 0, "ZERO_AMOUNT");
         IERC20Rails(collection).mintTo(recipient, amount);
     }
 
     /// @dev Function to mint ERC721 collection tokens to a specified recipient
-    /// @notice Can only be called successfully with data signed by a key explicitly granted permission 
+    /// @notice Can only be called successfully with data signed by a key explicitly granted permission
     /// by an authorized address on the target collection
-    function mintToERC721(address collection, address recipient, uint256 amount) external payable usePermits(_encodePermitContext(collection)) {
+    function mintToERC721(address collection, address recipient, uint256 amount)
+        external
+        payable
+        usePermits(_encodePermitContext(collection))
+    {
         require(amount > 0, "ZERO_AMOUNT");
         IERC721Rails(collection).mintTo(recipient, amount);
     }
 
     /// @dev Function to mint ERC20 collection tokens to a specified recipient
-    /// @notice Can only be called successfully with data signed by a key explicitly granted permission 
+    /// @notice Can only be called successfully with data signed by a key explicitly granted permission
     /// by an authorized address on the target collection
-    function mintToERC1155(address collection, address recipient, uint256 tokenId, uint256 amount) external payable usePermits(_encodePermitContext(collection)) {
+    function mintToERC1155(address collection, address recipient, uint256 tokenId, uint256 amount)
+        external
+        payable
+        usePermits(_encodePermitContext(collection))
+    {
         require(amount > 0, "ZERO_AMOUNT");
         IERC1155Rails(collection).mintTo(recipient, tokenId, amount);
     }
