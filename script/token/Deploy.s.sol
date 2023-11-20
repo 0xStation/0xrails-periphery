@@ -180,6 +180,6 @@ contract Deploy is ScriptUtils {
         address[] memory _stablecoins,
         bytes32 _salt
     ) internal returns (StablecoinPurchaseController) {
-        return new StablecoinPurchaseController{salt: _salt}(_owner, _feeManager, _decimals, _currency, _stablecoins);
+        return new StablecoinPurchaseController{salt: _salt}(_owner, _feeManager, _decimals, _currency);
     }
 }
