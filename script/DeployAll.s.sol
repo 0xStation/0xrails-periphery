@@ -2,37 +2,65 @@
 pragma solidity ^0.8.13;
 
 import {ScriptUtils} from "lib/protocol-ops/script/ScriptUtils.sol";
-import {FeeManager} from "../../src/lib/module/FeeManager.sol";
-import {FreeMintController} from "../../src/membership/modules/FreeMintController.sol";
-import {GasCoinPurchaseController} from "../../src/membership/modules/GasCoinPurchaseController.sol";
-import {StablecoinPurchaseController} from "../../src/membership/modules/StablecoinPurchaseController.sol";
-import {MetadataRouter} from "../../src/metadataRouter/MetadataRouter.sol";
-import {OnePerAddressGuard} from "../../src/membership/guards/OnePerAddressGuard.sol";
-import {NFTMetadataRouterExtension} from
-    "../../src/membership/extensions/NFTMetadataRouter/NFTMetadataRouterExtension.sol";
-import {PayoutAddressExtension} from "../../src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
-import {ITokenFactory} from "../../src/factory/ITokenFactory.sol";
-import {TokenFactory} from "../../src/factory/TokenFactory.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Strings} from "openzeppelin-contracts/utils/Strings.sol";
+// 0xRails
+import {CallPermitValidator} from "0xrails/validator/CallPermitValidator.sol";
+import {BotAccount} from "0xrails/cores/account/BotAccount.sol";
+import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
+import {ERC20Rails} from "0xrails/cores/ERC20/ERC20Rails.sol";
+import {ERC1155Rails} from "0xrails/cores/ERC1155/ERC1155Rails.sol";
+import {ERC721AccountRails} from "0xrails/cores/ERC721Account/ERC721AccountRails.sol";
+// GroupOS
+import {AccountGroup} from "src/accountGroup/implementation/AccountGroup.sol";
+import {PermissionGatedInitializer} from "src/accountGroup/initializer/PermissionGatedInitializer.sol";
+import {InitializeAccountController} from "src/accountGroup/module/InitializeAccountController.sol";
+import {MintCreateInitializeController} from "src/accountGroup/module/MintCreateInitializeController.sol";
+import {FeeManager} from "src/lib/module/FeeManager.sol";
+import {FreeMintController} from "src/membership/modules/FreeMintController.sol";
+import {GasCoinPurchaseController} from "src/membership/modules/GasCoinPurchaseController.sol";
+import {StablecoinPurchaseController} from "src/membership/modules/StablecoinPurchaseController.sol";
+import {MetadataRouter} from "src/metadataRouter/MetadataRouter.sol";
+import {OnePerAddressGuard} from "src/membership/guards/OnePerAddressGuard.sol";
+import {NFTMetadataRouterExtension} from
+    "src/membership/extensions/NFTMetadataRouter/NFTMetadataRouterExtension.sol";
+import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
+import {ITokenFactory} from "src/factory/ITokenFactory.sol";
+import {TokenFactory} from "src/factory/TokenFactory.sol";
+import {GeneralFreeMintController} from "src/token/controller/GeneralFreeMintController.sol";
 
 contract Deploy is ScriptUtils {
     /*=================
         ENVIRONMENT 
     =================*/
 
-    // The following contracts will be deployed:
+    // The following 0xRails contracts will be deployed:
+    CallPermitValidator callPermitValidator;
+    BotAccount botAccountImpl;
+    BotAccount botAccountProxy;
+    ERC20Rails erc20Rails;
+    ERC721Rails erc721Rails;
+    ERC1155Rails erc1155Rails;
+    ERC721AccountRails erc721AccountRails;
+    // The following AccountGroup GroupOS contracts will be deployed:
+    AccountGroup accountGroupImpl;
+    AccountGroup accountGroupProxy;
+    PermissionGatedInitializer permissionGatedInitializer;
+    InitializeAccountController initializeAccountController;
+    MintCreateInitializeController mintCreateInitializeController;
+    // The following GroupOS contracts will be deployed:
     MetadataRouter metadataRouterImpl;
     MetadataRouter metadataRouter; // proxy
+    TokenFactory tokenFactoryImpl;
+    TokenFactory tokenFactory; // proxy
     OnePerAddressGuard onePerAddressGuard;
     NFTMetadataRouterExtension nftMetadataRouterExtension;
     PayoutAddressExtension payoutAddressExtension;
     FeeManager feeManager;
-    FreeMintController freeMintModule;
-    GasCoinPurchaseController gasCoinPurchaseController;
-    StablecoinPurchaseController stablecoinPurchaseController;
-    TokenFactory tokenFactoryImpl;
-    TokenFactory tokenFactory; // proxy
+    FreeMintController erc721FreeMintController;
+    GasCoinPurchaseController erc721GasCoinPurchaseController;
+    StablecoinPurchaseController erc721StablecoinPurchaseController;
+    GeneralFreeMintController generalFreeMintController;
 
     function run() public {
         /*============
@@ -63,11 +91,11 @@ contract Deploy is ScriptUtils {
         payoutAddressExtension = deployPayoutAddressExtension(salt);
 
         feeManager = FeeManager(deployFeeManager(owner, salt));
-        freeMintModule = deployFreeMintController(owner, address(feeManager), salt);
-        gasCoinPurchaseController = deployGasCoinPurchaseController(owner, address(feeManager), salt);
+        erc721FreeMintController = deployFreeMintController(owner, address(feeManager), salt);
+        erc721GasCoinPurchaseController = deployGasCoinPurchaseController(owner, address(feeManager), salt);
 
         // using stablecoin 'environment' params above
-        stablecoinPurchaseController =
+        erc721StablecoinPurchaseController =
             deployStablecoinPurchaseController(owner, address(feeManager), decimals, currency, stablecoins, salt);
 
         // After deployments, format Multicall3 calls and execute it from FounderSafe as module sender
@@ -103,6 +131,21 @@ contract Deploy is ScriptUtils {
 
         vm.stopBroadcast();
 
+        // 0xRails contracts
+        logAddress("CallPermitValidator @", Strings.toHexString(address(callPermitValidator)));
+        logAddress("BotAccountImpl @", Strings.toHexString(address(botAccountImpl)));
+        logAddress("BotAccountProxy @", Strings.toHexString(address(botAccountProxy)));
+        logAddress("ERC721Rails @", Strings.toHexString(address(erc721Rails)));
+        logAddress("ERC20Rails @", Strings.toHexString(address(erc20Rails)));
+        logAddress("ERC1155Rails @", Strings.toHexString(address(erc1155Rails)));
+        logAddress("ERC721AccountRails @", Strings.toHexString(address(erc721AccountRails)));
+        // GroupOS AccountGroup contracts
+        logAddress("PermissionGatedInitializer @", Strings.toHexString(address(permissionGatedInitializer)));
+        logAddress("InitializeAccountController @", Strings.toHexString(address(initializeAccountController)));
+        logAddress("MintCreateInitializeController @", Strings.toHexString(address(mintCreateInitializeController)));
+        logAddress("AccountGroupImpl @", Strings.toHexString(address(accountGroupImpl)));
+        logAddress("AccountGroupProxy @", Strings.toHexString(address(accountGroupProxy)));
+        // GroupOS contracts
         logAddress("MetaDataRouterImpl @", Strings.toHexString(address(metadataRouterImpl)));
         logAddress("MetaDataRouterProxy @", Strings.toHexString(address(metadataRouter)));
         logAddress("TokenFactoryImpl @", Strings.toHexString(address(tokenFactoryImpl)));
@@ -111,9 +154,10 @@ contract Deploy is ScriptUtils {
         logAddress("NFTMetadataRouterExtension @", Strings.toHexString(address(nftMetadataRouterExtension)));
         logAddress("PayoutAddressExtension @", Strings.toHexString(address(payoutAddressExtension)));
         logAddress("FeeManager @", Strings.toHexString(address(feeManager)));
-        logAddress("FreeMintController @", Strings.toHexString(address(freeMintModule)));
-        logAddress("GasCoinPurchaseController @", Strings.toHexString(address(gasCoinPurchaseController)));
-        logAddress("StablecoinPurchaseController @", Strings.toHexString(address(stablecoinPurchaseController)));
+        logAddress("ERC721FreeMintController @", Strings.toHexString(address(erc721FreeMintController)));
+        logAddress("ERC721GasCoinPurchaseController @", Strings.toHexString(address(erc721GasCoinPurchaseController)));
+        logAddress("ERC721StablecoinPurchaseController @", Strings.toHexString(address(erc721StablecoinPurchaseController)));
+        logAddress("GeneralFreeMintController @", Strings.toHexString(address(generalFreeMintController)));
     }
 
     function deployMetadataRouter(bytes32 _salt, address _owner)

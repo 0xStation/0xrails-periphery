@@ -9,7 +9,7 @@ interface IMetadataRouter {
 
     /// @dev Get the base URI for a specific route and contract address.
     /// @param route The name of the route.
-    /// @param contractAddress The address of the contract for to request a URI.
+    /// @param contractAddress The address of the contract for which to request a URI.
     /// @return '' The base URI for the specified route and contract address.
     /// @notice If a route-specific URI is not configured for the contract address, the default URI will be used.
     function baseURI(string memory route, address contractAddress) external view returns (string memory);

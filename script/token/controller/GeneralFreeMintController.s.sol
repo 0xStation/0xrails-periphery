@@ -28,7 +28,6 @@ contract DeployGeneralFreeMintModule is ScriptUtils {
         vm.startBroadcast();
 
         bytes32 salt = ScriptUtils.create2Salt;
-        string memory saltString = Strings.toHexString(uint256(salt), 32);
 
         generalFreeMintController = new GeneralFreeMintController{salt: salt}();
 
