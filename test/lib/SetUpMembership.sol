@@ -15,6 +15,7 @@ import {Helpers} from "test/lib/Helpers.sol";
 abstract contract SetUpMembership is Helpers {
     address public owner;
     address public payoutAddress;
+    bytes32 public inputSalt = bytes32(0);
     ERC721Rails public membershipImpl;
     TokenFactory public membershipFactoryImpl;
     TokenFactory public membershipFactory;
@@ -53,7 +54,7 @@ abstract contract SetUpMembership is Helpers {
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, calls);
 
         proxy = ERC721Rails(
-            payable(membershipFactory.createERC721(payable(address(membershipImpl)), owner, "Test", "TEST", initData))
+            payable(membershipFactory.createERC721(payable(address(membershipImpl)), inputSalt, owner, "Test", "TEST", initData))
         );
     }
 }

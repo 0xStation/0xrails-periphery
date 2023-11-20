@@ -23,6 +23,9 @@ contract CreateERC721 is ScriptUtils {
         CONFIG 
     ============*/
 
+    /// @notice MAINNET: v0.4.0 introduced a create2 salt for counterfactual collections & cross chain support
+    bytes32 inputSalt = bytes32(0x0);
+
     /// @notice LINEA: v.1.10
     address coreImpl = 0x3F4f3680c80DBa28ae43FbE160420d4Ad8ca50E4; // ERC721Rails Linea
 
@@ -94,7 +97,7 @@ contract CreateERC721 is ScriptUtils {
 
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, initCalls);
 
-        TokenFactory(tokenFactory).createERC721(payable(coreImpl), owner, name, symbol, initData);
+        TokenFactory(tokenFactory).createERC721(payable(coreImpl), inputSalt, owner, name, symbol, initData);
 
         vm.stopBroadcast();
     }

@@ -39,6 +39,7 @@ contract MintCreateInitializeControllerTest is Test, Account {
     MintCreateInitializeController mintCreateInitializeController;
     ERC721AccountRails erc721AccountRails;
 
+    bytes32 inputSalt;
     address owner;
     address entryPointAddress;
     address turnkey;
@@ -48,6 +49,7 @@ contract MintCreateInitializeControllerTest is Test, Account {
     MintCreateInitializeController.MintParams mintParams;
 
     function setUp() public {
+        inputSalt = bytes32(0x0);
         owner = createAccount();
         turnkey = createAccount();
         entryPointAddress = 0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789;
@@ -61,7 +63,7 @@ contract MintCreateInitializeControllerTest is Test, Account {
         erc721RailsImpl = new ERC721Rails();
         tokenFactoryProxy.initialize(owner, address(0x0), address(erc721RailsImpl), address(0x0)); // erc20 and erc1155 implementations not needed for testing
 
-        erc721Rails = ERC721Rails(tokenFactoryProxy.createERC721(payable(address(erc721RailsImpl)), owner, "test", "tst", ''));
+        erc721Rails = ERC721Rails(tokenFactoryProxy.createERC721(payable(address(erc721RailsImpl)), inputSalt, owner, "test", "tst", ''));
         
         user = new ERC721Holder();
 
