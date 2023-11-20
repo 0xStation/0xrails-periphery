@@ -17,6 +17,9 @@ contract CreateERC20 is ScriptUtils {
     address public owner = 0x016562aA41A8697720ce0943F003141f5dEAe006;
     string public name = "DonkeyPoints";
     string public symbol = "DP";
+    
+    /// @notice MAINNET: v0.4.0 introduced a create2 salt for counterfactual collections & cross chain support
+    bytes32 inputSalt = bytes32(0x0);
 
     /// @notice MAINNET: v0.4.0 introduced a create2 salt for counterfactual collections & cross chain support
     bytes32 inputSalt = bytes32(0x0);
