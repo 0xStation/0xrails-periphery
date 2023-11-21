@@ -10,47 +10,13 @@ import {Operations} from "0xrails/lib/Operations.sol";
 import {PermitController} from "src/lib/module/PermitController.sol";
 import {SetupController} from "src/lib/module/SetupController.sol";
 
-/// @title Station FreeMintController Contract
+/// @title Station PermitMintController Contract
 /// @author frog (@0xmcg), 👦🏻👦🏻.eth
 /// @dev Mint tokens entirely for free with signature-based authentication
 /// @dev Supports all three 0xRails token standard implementations: ERC20, ERC721, ERC1155
-/// @notice As this controller is entirely fee-less, it does not make use of the FeeManager,
-/// which enforces a baseline default mint fee
-contract GeneralFreeMintController is PermitController, SetupController, Multicall {
-    /*=============
-        STORAGE
-    =============*/
-
-    /// @dev collection => permits disabled, permits are enabled by default
-    mapping(address => bool) internal _disablePermits;
-
-    /*============
-        EVENTS
-    ============*/
-
-    /// @dev Events share names but differ in parameters to differentiate them between controllers
-    event SetUp(address indexed collection, bool indexed enablePermits);
-
-    /*============
-        CONFIG
-    ============*/
-
-    constructor() PermitController() {}
-
-    /// @dev Function to set up and configure a new collection's purchase prices
-    /// @param collection The new collection to configure
-    /// @param enablePermits A boolean to represent whether this collection will repeal or support grant functionality
-    function setUpPermits(address collection, bool enablePermits) public canSetUp(collection) {
-        if (_disablePermits[collection] != !enablePermits) {
-            _disablePermits[collection] = !enablePermits;
-        }
-        emit SetUp(collection, enablePermits);
-    }
-
-    /// @dev convenience function for setting up when creating collections, relies on auth done in public setUp
-    function setUpPermits(bool enablePermits) external {
-        setUpPermits(msg.sender, enablePermits);
-    }
+/// @notice As this controller is entirely fee-less via enforced permits, it does not make use 
+/// of the FeeManager (which charges a baseline default mint fee) nor the permit controller mapping
+contract PermitMintController is PermitController, SetupController, Multicall {
 
     /*==========
         MINT

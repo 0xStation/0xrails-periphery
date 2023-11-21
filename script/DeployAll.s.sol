@@ -29,7 +29,7 @@ import {NFTMetadataRouterExtension} from
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {ITokenFactory} from "src/factory/ITokenFactory.sol";
 import {TokenFactory} from "src/factory/TokenFactory.sol";
-import {GeneralFreeMintController} from "src/token/controller/GeneralFreeMintController.sol";
+import {PermitMintController} from "src/token/controller/PermitMintController.sol";
 
 /// @dev Script to deploy *all* GroupOS contracts other than the Safe and AdminGuard
 /// Usage:
@@ -69,7 +69,7 @@ contract DeployAll is ScriptUtils {
     FreeMintController erc721FreeMintController;
     GasCoinPurchaseController erc721GasCoinPurchaseController;
     StablecoinPurchaseController erc721StablecoinPurchaseController;
-    GeneralFreeMintController generalFreeMintController;
+    PermitMintController permitMintController;
 
     /*============
         CONFIG
@@ -122,7 +122,7 @@ contract DeployAll is ScriptUtils {
         erc721StablecoinPurchaseController =
             deployStablecoinPurchaseController(owner, address(feeManager), decimals, currency, salt);
 
-        generalFreeMintController = deployGeneralFreeMintController(salt);
+        permitMintController = deployPermitMintController(salt);
 
         // After deployments, format Multicall3 calls and execute it from FounderSafe as module sender
         
@@ -234,7 +234,7 @@ contract DeployAll is ScriptUtils {
         logAddress("ERC721FreeMintController @", Strings.toHexString(address(erc721FreeMintController)));
         logAddress("ERC721GasCoinPurchaseController @", Strings.toHexString(address(erc721GasCoinPurchaseController)));
         logAddress("ERC721StablecoinPurchaseController @", Strings.toHexString(address(erc721StablecoinPurchaseController)));
-        logAddress("GeneralFreeMintController @", Strings.toHexString(address(generalFreeMintController)));
+        logAddress("PermitMintController @", Strings.toHexString(address(permitMintController)));
     }
 
     function deployCallPermitValidator(address _entryPointAddress, bytes32 _salt) internal returns (CallPermitValidator _callPermitValidator) {
@@ -348,7 +348,7 @@ contract DeployAll is ScriptUtils {
         return new StablecoinPurchaseController{salt: _salt}(_owner, _feeManager, _decimals, _currency);
     }
 
-    function deployGeneralFreeMintController(bytes32 _salt) internal returns (GeneralFreeMintController _generalFreeMintController) {
-        _generalFreeMintController = new GeneralFreeMintController{salt: _salt}();
+    function deployPermitMintController(bytes32 _salt) internal returns (PermitMintController _permitMintController) {
+        _permitMintController = new PermitMintController{salt: _salt}();
     }
 }

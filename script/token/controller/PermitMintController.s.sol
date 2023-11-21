@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {ITokenFactory} from "src/factory/ITokenFactory.sol";
-import {GeneralFreeMintController} from "src/token/controller/GeneralFreeMintController.sol";
+import {PermitMintController} from "src/token/controller/PermitMintController.sol";
 import {ScriptUtils} from "lib/protocol-ops/script/ScriptUtils.sol";
 import {JsonManager} from "lib/protocol-ops/script/lib/JsonManager.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
@@ -12,13 +12,13 @@ import {console2} from "forge-std/console2.sol";
 
 // forge script --keystores $ETH_KEYSTORE --sender $ETH_FROM --broadcast --fork-url $GOERLI_RPC_URL script/erc20/modules/FreeMintController.s.sol
 // See deployed FreeMintController address in `Protocol-Ops::deploys.json`
-contract DeployGeneralFreeMintModule is ScriptUtils {
+contract DeployPermitMintController is ScriptUtils {
     /*============
         CONFIG
     ============*/
 
     // following contract will be deployed
-    GeneralFreeMintController generalFreeMintController;
+    PermitMintController permitMintController;
 
     /*===============
         BROADCAST 
@@ -29,9 +29,9 @@ contract DeployGeneralFreeMintModule is ScriptUtils {
 
         bytes32 salt = ScriptUtils.create2Salt;
 
-        generalFreeMintController = new GeneralFreeMintController{salt: salt}();
+        permitMintController = new PermitMintController{salt: salt}();
 
-        logAddress("GeneralFreeMintController @", Strings.toHexString(address(generalFreeMintController)));
+        logAddress("PermitMintController @", Strings.toHexString(address(permitMintController)));
 
         vm.stopBroadcast();
     }
