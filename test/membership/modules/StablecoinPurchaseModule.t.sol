@@ -218,14 +218,12 @@ contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
         feeManager = new FeeManager(owner, baseFee, variableFee, baseFee, variableFee);
 
         stablecoin = new FakeERC20(coinDecimals);
-        address[] memory stablecoins = new address[](0);
 
         stablecoinModule = new StablecoinPurchaseController(
             owner, 
             address(feeManager), 
             moduleDecimals,
-            "USD",
-            stablecoins
+            "USD"
         );
 
         address[] memory setupStablecoins = new address[](1);
@@ -234,7 +232,7 @@ contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
         vm.prank(randomAddress);
         err = abi.encodeWithSelector(SetupController.SetUpUnauthorized.selector, address(proxy), randomAddress);
         vm.expectRevert(err);
-        stablecoinModule.setUp(address(proxy), price, stablecoins, false);
+        stablecoinModule.setUp(address(proxy), price, setupStablecoins, false);
 
         // check stablecoin NOT enabled
         err = bytes("STABLECOIN_NOT_REGISTERED");
@@ -256,14 +254,12 @@ contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
         feeManager = new FeeManager(owner, baseFee, variableFee, baseFee, variableFee);
 
         stablecoin = new FakeERC20(coinDecimals);
-        address[] memory stablecoins = new address[](0);
 
         stablecoinModule = new StablecoinPurchaseController(
             owner, 
             address(feeManager), 
             moduleDecimals,
-            "USD",
-            stablecoins
+            "USD"
         );
 
         address[] memory setupStablecoins = new address[](1);
@@ -272,7 +268,7 @@ contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
         // attempt set zero price
         uint128 zeroPrice = 0;
         vm.expectRevert("ZERO_PRICE");
-        stablecoinModule.setUp(address(proxy), zeroPrice, stablecoins, false);
+        stablecoinModule.setUp(address(proxy), zeroPrice, setupStablecoins, false);
 
         // check stablecoin NOT enabled
         vm.expectRevert("STABLECOIN_NOT_REGISTERED");
@@ -338,8 +334,7 @@ contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
             owner, 
             address(feeManager), 
             moduleDecimals,
-            "USD",
-            new address[](0)
+            "USD"
         );
 
         vm.prank(owner);
@@ -1042,18 +1037,17 @@ contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
         // deploy fake stablecoin but not include it in stablecoinModule constructor
         stablecoin = new FakeERC20(coinDecimals);
 
-        // pass empty initial stables array to stablecoinModule constructor
-        address[] memory stablecoins = new address[](0);
         stablecoinModule = new StablecoinPurchaseController(
             owner, 
             address(feeManager), 
             moduleDecimals,
-            "USD",
-            stablecoins
+            "USD"
         );
 
         // enable grants in module config setup and give module mint permission on proxy
         vm.startPrank(owner);
+        // pass empty stables array to stablecoinModule
+        address[] memory stablecoins = new address[](0);
         stablecoinModule.setUp(address(proxy), price, stablecoins, false);
         proxy.addPermission(Operations.MINT, address(stablecoinModule));
         vm.stopPrank();

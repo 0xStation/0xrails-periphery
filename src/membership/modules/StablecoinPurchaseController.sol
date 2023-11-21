@@ -71,19 +71,14 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
     /// @param _feeManager The FeeManager module's address
     /// @param _decimals The decimals value for this module's supported stablecoin payments
     /// @param _currency The type of currency managed by this module
-    /// @param stablecoins An array of stablecoin addresses to initialize to state on deployment
     constructor(
         address _owner,
         address _feeManager,
         uint8 _decimals,
-        string memory _currency,
-        address[] memory stablecoins
+        string memory _currency
     ) PermitController() FeeController(_owner, _feeManager) {
         decimals = _decimals;
         currency = _currency;
-        for (uint256 i; i < stablecoins.length; i++) {
-            _register(stablecoins[i]);
-        }
     }
 
     /// @dev Function to register new stablecoins when requested by clients

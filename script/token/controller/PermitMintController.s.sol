@@ -28,7 +28,6 @@ contract DeployPermitMintController is ScriptUtils {
         vm.startBroadcast();
 
         bytes32 salt = ScriptUtils.create2Salt;
-        string memory saltString = Strings.toHexString(uint256(salt), 32);
 
         permitMintController = new PermitMintController{salt: salt}();
 

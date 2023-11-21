@@ -53,7 +53,6 @@ contract Deploy is ScriptUtils {
         address owner = ScriptUtils.stationFounderSafe;
 
         bytes32 salt = ScriptUtils.create2Salt;
-        string memory saltString = Strings.toHexString(uint256(salt), 32);
 
         // begin deployments
         (metadataRouterImpl, metadataRouter) = deployMetadataRouter(salt, owner);
@@ -181,6 +180,6 @@ contract Deploy is ScriptUtils {
         address[] memory _stablecoins,
         bytes32 _salt
     ) internal returns (StablecoinPurchaseController) {
-        return new StablecoinPurchaseController{salt: _salt}(_owner, _feeManager, _decimals, _currency, _stablecoins);
+        return new StablecoinPurchaseController{salt: _salt}(_owner, _feeManager, _decimals, _currency);
     }
 }

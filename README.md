@@ -81,7 +81,7 @@ While GroupOS is in initial release, assistance on reviews for security and deve
 
 ## License
 
-Direct inquiries for using GroupOS in your own project via [Twitter DM](https://twitter.com/ilikesymmetry). Note that GroupOS is currently undergoing a security audit.
+Direct inquiries for using GroupOS in your own project via [Twitter DM](https://twitter.com/ilikesymmetry). GroupOS has recently completed a security audit by Sayfer Security. The audit report can be obtained by contacting us and will be published shortly.
 
 ## Onchain Deployments
 ### Addresses are consistent across networks
@@ -91,26 +91,27 @@ Direct inquiries for using GroupOS in your own project via [Twitter DM](https://
 | --- | --- | --- |
 | StationFounderSafe Multisig Proxy |  274,123 | 0x8667cde7a8De51ea1d0C8E215845E74c04192D09 | 
 | AdminGuard | 1,013,754 | 0xDB9A089A20D4b8cDef355ca474323b6C832D9776 | 
-| CallPermitValidator | 770,771 | 0x7278570a84bc86e26c0cf581276c8c2b9e12a284 | 
-| BotAccountImpl | 4,179,853 | 0xf73c9bebe90d4e1e23e33d3d6b668b4eb5a34cac | 
-| BotAccountProxy | 136,124 | 0x6de24d0389130fdacc54b9209696f6f7fcbeeee1 | 
-| ERC721Rails | 4,717,748 | 0x585cc04541d2077cd02bbc1866e0b49b59499d1a | 
-| ERC20Rails | 3,879,187 | 0xe8f8242acb4f05dcf03cefebee6d0b077c5aee78 | 
-| ERC1155Rails | 4,410,740 | 0xeec5f1c40f76fd96de8a6222485179878ae818eb |  
-| TokenFactoryImpl | 2,087,959 | 0x7ed278b15d58b8fc073e5453a354f9f3bcbad32e | 
-| TokenFactoryProxy | 259,529 | 0xda32efd5a06a220707f7406e57056f97684ea405 | 
-| MetadataRouterImpl | 1,915,882 | 0x407c8ae5a8298b0e7609e8fc6cf79da2a2380032 | 
-| MetadataRouterProxy | 336,187 | 0xc6288e4353141e516b6e5d3e3292dc9f5ab9731a | 
-| OneAddressPerGuard | 426,313 | 0xa362704a518f139b6c688a85c2c69792ea1b81f9 | 
-| NFTMetadataRouterExtension | 535,214 | 0x54fb19f5fd357bca01c3dc39c228597921c484b3 | 
-| PayoutAddressExtension | 632,639 | 0xd59cd254f9c384540e05245e9c6eaea26c5976cb | 
-| FeeManager | 869,188 | 0x6d068b97a4353c5b23f64d1361208d32ae917979 | 
-| ERC721FreeMintController | 1,906,671 | 0x6c7760b08ca1eed25fcff6f628eeda369ce11334 | 
-| ERC721GasCoinPurchaseController | 2,013,611 | 0x39af6209325eb501361ccc33b36f589444959f9d | 
-| ERC721StablecoinPurchaseController | 2,926,173 | 0x6c1ca4dd00c4bbd2a5d06b6b0bf3a80dcce0ba14 | 
-| GeneralFreeMintController | 996,693 | 0x067EF1a8E8D79E55B94d9C8096FFb927108A53b3 | 
-| PermissionGatedInitializer | 318,755 | 0x97a44D858c6B79E456828bfD86c1A0aD86b1677b | 
-| InitializeAccountController | 961,478 | 0x6dBa22C55eA4549d1c92F181Cb33D7fe016E2f45 | 
-| ERC721AccountRails | 4,117,521 | 0xD8dDE27Bd469148CD014c3C7CB1Eedf62C4949C0 | 
-| AccountGroupImpl | 1,501,090 | 0x210ce6fD65C7765B9b7bfafd72F67E8F9a98Ce09 | 
-| AccountGroupProxy | 59,670 | 0x12e58F259135b4B4ba87dff6086fB5D02C6A86ef | 
+| CallPermitValidator | 770,771 | 0xedd397e2947f3c400db6f0b5914fb621838cfb72 | 
+| BotAccountImpl | 4,179,853 | 0x1b2477eee03a4aff7a0079dcffafd068a922feb0 | 
+| BotAccountProxy | 136,124 | 0xb23b79e466d8736f541354ab72d56f06ed0b7e5d | 
+| ERC721Rails | 4,717,748 | 0xb5764bd3ad21a58f723db04aeb97a428c7bdde2a | 
+| ERC20Rails | 3,879,187 | 0xa8f4f8ef600dd6ff538426fc206e8a1457d90d95 | 
+| ERC1155Rails | 4,410,740 | 0x053809dfdd2443616d324c93e1dfc6a2076f976b |  
+| TokenFactoryImpl | 2,087,959 | 0xd4b8c7ceaf8d7fc4b34b157f31be0d8e9e9022af | 
+| TokenFactoryProxy | 259,529 | 0x2c333bd1316ce1af9ebf017a595d6f8ab5f6bd1a | 
+| MetadataRouterImpl | 1,915,882 | 0x9dc652b502731d9a41fb60bcce9bc33b74619b4c | 
+| MetadataRouterProxy | 336,187 | 0xd875345db38a113f3dd8f766f57cbbd2c4c2ab99 | 
+| OneAddressPerGuard | 426,313 | 0x5f00d3707f1e4183003e75d3e995b814fb8fabe6 | 
+| NFTMetadataRouterExtension | 535,214 | 0x3cad50c2621a4da3a5199370ceb00d6055d29650 | 
+| PayoutAddressExtension | 632,639 | 0x53ef68a35f9ae248f28584ab8e724896eb2d41c5 | 
+| FeeManager | 869,188 | 0x0af22fe98babe7b3dedc14ba3e0f33e9e63444f3 | 
+| ERC721FreeMintController | 1,906,671 | 0x160e449bf97edbf5427717271bbfffd53e3f109d | 
+| ERC721GasCoinPurchaseController | 2,013,611 | 0xb336c2c5568b310ec5774cb6c577280c14c4dac2 | 
+| ERC721StablecoinPurchaseController | 2,926,173 | 0x65c4a1a4627dff7d66b45b4775e13fe5194fd197 | 
+| PermitMintController | 996,693 | 0x067EF1a8E8D79E55B94d9C8096FFb927108A53b3 | 
+| PermissionGatedInitializer | 318,755 | 0xd84e8ac29cb1e20e24ab1bafea36c16881d84856 | 
+| InitializeAccountController | 961,478 | 0xfc85ba406338303d1a155364fa6dd5ad97c35f2a | 
+| MintCreateInitializeController | 959,274 | 0x767a92675a01fbf1a33eb9b4c37e718a66d921cb |
+| ERC721AccountRails | 4,117,521 | 0x509b531c8e979c85375370c0ba92ac44173c2d12 | 
+| AccountGroupImpl | 1,501,090 | 0x2cb1dc8b63c32f03c6f496207027e1aaf9a47c0c | 
+| AccountGroupProxy | 59,670 | 0x852517b7ffed0f98d714dd1787995aff4d6b1892 | 
