@@ -114,4 +114,4 @@ Direct inquiries for using GroupOS in your own project via [Twitter DM](https://
 | MintCreateInitializeController | 959,274 | 0x767a92675a01fbf1a33eb9b4c37e718a66d921cb |
 | ERC721AccountRails | 4,117,521 | 0x509b531c8e979c85375370c0ba92ac44173c2d12 | 
 | AccountGroupImpl | 1,501,090 | 0x2cb1dc8b63c32f03c6f496207027e1aaf9a47c0c | 
-| AccountGroupProxy | 59,670 | 0x12e58f259135b4b4ba87dff6086fb5d02c6a86ef | 
+| AccountGroupProxy | 59,670 | 0x852517B7FFed0f98D714DD1787995AfF4d6b1892 | 

@@ -25,7 +25,7 @@ contract CreateERC20 is ScriptUtils {
     JsonManager.DeploysJson $deploys = setDeploysJsonStruct();
     address erc20CoreImpl = $deploys.ERC20Rails;
     address tokenFactory = $deploys.TokenFactoryProxy;
-    address erc20FreeMintController = $deploys.GeneralFreeMintController;
+    address erc20FreeMintController = $deploys.PermitMintController;
 
     function run() public {
         vm.startBroadcast();
