@@ -89,6 +89,7 @@ Direct inquiries for using GroupOS in your own project via [Twitter DM](https://
 #### The address table below displays deployments for release v0.4.0, which is currently deployed to:
 - Ethereum mainnet 
 - Optimism mainnet 
+- Polygon mainnet
 - Sepolia testnet 
 - Goerli testnet 
   
