@@ -81,12 +81,18 @@ While GroupOS is in initial release, assistance on reviews for security and deve
 ## License
 
 Direct inquiries for using GroupOS in your own project via [Twitter DM](https://twitter.com/ilikesymmetry). GroupOS has recently completed a security audit by Sayfer Security. The audit report can be obtained by contacting us and will be published shortly.
+Direct inquiries for using GroupOS in your own project via [Twitter DM](https://twitter.com/ilikesymmetry). GroupOS has recently completed a security audit by Sayfer Security. The audit report can be obtained by contacting us and will be published shortly.
 
 ## Onchain Deployments
 
 ### Addresses are consistent across networks
-
-#### The following addresses are v1.3.0, currently deployed to Linea mainnet, Linea testnet, Sepolia, and Goerli. For other versions deployed to different networks, consult `deploys.json`
+#### The address table below displays deployments for release v0.4.0, which is currently deployed to:
+- Ethereum mainnet 
+- Optimism mainnet 
+- Sepolia testnet 
+- Goerli testnet 
+  
+##### For other versions deployed to different networks, check out the relevant release's branch
 
 | Contract                           | Gas       | Address                                    |
 | ---------------------------------- | --------- | ------------------------------------------ |
@@ -95,8 +101,8 @@ Direct inquiries for using GroupOS in your own project via [Twitter DM](https://
 | CallPermitValidator                | 770,771   | 0xedd397e2947f3c400db6f0b5914fb621838cfb72 |
 | BotAccountImpl                     | 4,179,853 | 0x1b2477eee03a4aff7a0079dcffafd068a922feb0 |
 | BotAccountProxy                    | 136,124   | 0xb23b79e466d8736f541354ab72d56f06ed0b7e5d |
-| ERC721Rails                        | 4,717,748 | 0xb5764bd3ad21a58f723db04aeb97a428c7bdde2a |
 | ERC20Rails                         | 3,879,187 | 0xa8f4f8ef600dd6ff538426fc206e8a1457d90d95 |
+| ERC721Rails                        | 4,717,748 | 0xb5764bd3ad21a58f723db04aeb97a428c7bdde2a |
 | ERC1155Rails                       | 4,410,740 | 0x053809dfdd2443616d324c93e1dfc6a2076f976b |
 | TokenFactoryImpl                   | 2,087,959 | 0xd4b8c7ceaf8d7fc4b34b157f31be0d8e9e9022af |
 | TokenFactoryProxy                  | 259,529   | 0x2c333bd1316ce1af9ebf017a595d6f8ab5f6bd1a |

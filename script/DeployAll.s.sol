@@ -79,7 +79,10 @@ contract DeployAll is ScriptUtils {
     uint8 decimals = 2;
     string currency = "USD";
 
-    address owner = ScriptUtils.stationFounderSafe;
+    /// @notice Checkout lib/protocol-ops vX.Y.Z to automatically get addresses
+    DeploysJson $deploys = setDeploysJsonStruct();
+    address owner = $deploys.StationFounderSafe;
+
     bytes32 salt = ScriptUtils.create2Salt;
     
     address[] turnkeys = [ScriptUtils.turnkey];
@@ -95,34 +98,44 @@ contract DeployAll is ScriptUtils {
         vm.startBroadcast();
 
         // 0xrails deployments
-        callPermitValidator = deployCallPermitValidator(ScriptUtils.entryPointAddress, salt);
-        (botAccountImpl, botAccount) = deployBotAccount(ScriptUtils.entryPointAddress, owner, turnkeys, salt);
-        (erc20Rails, erc721Rails, erc1155Rails) = deployERCTokenRailsImpls(salt);
-        erc721AccountRails = deployERC721AccountRails(ScriptUtils.entryPointAddress, salt);
+        callPermitValidator = handleCallPermitValidator(ScriptUtils.entryPointAddress, salt);
+        botAccountImpl = handleBotAccountImpl(ScriptUtils.entryPointAddress, salt);
+        botAccount = handleBotAccountProxy(address(botAccountImpl), owner, turnkeys, salt);
+        (erc20Rails, erc721Rails, erc1155Rails) = handleERCTokenRailsImpls(salt);
+        erc721AccountRails = handleERC721AccountRails(ScriptUtils.entryPointAddress, salt);
 
         // accountGroup deployments
-        (accountGroupImpl, accountGroup) = deployAccountGroup(salt, owner);
-        permissionGatedInitializer = deployPermissionGatedInitializer(salt);
-        initializeAccountController = deployInitializeAccountController(salt);
-        mintCreateInitializeController = deployMintCreateInitializeController(salt);
+        accountGroupImpl = handleAccountGroupImpl(salt);
+        accountGroup = handleAccountGroupProxy(salt, owner, address(accountGroupImpl));
+        permissionGatedInitializer = handlePermissionGatedInitializer(salt);
+        initializeAccountController = handleInitializeAccountController(salt);
+        mintCreateInitializeController = handleMintCreateInitializeController(salt);
 
         // groupOS deployments
-        (metadataRouterImpl, metadataRouter) = deployMetadataRouter(salt, owner);
-        (tokenFactoryImpl, tokenFactory) = deployTokenFactory(salt, owner, address(erc20Rails), address(erc721Rails), address(erc1155Rails));
+        metadataRouterImpl = handleMetadataRouterImpl(salt);
+        metadataRouter = handleMetadataRouterProxy(salt, owner, address(metadataRouterImpl));
+        tokenFactoryImpl = handleTokenFactoryImpl(salt);
+        tokenFactory = handleTokenFactoryProxy(
+            salt, 
+            owner, 
+            address(erc20Rails), 
+            address(erc721Rails), 
+            address(erc1155Rails), 
+            address(tokenFactoryImpl)
+        );
 
-        onePerAddressGuard = deployOnePerAddressGuard(salt);
-        nftMetadataRouterExtension = deployNFTMetadataRouterExtension(salt, address(metadataRouter));
-        payoutAddressExtension = deployPayoutAddressExtension(salt);
+        onePerAddressGuard = handleOnePerAddressGuard(salt);
+        nftMetadataRouterExtension = handleNFTMetadataRouterExtension(salt, address(metadataRouter));
+        payoutAddressExtension = handlePayoutAddressExtension(salt);
 
-        feeManager = FeeManager(deployFeeManager(owner, salt));
-        erc721FreeMintController = deployFreeMintController(owner, address(feeManager), salt);
-        erc721GasCoinPurchaseController = deployGasCoinPurchaseController(owner, address(feeManager), salt);
+        feeManager = handleFeeManager(owner, salt);
+        erc721FreeMintController = handleFreeMintController(owner, address(feeManager), salt);
+        erc721GasCoinPurchaseController = handleGasCoinPurchaseController(owner, address(feeManager), salt);
 
         // using stablecoin 'environment' params above
-        erc721StablecoinPurchaseController =
-            deployStablecoinPurchaseController(owner, address(feeManager), decimals, currency, salt);
+        erc721StablecoinPurchaseController = handleStablecoinPurchaseController(owner, address(feeManager), decimals, currency, salt);
 
-        permitMintController = deployPermitMintController(salt);
+        permitMintController = handlePermitMintController(salt);
 
         // After deployments, format Multicall3 calls and execute it from FounderSafe as module sender
         
@@ -237,118 +250,197 @@ contract DeployAll is ScriptUtils {
         logAddress("PermitMintController @", Strings.toHexString(address(permitMintController)));
     }
 
-    function deployCallPermitValidator(address _entryPointAddress, bytes32 _salt) internal returns (CallPermitValidator _callPermitValidator) {
-        _callPermitValidator = new CallPermitValidator{salt: _salt}(_entryPointAddress);
+    function handleCallPermitValidator(address _entryPointAddress, bytes32 _salt) internal returns (CallPermitValidator _callPermitValidator) {
+        _callPermitValidator = isDeployed($deploys.CallPermitValidator)
+            ? CallPermitValidator($deploys.CallPermitValidator)
+            : new CallPermitValidator{salt: _salt}(_entryPointAddress);
     }
     
-    function deployBotAccount(address _entryPointAddress, address _owner, address[] memory _turnkeys, bytes32 _salt) internal returns (BotAccount _botAccountImpl, BotAccount _botAccountProxy) {
-        _botAccountImpl = new BotAccount{salt: _salt}(_entryPointAddress);
+    function handleBotAccountImpl(address _entryPointAddress, bytes32 _salt) internal returns (BotAccount _botAccountImpl) {
+        _botAccountImpl = isDeployed($deploys.BotAccountImpl)
+            ? BotAccount(payable($deploys.BotAccountImpl))
+            : new BotAccount{salt: _salt}(_entryPointAddress);
+    }
 
-        _botAccountProxy = BotAccount(payable(address(new ERC1967Proxy{salt: _salt}(address(_botAccountImpl), ''))));
+    function handleBotAccountProxy(
+        address _botAccountImpl, 
+        address _owner, 
+        address[] memory _turnkeys, 
+        bytes32 _salt
+    ) internal returns (BotAccount _botAccountProxy) {
+        _botAccountProxy = isDeployed($deploys.BotAccountProxy)
+            ? BotAccount(payable($deploys.BotAccountProxy))
+            : BotAccount(payable(address(new ERC1967Proxy{salt: _salt}(_botAccountImpl, ''))));
         _botAccountProxy.initialize(_owner, address(callPermitValidator), _turnkeys);
     
         // the two previous calls are external so they are broadcast as separate txs; thus check state externally
         if (!_botAccountProxy.initialized()) revert Create2Failure();
     }
 
-    function deployERCTokenRailsImpls(bytes32 _salt) internal returns (ERC20Rails _erc20RailsImpl, ERC721Rails _erc721RailsImpl, ERC1155Rails _erc1155RailsImpl) {
-        _erc20RailsImpl = new ERC20Rails{salt: _salt}();
-        _erc721RailsImpl = new ERC721Rails{salt: _salt}();
-        _erc1155RailsImpl = new ERC1155Rails{salt: _salt}();
+    function handleERCTokenRailsImpls(bytes32 _salt) internal returns (ERC20Rails _erc20RailsImpl, ERC721Rails _erc721RailsImpl, ERC1155Rails _erc1155RailsImpl) {
+        _erc20RailsImpl = isDeployed($deploys.ERC20Rails)
+            ? ERC20Rails(payable($deploys.ERC20Rails))
+            : new ERC20Rails{salt: _salt}();
+
+        _erc721RailsImpl = isDeployed($deploys.ERC721Rails)
+            ? ERC721Rails(payable($deploys.ERC721Rails))
+            : new ERC721Rails{salt: _salt}();
+
+        _erc1155RailsImpl = isDeployed($deploys.ERC1155Rails)
+            ? ERC1155Rails(payable($deploys.ERC1155Rails))
+            : new ERC1155Rails{salt: _salt}();
     }
 
-    function deployERC721AccountRails(address _entryPointAddress, bytes32 _salt) internal returns (ERC721AccountRails _erc721AccountRails) {
-        _erc721AccountRails = new ERC721AccountRails{salt: _salt}(_entryPointAddress);
+    function handleERC721AccountRails(address _entryPointAddress, bytes32 _salt) internal returns (ERC721AccountRails _erc721AccountRails) {
+        _erc721AccountRails = isDeployed($deploys.ERC721AccountRails)
+            ? ERC721AccountRails(payable($deploys.ERC721AccountRails))
+            : new ERC721AccountRails{salt: _salt}(_entryPointAddress);
     }
 
-    function deployAccountGroup(bytes32 _salt, address _owner)
+    function handleAccountGroupImpl(bytes32 _salt)
         internal
-        returns (AccountGroup _impl, AccountGroup _proxy)
+        returns (AccountGroup _impl)
     {
-        _impl = new AccountGroup{salt: _salt}();
+        _impl = isDeployed($deploys.AccountGroupImpl)
+            ? AccountGroup($deploys.AccountGroupImpl)
+            : new AccountGroup{salt: _salt}();
+    }
+
+
+    function handleAccountGroupProxy(bytes32 _salt, address _owner, address _accountGroupImpl) internal returns (AccountGroup _proxy) {
         bytes memory accountGroupInitData = abi.encodeWithSelector(AccountGroup.initialize.selector, _owner);
-        _proxy = AccountGroup(address(new ERC1967Proxy{salt: _salt}(address(_impl), accountGroupInitData)));
+        
+        _proxy = isDeployed($deploys.AccountGroupProxy)
+            ? AccountGroup($deploys.AccountGroupProxy)
+            : AccountGroup(address(new ERC1967Proxy{salt: _salt}(_accountGroupImpl, accountGroupInitData)));
     }
 
-    function deployPermissionGatedInitializer(bytes32 _salt) internal returns (PermissionGatedInitializer _permissionGatedInitializer) {
-        _permissionGatedInitializer = new PermissionGatedInitializer{salt: _salt}();
+    function handlePermissionGatedInitializer(bytes32 _salt) internal returns (PermissionGatedInitializer _permissionGatedInitializer) {
+        _permissionGatedInitializer = isDeployed($deploys.PermissionGatedInitializer)
+            ? PermissionGatedInitializer($deploys.PermissionGatedInitializer)
+            : new PermissionGatedInitializer{salt: _salt}();
     }
 
-    function deployInitializeAccountController(bytes32 _salt) internal returns (InitializeAccountController _initializeAccountController) {
-        _initializeAccountController = new InitializeAccountController{salt: _salt}();
+    function handleInitializeAccountController(bytes32 _salt) internal returns (InitializeAccountController _initializeAccountController) {
+        _initializeAccountController = isDeployed($deploys.InitializeAccountController)
+            ? InitializeAccountController($deploys.InitializeAccountController)
+            : new InitializeAccountController{salt: _salt}();
     }
 
-    function deployMintCreateInitializeController(bytes32 _salt) internal returns (MintCreateInitializeController _mintCreateInitializeController) {
-        _mintCreateInitializeController = new MintCreateInitializeController{salt: _salt}();
+    function handleMintCreateInitializeController(bytes32 _salt) internal returns (MintCreateInitializeController _mintCreateInitializeController) {
+        _mintCreateInitializeController = isDeployed($deploys.MintCreateInitializeController)
+            ? MintCreateInitializeController($deploys.MintCreateInitializeController)
+            : new MintCreateInitializeController{salt: _salt}();
     }
 
-    function deployMetadataRouter(bytes32 _salt, address _owner)
-        internal
-        returns (MetadataRouter _impl, MetadataRouter _proxy)
+    function handleMetadataRouterImpl(bytes32 _salt) internal returns (MetadataRouter _impl) {
+        _impl = isDeployed($deploys.MetadataRouterImpl)
+            ? MetadataRouter($deploys.MetadataRouterImpl)
+            : new MetadataRouter{salt: _salt}();
+    }
+
+    function handleMetadataRouterProxy(bytes32 _salt, address _owner, address _metadataRouterImpl) 
+        internal 
+        returns (MetadataRouter _proxy) 
     {
-        _impl = new MetadataRouter{salt: _salt}();
         bytes memory metadataRouterInitData = abi.encodeWithSelector(MetadataRouter.initialize.selector, _owner);
-        _proxy = MetadataRouter(address(new ERC1967Proxy{salt: _salt}(address(_impl), metadataRouterInitData)));
+        
+        _proxy = isDeployed($deploys.MetadataRouterProxy)
+            ? MetadataRouter($deploys.MetadataRouterProxy)
+            : MetadataRouter(address(new ERC1967Proxy{salt: _salt}(_metadataRouterImpl, metadataRouterInitData)));
     }
 
-    function deployTokenFactory(bytes32 _salt, address _owner, address _erc20Rails, address _erc721Rails, address _erc1155Rails)
-        internal
-        returns (TokenFactory _impl, TokenFactory _proxy)
+    function handleTokenFactoryImpl(bytes32 _salt) internal returns (TokenFactory _impl) {
+        _impl = isDeployed($deploys.TokenFactoryImpl)
+            ? TokenFactory($deploys.TokenFactoryImpl)
+            : new TokenFactory{salt: _salt}();
+    }
+
+    function handleTokenFactoryProxy(
+        bytes32 _salt, 
+        address _owner, 
+        address _erc20Rails, 
+        address _erc721Rails, 
+        address _erc1155Rails, 
+        address _tokenFactoryImpl
+    ) internal
+        returns (TokenFactory _proxy) 
     {
-        _impl = new TokenFactory{salt: _salt}();
         bytes memory tokenFactoryInitData = abi.encodeWithSelector(TokenFactory.initialize.selector, _owner, _erc20Rails, _erc721Rails, _erc1155Rails);
-        _proxy = TokenFactory(address(new ERC1967Proxy{salt: _salt}(address(_impl), tokenFactoryInitData)));
+
+        _proxy = isDeployed($deploys.TokenFactoryProxy) 
+            ? TokenFactory($deploys.TokenFactoryProxy)
+            : TokenFactory(address(new ERC1967Proxy{salt: _salt}(_tokenFactoryImpl, tokenFactoryInitData)));
     }
 
-    function deployOnePerAddressGuard(bytes32 _salt) internal returns (OnePerAddressGuard) {
-        return new OnePerAddressGuard{salt: _salt}();
+    function handleOnePerAddressGuard(bytes32 _salt) internal returns (OnePerAddressGuard _onePerAddressGuard) {
+        _onePerAddressGuard = isDeployed($deploys.OnePerAddressGuard)
+            ? OnePerAddressGuard(payable($deploys.OnePerAddressGuard))
+            : new OnePerAddressGuard{salt: _salt}();
     }
 
-    function deployNFTMetadataRouterExtension(bytes32 _salt, address _metadataRouter)
+    function handleNFTMetadataRouterExtension(bytes32 _salt, address _metadataRouter)
         internal
-        returns (NFTMetadataRouterExtension)
+        returns (NFTMetadataRouterExtension _nftMetadataRouterExtension)
     {
-        return new NFTMetadataRouterExtension{salt: _salt}(_metadataRouter);
+        _nftMetadataRouterExtension = isDeployed($deploys.NFTMetadataRouterExtension)
+            ? NFTMetadataRouterExtension($deploys.NFTMetadataRouterExtension)
+            : new NFTMetadataRouterExtension{salt: _salt}(_metadataRouter);
     }
 
-    function deployPayoutAddressExtension(bytes32 _salt) internal returns (PayoutAddressExtension) {
-        return new PayoutAddressExtension{salt: _salt}();
+    function handlePayoutAddressExtension(bytes32 _salt) internal returns (PayoutAddressExtension _payoutAddressExtension) {
+        _payoutAddressExtension = isDeployed($deploys.PayoutAddressExtension)
+            ? PayoutAddressExtension($deploys.PayoutAddressExtension)
+            : new PayoutAddressExtension{salt: _salt}();
     }
 
-    function deployFeeManager(address _owner, bytes32 _salt) internal returns (FeeManager) {
+    function handleFeeManager(address _owner, bytes32 _salt) internal returns (FeeManager _feeManager) {
         uint120 _ethBaseFee = 1e15; // 0.001 ETH
         uint120 _defaultBaseFee = 0;
         uint120 _defaultVariableFee = 500; // 5%
 
-        return
-            new FeeManager{salt: _salt}(_owner, _defaultBaseFee, _defaultVariableFee, _ethBaseFee, _defaultVariableFee);
+        _feeManager = isDeployed($deploys.FeeManager)
+            ? FeeManager($deploys.FeeManager)
+            : new FeeManager{salt: _salt}(_owner, _defaultBaseFee, _defaultVariableFee, _ethBaseFee, _defaultVariableFee);
     }
 
-    function deployFreeMintController(address _owner, address _feeManager, bytes32 _salt)
+    function handleFreeMintController(address _owner, address _feeManager, bytes32 _salt)
         internal
-        returns (FreeMintController)
+        returns (FreeMintController _freeMintController)
     {
-        return new FreeMintController{salt: _salt}(_owner, _feeManager);
+        _freeMintController = isDeployed($deploys.ERC721FreeMintController)
+            ? FreeMintController($deploys.ERC721FreeMintController)
+            : new FreeMintController{salt: _salt}(_owner, _feeManager);
     }
 
-    function deployGasCoinPurchaseController(address _owner, address _feeManager, bytes32 _salt)
+    function handleGasCoinPurchaseController(address _owner, address _feeManager, bytes32 _salt)
         internal
-        returns (GasCoinPurchaseController)
+        returns (GasCoinPurchaseController _gasCoinPurchaseController)
     {
-        return new GasCoinPurchaseController{salt: _salt}(_owner, _feeManager);
+        _gasCoinPurchaseController = isDeployed($deploys.ERC721GasCoinPurchaseController)
+            ? GasCoinPurchaseController($deploys.ERC721GasCoinPurchaseController)
+            : new GasCoinPurchaseController{salt: _salt}(_owner, _feeManager);
     }
 
-    function deployStablecoinPurchaseController(
+    function handleStablecoinPurchaseController(
         address _owner,
         address _feeManager,
         uint8 _decimals,
         string memory _currency,
         bytes32 _salt
-    ) internal returns (StablecoinPurchaseController) {
-        return new StablecoinPurchaseController{salt: _salt}(_owner, _feeManager, _decimals, _currency);
+    ) internal returns (StablecoinPurchaseController _stablecoinPurchaseController) {
+        _stablecoinPurchaseController = isDeployed($deploys.ERC721StablecoinPurchaseController) 
+            ? StablecoinPurchaseController($deploys.ERC721StablecoinPurchaseController)
+            : new StablecoinPurchaseController{salt: _salt}(_owner, _feeManager, _decimals, _currency);
     }
 
-    function deployPermitMintController(bytes32 _salt) internal returns (PermitMintController _permitMintController) {
-        _permitMintController = new PermitMintController{salt: _salt}();
+    function handlePermitMintController(bytes32 _salt) internal returns (PermitMintController _permitMintController) {
+        _permitMintController = isDeployed($deploys.PermitMintController)
+            ? PermitMintController($deploys.PermitMintController)
+            : new PermitMintController{salt: _salt}();
+    }
+
+    function isDeployed(address target) internal returns (bool) {
+        return target.code.length > 0;
     }
 }
