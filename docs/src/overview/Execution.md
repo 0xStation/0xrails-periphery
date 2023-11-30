@@ -24,7 +24,9 @@ contract Executioner is Execute {
 
 ### DelegateCall
 
-The `delegatecall` opcode is excluded from the Rails interface for simplicity and security. Enabling arbitrary external calls using the execution interface already introduces certain risks that developers must consider- we deemed enabling arbitrary delegatecalls to be more risky than beneficial. Should developers require usage of `delegatecall`, they are encouraged to fork Rails by overriding functions within Execute.
+The `delegatecall` opcode is excluded from the Rails interface for simplicity and security. Enabling arbitrary external calls using the execution interface already introduces certain risks that developers must consider- we deemed enabling arbitrary delegatecalls to be more risky than beneficial. 
+
+Should developers require usage of `delegatecall`, they are encouraged to fork Rails by overriding functions within Execute.
 
 ## MultiCall
 

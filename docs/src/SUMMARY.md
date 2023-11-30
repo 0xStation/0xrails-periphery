@@ -10,7 +10,7 @@
     - [Extensions](overview/Extensions.md)
     - [Modules](overview/Modules.md)
     - [Execution and Multicall](overview/Execution.md)
-    - [AccountGroup](overview/AccountGroup.md)
+    - [Smart Accounts](overview/SmartAccounts.md)
   - [Security](overview/Security.md)
   - [❱ Guides](guides/Guides.md)
     - [Getting Started](guides/GettingStarted.md)

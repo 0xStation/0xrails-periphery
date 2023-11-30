@@ -1,6 +1,6 @@
-# AccountGroup
-
+# Smart Accounts
 todo
+GroupOS protocol powers a Station Labs product called Smart Accounts
 
 GroupOS offers several account schemas on the cutting edge of account abstraction, falling under the umbrella term: "Smart Accounts".
 
