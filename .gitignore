@@ -11,6 +11,7 @@ out/
 # Dotenv file
 .env*
 
+audits
 # macOS
 */.DS_Store
 

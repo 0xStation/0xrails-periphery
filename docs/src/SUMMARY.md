@@ -1,10 +1,20 @@
 # Summary
 # [GroupOS Protocol](overview/Overview.md)
+  - [Home](overview/Overview.md)
   - [❱ Overview](overview/Overview.md)
     - [Tokens](overview/Tokens.md)
+    - [TokenFactory](overview/TokenFactory.md)
+    - [Controllers](overview/MintControllers.md)
     - [Access and Permissions](overview/Access.md)
-    - [Deployment Addresses](overview/Deploys.md)
-    - [Security](overview/Security.md)
+    - [Extensions and Guards](overview/Customization.md)
+    - [Execution and Multicall](overview/Execution.md)
+    - [AccountGroup](overview/AccountGroup.md)
+  - [Security](overview/Security.md)
+  - [❱ Guides](guides/Guides.md)
+    - [Getting Started](guides/GettingStarted.md)
+    - [NFT Guide](guides/NFT.md)
+    - [ERC20 Guide](guides/ERC20.md)
+    - [ERC1155 Guide](guides/ERC1155.md)
 
   - [❱ GroupOS Technical Reference](groupos/README.md)
     - [GroupOS Overview](groupos/README.md)
@@ -199,4 +209,4 @@
       - [ValidatorsStorage](0xrails/src/validator/ValidatorsStorage.sol/library.ValidatorsStorage.md)
     - [Rails](0xrails/src/Rails.sol/abstract.Rails.md)
 
-  - [Deployment Addresses](groupos/README.md)
+  - [Deployment Addresses](overview/Deploys.md)
