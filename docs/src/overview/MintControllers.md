@@ -2,7 +2,9 @@
 
 GroupOS offers modularized mints via delegating minting capabilities to specialized smart contracts residing onchain called controllers. Enabling controllers for a token collection is entirely opt-in, decided by the collection itself. Controllers support all three common token standards: ERC20, ERC721, and ERC1155.
 
-To satisfy any permutation of desired minting experience, token collections need only choose an existing controller, or request a new one by reaching out to us and becoming a client.
+Controllers essentially take the logic that wraps a core operation, like minting a token, out of the primitive’s contract and into another contract that has permission to call the core primitive. For example, GroupOS offers a controller called GasCoinPurchaseController that factiliates the purchase of an ERC-721 NFT with the network’s native gas coin, e.g. ETH. This controller is responsible for guaranteeing that the NFT collection creator gets paid, the minter gets an NFT, and Station receives a reward for facilitating the transaction.
+
+<img width="700" alt="image" src="https://station-images.nyc3.digitaloceanspaces.com/72c5411d-acd2-4253-aced-7ae0ff29d620.png">
 
 Using mint controllers, GroupOS supports mints that include but are not limited to:
   - Completely free, gasless mints (using permit signatures with gas sponsorship)

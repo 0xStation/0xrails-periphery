@@ -1,3 +1,0 @@
-# Extensions and Guards
-
-todo
