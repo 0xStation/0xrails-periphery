@@ -58,9 +58,11 @@ The last point is worth discussing as it is an open question during the current 
 
 #### Address Sniping
 
-As ERC6551 is permissionless by design, a griefing vector is available where adversaries can deploy tokenbound accounts using NFTs that they do not own. For example, let's say I own a Moonbirds NFT, tokenId #9535. Because ERC6551 is permissionless, anyone may create tokenbound accounts that are bound to my Moonbird!
+As ERC6551 is permissionless by design, a griefing vector is available where adversaries can deploy tokenbound accounts using NFTs that they do not own.
 
-This is not necessarily an issue, until the account implementation address that I actually want to use is known. However, since there are not many account implementation offerings, that information is unfortunately expected to be public for most users. As a result, malicious actors can predetermine the address(es) that my token would be associated with, and preemptively take control of those accounts.
+For example, let's say I own a **Moonbirds NFT, tokenId #9535**. Because ERC6551 is permissionless, anyone may create tokenbound accounts that are bound to my Moonbird!
+
+This is not necessarily an issue, until the account implementation address that I actually want to use is known. However, since there are not many account implementation offerings, that information is unfortunately expected to be public for most users. As a result, malicious actors can predetermine the address(es) that my token would be associated with, and preemptively take control of those accounts!
 
 Further, ERC6551 tokenbound accounts are ERC1167 minimal proxies, which are not upgradeable by default. To enable upgradeability, GroupOS makes use of an `AccountProxy`, the address of which is public. As a result, the need for protection against address sniping became clear.
 
@@ -76,7 +78,49 @@ To protect against unauthorized initialization, GroupOS provides a default initi
 
 The `PermissionGatedInitializer` simply enforces that the entity creating the ERC6551 tokenbound account possesses the Rails permission for `Operations.INITIALIZE_ACCOUNT`, which must have previously been granted on the AccountGroup contract.
 
+```solidity
+    function _authenticateInitialization(address, bytes memory initData)
+        internal
+        view
+        override
+        returns (bytes memory)
+    {
+        AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams();
+        // Verify entity calling the 6551 Account (msg.sender) has INITIALIZE_ACCOUNT permission from Account Group
+        IPermissions(params.accountGroup).checkPermission(Operations.INITIALIZE_ACCOUNT, msg.sender);
+
+        return initData;
+    }
+```
+
 ### InitializeAccountController
+
+Since ERC6551 accounts are proxies, they cannot use the traditional solidity `constructor()` function and must instead be initialized. To protect against initialization frontrunning (which is a possibility with any proxy contract) GroupOS provides the `InitializeAccountController` which bundles creation and initialization in the same transaction. 
+
+```solidity
+    function createAndInitializeAccount(
+        address registry,
+        address accountProxy,
+        bytes32 salt,
+        uint256 chainId,
+        address tokenContract,
+        uint256 tokenId,
+        address accountImpl,
+        bytes memory initData
+    ) external usePermits(_encodePermitContext(salt)) returns (address account) {
+        // deploy account
+        account = IERC6551Registry(registry).createAccount(accountProxy, salt, chainId, tokenContract, tokenId);
+        // initialize account
+        IERC6551AccountInitializer(account).initializeAccount(accountImpl, initData);
+    }
+```
+
+This leaves no opportunity for an adversary to step in after account creation and maliciously initialize the account.
 
 ### MintCreateInitializeController
 
+GroupOS also provides a `MintCreateInitializeController` which serves all the same purposes as the `InitializeAccountController` but also mints the ERC721Rails token that owns the ERC6551 account in the same transaction. In short, calling `MintCreateInitializeController::mintAndCreateAccount()`:
+
+  - Mints a new tokenId on the provided ERC721Rails collection
+  - Creates an ERC6551 tokenbound account owned by the above ERC721Rails NFT
+  - Initializes the tokenbound account with the provided data to protect against frontrunning
