@@ -75,9 +75,13 @@ contract DeployAll is ScriptUtils {
         CONFIG
     ============*/
 
-    // `deployStablecoinPurchaseController` params configuration
+    // `handleStablecoinPurchaseController` params configuration
     uint8 decimals = 2;
     string currency = "USD";
+
+    // `handleFeeManager` params configuration
+    uint256 newDefaultBaseFee = 0;
+    uint256 newDefaultVariableFee = 0;
 
     /// @notice Checkout lib/protocol-ops vX.Y.Z to automatically get addresses
     DeploysJson $deploys = setDeploysJsonStruct();
@@ -187,6 +191,15 @@ contract DeployAll is ScriptUtils {
         });
         calls.push(addPermissionInitializeAccountPermitToTurnkeyCall);
 
+        // `FeeManager::setDefaultFees()` configuration
+        bytes memory setNewDefaultFees = abi.encodeWithSelector(
+            FeeManager.setDefaultFees.selector, newDefaultBaseFee, newDefaultVariableFee
+        );
+        Call3 memory setNewDefaultFeesCall = Call3({
+            target: address(feeManager), allowFailure: false, callData: setNewDefaultFees
+        });
+        calls.push(setNewDefaultFeesCall);
+
         // `MetadataRouter::setDefaultURI()` configuration
         string memory defaultURI = "https://groupos.xyz/api/v1/contractMetadata";
         bytes memory setDefaultURIData = abi.encodeWithSelector(MetadataRouter.setDefaultURI.selector, defaultURI);
@@ -210,12 +223,15 @@ contract DeployAll is ScriptUtils {
         (bool r,) = owner.call(safeCall);
         require(r);
 
-        // assert accountGroup and metadataRouter calls were successful
+        // assert accountGroup, feeManager, and metadataRouter calls were successful
         assert(accountGroup.getDefaultAccountInitializer() == address(permissionGatedInitializer));
         assert(accountGroup.getDefaultAccountImplementation() == address(erc721AccountRails));
         assert(accountGroup.hasPermission(Operations.INITIALIZE_ACCOUNT, address(initializeAccountController)));
         assert(accountGroup.hasPermission(Operations.INITIALIZE_ACCOUNT_PERMIT, ScriptUtils.turnkey));
         assert(erc721AccountRails.initialized() == true);
+        assert(feeManager.getDefaultFees().exist);
+        assert(feeManager.getDefaultFees().baseFee == newDefaultBaseFee);
+        assert(feeManager.getDefaultFees().variableFee == newDefaultVariableFee);
         assert(keccak256(bytes(metadataRouter.defaultURI())) == keccak256(bytes(defaultURI)));
         assert(keccak256(bytes(metadataRouter.routeURI(route))) == keccak256(bytes(uri)));
 
