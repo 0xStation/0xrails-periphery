@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
+import {ERC2771ContextInitializable} from "0xrails/lib/ERC2771/ERC2771ContextInitializable.sol";
 // module utils
 import {SetupController} from "src/lib/module/SetupController.sol";
 import {PermitController} from "src/lib/module/PermitController.sol";
@@ -14,7 +15,7 @@ import {FeeController} from "src/lib/module/FeeController.sol";
 /// @dev Provides a modular contract to handle collections who wish for their membership mints to be
 /// free of charge, save for Station Network's base fee
 
-contract FreeMintController is SetupController, PermitController, FeeController {
+contract FreeMintController is SetupController, PermitController, FeeController, ERC2771ContextInitializable {
     /*=============
         STORAGE
     =============*/
@@ -35,7 +36,12 @@ contract FreeMintController is SetupController, PermitController, FeeController 
 
     /// @param _newOwner The owner of the FeeControllerV2, an address managed by Station Network
     /// @param _feeManager The FeeManager's address
-    constructor(address _newOwner, address _feeManager) PermitController() FeeController(_newOwner, _feeManager) {}
+    constructor(address _newOwner, address _feeManager, address _forwarder) 
+        PermitController() 
+        FeeController(_newOwner, _feeManager) 
+    {
+        _forwarderInitializer(_forwarder);
+    }
 
     /// @dev Function to set up and configure a new collection
     /// @param collection The new collection to configure
@@ -49,7 +55,7 @@ contract FreeMintController is SetupController, PermitController, FeeController 
 
     /// @dev convenience function for setting up when creating collections, relies on auth done in public setUp
     function setUp(bool enablePermits) external {
-        setUp(msg.sender, enablePermits);
+        setUp(_msgSender(), enablePermits);
     }
 
     /*==========
@@ -58,7 +64,7 @@ contract FreeMintController is SetupController, PermitController, FeeController 
 
     /// @dev Function to mint a single collection token to the caller, ie a user
     function mint(address collection) external payable {
-        _batchMint(collection, msg.sender, 1);
+        _batchMint(collection, _msgSender(), 1);
     }
 
     /// @dev Function to mint a single collection token to a specified recipient
@@ -69,7 +75,7 @@ contract FreeMintController is SetupController, PermitController, FeeController 
     /// @dev Function to mint collection tokens in batches to the caller, ie a user
     /// @notice returned tokenId range is inclusive
     function batchMint(address collection, uint256 amount) external payable {
-        _batchMint(collection, msg.sender, amount);
+        _batchMint(collection, _msgSender(), amount);
     }
 
     /// @dev Function to mint collection tokens in batches to a specified recipient
