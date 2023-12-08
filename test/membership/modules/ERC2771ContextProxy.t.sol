@@ -7,7 +7,7 @@ import {ERC1967Proxy} from "openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.so
 import {ECDSA} from "openzeppelin-contracts/utils/cryptography/SignatureChecker.sol";
 import {EIP712} from "openzeppelin-contracts/utils/cryptography/EIP712.sol";
 import {ERC2771ContextInitializable} from "0xrails/lib/ERC2771/ERC2771ContextInitializable.sol";
-import {ERC2771Forwarder} from "0xrails/lib/ERC2771/tmp/ERC2771Forwarder.sol";
+import {ERC2771Forwarder} from "0xrails/lib/ERC2771/ERC2771Forwarder.sol";
 import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 import {MockAccountDeployer} from "lib/0xrails/test/lib/MockAccount.sol";
@@ -110,7 +110,7 @@ contract ERC2771ContextInitializableTest is Test, MockAccountDeployer {
         });
 
         bytes32 valuesHash = keccak256(
-            abi.encode(FORWARD_REQUEST_TYPEHASH, forwardRequestData1.from, forwardRequestData1.to, forwardRequestData1.value, forwardRequestData1.gas, forwarder.nonces(owner), forwardRequestData1.deadline, keccak256(forwardRequestData1.data))
+            abi.encode(FORWARD_REQUEST_TYPEHASH, forwardRequestData1.from, forwardRequestData1.to, forwardRequestData1.value, forwardRequestData1.gas, forwarder.lastUsedNonce(owner, 0) + 1, forwardRequestData1.deadline, keccak256(forwardRequestData1.data))
         );
 
         bytes32 forwardRequestDataHash = ECDSA.toTypedDataHash(domainSeparator, valuesHash);

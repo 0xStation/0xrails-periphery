@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {SignatureChecker, ECDSA} from "openzeppelin-contracts/utils/cryptography/SignatureChecker.sol";
 import {Address} from "openzeppelin-contracts/utils/Address.sol";
-import {NonceBitMap} from "src/lib/NonceBitMap.sol";
+import {NonceBitMap} from "0xrails/lib/NonceBitMap.sol";
 
 /// @title PermitController: EIP-712 Signature Module for Permit-Based Function Authentication
 /// @dev This contract provides a framework for permit-based function authentication using EIP-712 signatures.
