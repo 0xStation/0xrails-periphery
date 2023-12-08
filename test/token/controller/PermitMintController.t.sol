@@ -47,12 +47,14 @@ contract PermitMintControllerTest is Test, PermitMintController(address(0x0)) { 
 
         // deploy infra
         feeManager = new FeeManager(owner, 0, 0, 0, 0);
-        permitMintController = new PermitMintController();
+        // forwarder not in scope of these tests
+        permitMintController = new PermitMintController(address(0x0));
 
         // deploy collection & assign for convenience
         erc20Impl = new ERC20Rails();
         erc20Proxy = ERC20Rails(payable(address(new ERC1967Proxy(address(erc20Impl), bytes("")))));
-        erc20Proxy.initialize(owner, "", "", "");
+        // forwarder not in scope of these tests
+        erc20Proxy.initialize(owner, "", "", "", address(0x0));
         collection = address(erc20Proxy);
 
         // add mint permission to permitMintController & someSigner

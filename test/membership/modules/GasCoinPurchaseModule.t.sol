@@ -33,7 +33,8 @@ contract GasCoinPurchaseControllerTest is Test, SetUpMembership {
         // instantiate feeManager with fuzzed base and variable fees as baseline
         feeManager = new FeeManager(owner, baseFee, variableFee, baseFee, variableFee);
 
-        gasCoinPurchaseController = new GasCoinPurchaseController(owner, address(feeManager));
+        // forwarder not in scope of these tests
+        gasCoinPurchaseController = new GasCoinPurchaseController(owner, address(feeManager), address(0x0));
 
         // setup module, give module mint permission, add payout address
         vm.startPrank(owner);
