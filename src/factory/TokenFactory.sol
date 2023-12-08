@@ -58,7 +58,8 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         address owner,
         string memory name,
         string memory symbol,
-        bytes calldata initData
+        bytes calldata initData,
+        address forwarder
     ) public returns (address payable token) {
         _checkIsApprovedImplementation(implementation, TokenFactoryStorage.TokenStandard.ERC20);
 
@@ -66,7 +67,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         token = payable(address(new ERC1967Proxy{salt: deploymentSalt}(implementation, bytes(""))));
         emit ERC20Created(token);
 
-        IERC20Rails(token).initialize(owner, name, symbol, initData);
+        IERC20Rails(token).initialize(owner, name, symbol, initData, forwarder);
     }
 
     /// @inheritdoc ITokenFactory
@@ -76,7 +77,8 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         address owner,
         string memory name,
         string memory symbol,
-        bytes calldata initData
+        bytes calldata initData,
+        address forwarder
     ) public returns (address payable token) {
         _checkIsApprovedImplementation(implementation, TokenFactoryStorage.TokenStandard.ERC721);
 
@@ -84,7 +86,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         token = payable(address(new ERC1967Proxy{salt: deploymentSalt}(implementation, bytes(""))));
         emit ERC721Created(token);
 
-        IERC721Rails(token).initialize(owner, name, symbol, initData);
+        IERC721Rails(token).initialize(owner, name, symbol, initData, forwarder);
     }
 
     /// @inheritdoc ITokenFactory
@@ -94,7 +96,8 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         address owner,
         string memory name,
         string memory symbol,
-        bytes calldata initData
+        bytes calldata initData,
+        address forwarder
     ) public returns (address payable token) {
         _checkIsApprovedImplementation(implementation, TokenFactoryStorage.TokenStandard.ERC1155);
 
@@ -102,7 +105,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         token = payable(address(new ERC1967Proxy{salt: deploymentSalt}(implementation, bytes(""))));
         emit ERC1155Created(token);
 
-        IERC1155Rails(token).initialize(owner, name, symbol, initData);
+        IERC1155Rails(token).initialize(owner, name, symbol, initData, forwarder);
     }
 
     /*===========
