@@ -11,7 +11,7 @@ import {Operations} from "0xrails/lib/Operations.sol";
 import {ERC20Rails} from "0xrails/cores/ERC20/ERC20Rails.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 
-contract PermitMintControllerTest is Test, PermitMintController {
+contract PermitMintControllerTest is Test, PermitMintController(address(0x0)) { // forwarder not necessary
     PermitMintController public permitMintController;
     FeeManager public feeManager;
     ERC20Rails public erc20Impl;

@@ -135,7 +135,7 @@ contract TokenFactoryTest is Test, IERC1967 {
         assertFalse(tokenFactoryProxy.initialized());
 
         tokenFactoryProxy.initialize(
-            owner, address(erc20RailsImpl), address(erc721RailsImpl), address(erc1155RailsImpl)
+            owner, address(erc20RailsImpl), address(erc721RailsImpl), address(erc1155RailsImpl), address(0x0)
         );
 
         assertTrue(tokenFactoryProxy.initialized());
@@ -144,7 +144,7 @@ contract TokenFactoryTest is Test, IERC1967 {
 
     function test_initializeRevertAlreadyInitialized() public {
         tokenFactoryProxy.initialize(
-            owner, address(erc20RailsImpl), address(erc721RailsImpl), address(erc1155RailsImpl)
+            owner, address(erc20RailsImpl), address(erc721RailsImpl), address(erc1155RailsImpl), address(0x0)
         );
 
         assertTrue(tokenFactoryProxy.initialized());
@@ -154,14 +154,14 @@ contract TokenFactoryTest is Test, IERC1967 {
         err = abi.encodeWithSelector(IInitializable.AlreadyInitialized.selector);
         vm.expectRevert(err);
         tokenFactoryProxy.initialize(
-            owner, address(erc20RailsImpl), address(erc721RailsImpl), address(erc1155RailsImpl)
+            owner, address(erc20RailsImpl), address(erc721RailsImpl), address(erc1155RailsImpl), address(0x0)
         );
     }
 
     function test_authorizeUpgrade(address notOwner) public {
         vm.assume(notOwner != owner);
         tokenFactoryProxy.initialize(
-            owner, address(erc20RailsImpl), address(erc721RailsImpl), address(erc1155RailsImpl)
+            owner, address(erc20RailsImpl), address(erc721RailsImpl), address(erc1155RailsImpl), address(0x0)
         );
 
         // attempt upgrade to new membership implementation as not owner
@@ -174,7 +174,7 @@ contract TokenFactoryTest is Test, IERC1967 {
     function test_createMembership(address newOwner, string memory newName, string memory newSymbol) public {
         vm.assume(newOwner != address(0x0));
         tokenFactoryProxy.initialize(
-            owner, address(erc20RailsImpl), address(erc721RailsImpl), address(erc1155RailsImpl)
+            owner, address(erc20RailsImpl), address(erc721RailsImpl), address(erc1155RailsImpl), address(0x0)
         );
 
         address oldMembership = address(erc721RailsProxy);
@@ -194,7 +194,7 @@ contract TokenFactoryTest is Test, IERC1967 {
     function test_createPoints(address newOwner, string memory newName, string memory newSymbol) public {
         vm.assume(newOwner != address(0x0));
         tokenFactoryProxy.initialize(
-            owner, address(erc20RailsImpl), address(erc721RailsImpl), address(erc1155RailsImpl)
+            owner, address(erc20RailsImpl), address(erc721RailsImpl), address(erc1155RailsImpl), address(0x0)
         );
 
         address oldPoints = address(erc20RailsProxy);
@@ -215,7 +215,7 @@ contract TokenFactoryTest is Test, IERC1967 {
     function test_createBadges(address newOwner, string memory newName, string memory newSymbol) public {
         vm.assume(newOwner != address(0x0));
         tokenFactoryProxy.initialize(
-            owner, address(erc20RailsImpl), address(erc721RailsImpl), address(erc1155RailsImpl)
+            owner, address(erc20RailsImpl), address(erc721RailsImpl), address(erc1155RailsImpl), address(0x0)
         );
 
         address oldBadges = address(erc1155RailsProxy);
