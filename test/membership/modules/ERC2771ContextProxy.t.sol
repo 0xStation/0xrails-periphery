@@ -12,12 +12,14 @@ import {ERC721Rails} from "0xrails/cores/ERC721/ERC721Rails.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 import {MockAccountDeployer} from "lib/0xrails/test/lib/MockAccount.sol";
 import {FreeMintController} from "src/membership/modules/FreeMintController.sol";
+import {FeeManager} from "src/lib/module/FeeManager.sol";
 
 contract ERC2771ContextInitializableTest is Test, MockAccountDeployer {
     ERC2771Forwarder public forwarder;
     ERC721Rails public ERC721RailsImpl;
     ERC721Rails public ERC721RailsProxy; // ERC1967 proxy wrapped in ERC721Rails for convenience
 
+    FeeManager feeManager;
     FreeMintController freeMintController;
 
     uint256 public privateKey;
@@ -86,24 +88,25 @@ contract ERC2771ContextInitializableTest is Test, MockAccountDeployer {
             )
         );
         
-        freeMintController = new FreeMintController();
+        feeManager = new FeeManager(owner, 0, 0, 0, 0);
+        freeMintController = new FreeMintController(owner, address(feeManager), address(forwarder));
         // grant mint permission to `from` address and controller so it can mint
         vm.startPrank(owner);
         ERC721RailsProxy.addPermission(Operations.MINT, from);
-        ERC721RailsProxy.addPermission(Operations.MINT, freeMintController);
+        ERC721RailsProxy.addPermission(Operations.MINT, address(freeMintController));
         vm.stopPrank();
     }
 
     function test_executeFromController() public {
-        data1 = abi.encodeWithSelector(FreeMintController.mintTo.selector, address(ERC721RailsProxy, recipient));
-        forwardRequestData1= ERC2771Forwarder.ForwardRequestData({
-        from: from,
-        to: address(ERC721RailsProxy),
-        value: 0,
-        gas: 1000000,
-        deadline: type(uint48).max,
-        data: data1,
-        signature: ''
+        data1 = abi.encodeWithSelector(FreeMintController.mintTo.selector, address(ERC721RailsProxy), recipient);
+        forwardRequestData1 = ERC2771Forwarder.ForwardRequestData({
+            from: from,
+            to: address(freeMintController),
+            value: 0,
+            gas: 1000000,
+            deadline: type(uint48).max,
+            data: data1,
+            signature: ''
         });
 
         bytes32 valuesHash = keccak256(
@@ -115,6 +118,10 @@ contract ERC2771ContextInitializableTest is Test, MockAccountDeployer {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey2, forwardRequestDataHash);
         bytes memory sig = abi.encodePacked(r, s, v);
         forwardRequestData1.signature = sig;
+
+        // disable permits for collection
+        vm.prank(owner);
+        freeMintController.setUp(address(ERC721RailsProxy), false);
 
         forwarder.execute(forwardRequestData1);
         assertEq(ERC721RailsProxy.balanceOf(recipient), 1);
