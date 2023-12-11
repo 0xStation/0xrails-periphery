@@ -18,11 +18,9 @@ import {SetupController} from "src/lib/module/SetupController.sol";
 /// @dev Supports all three 0xRails token standard implementations: ERC20, ERC721, ERC1155
 /// @notice As this controller is entirely fee-less via enforced permits, it does not make use 
 /// of the FeeManager (which charges a baseline default mint fee) nor the permit controller mapping
-contract PermitMintController is PermitController, SetupController, Multicall, ERC2771ContextInitializable {
+contract PermitMintController is PermitController, SetupController, Multicall {
 
-    constructor(address forwarder_) {
-        _forwarderInitializer(forwarder_);
-    }
+    constructor(address forwarder_) PermitController(forwarder_) {}
     
     /*==========
         MINT

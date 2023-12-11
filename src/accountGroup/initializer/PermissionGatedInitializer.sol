@@ -17,7 +17,7 @@ contract PermissionGatedInitializer is AccountInitializer {
         returns (bytes memory)
     {
         AccountGroupLib.AccountParams memory params = AccountGroupLib.accountParams();
-        // Verify entity calling the 6551 Account (msg.sender) has INITIALIZE_ACCOUNT permission from Account Group
+        // Verify entity calling the 6551 Account has INITIALIZE_ACCOUNT permission from Account Group
         IPermissions(params.accountGroup).checkPermission(Operations.INITIALIZE_ACCOUNT, msg.sender);
 
         return initData;

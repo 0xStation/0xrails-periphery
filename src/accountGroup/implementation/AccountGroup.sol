@@ -92,12 +92,12 @@ contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, A
     }
 
     function _checkCanUpdateSubgroup(uint64) internal view {
-        _checkPermission(Operations.ADMIN, msg.sender);
+        _checkPermission(Operations.ADMIN, _msgSender());
     }
 
     /// @dev Restrict Permissions write access to the `Operations.PERMISSIONS` permission
     function _checkCanUpdatePermissions() internal view override {
-        _checkPermission(Operations.PERMISSIONS, msg.sender);
+        _checkPermission(Operations.PERMISSIONS, _msgSender());
     }
 
     /// @dev Only the `owner` possesses UUPS upgrade rights

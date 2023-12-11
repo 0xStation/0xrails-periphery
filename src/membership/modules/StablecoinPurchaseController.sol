@@ -10,7 +10,6 @@ import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 import {ERC2771ContextInitializable} from "0xrails/lib/ERC2771/ERC2771ContextInitializable.sol";
-
 import {SetupController} from "src/lib/module/SetupController.sol";
 import {PermitController} from "src/lib/module/PermitController.sol";
 import {FeeController} from "src/lib/module/FeeController.sol";
@@ -25,7 +24,7 @@ import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/Pa
 /// will use the same price value and can never get out of sync. Deploy one instance
 /// of this module per currency, per chain (e.g. USD, EUR, BTC).
 
-contract StablecoinPurchaseController is SetupController, PermitController, FeeController, Pausable, ERC2771ContextInitializable {
+contract StablecoinPurchaseController is SetupController, PermitController, FeeController, Pausable {
     using SafeERC20 for IERC20Metadata;
 
     /// @dev Struct of collection price data
@@ -80,10 +79,9 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
         uint8 _decimals,
         string memory _currency,
         address _forwarder
-    ) PermitController() FeeController(_owner, _feeManager) {
+    ) PermitController(_forwarder) FeeController(_owner, _feeManager) {
         decimals = _decimals;
         currency = _currency;
-        _forwarderInitializer(_forwarder);
     }
 
     /// @dev Function to register new stablecoins when requested by clients
