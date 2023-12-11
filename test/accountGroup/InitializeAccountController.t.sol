@@ -76,7 +76,8 @@ contract InitializeAccountControllerTest is Test, Account {
         bytecodeSalt = bytes32(abi.encodePacked(address(accountGroup), type(uint64).max, uint32(0)));
 
         permissionGatedInitializer = new PermissionGatedInitializer();
-        initializeAccountController = new InitializeAccountController();
+        // forwarder not in scope of tests
+        initializeAccountController = new InitializeAccountController(address(0x0));
     }
 
     function test_setUp() public {

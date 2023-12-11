@@ -82,7 +82,8 @@ contract MintCreateInitializeControllerTest is Test, Account {
         accountGroup.setDefaultAccountImplementation(address(erc721AccountRails));
         accountGroup.setDefaultAccountInitializer(address(permissionGatedInitializer));
 
-        mintCreateInitializeController = new MintCreateInitializeController();
+        // forwarder not in scope of tests
+        mintCreateInitializeController = new MintCreateInitializeController(address(0x0));
 
         // add permission for minting on erc71RailsProxy and accountGroup to controller
         vm.startPrank(owner);

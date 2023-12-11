@@ -96,7 +96,7 @@ contract ERC721AccountRailsTest is Test, MockAccountDeployer {
         vm.selectFork(goerliFork);
 
         // deploy and grant INITIALIZE_ACCOUNT permission to the InitializeAccountController
-        initializeAccountController = new InitializeAccountController();
+        initializeAccountController = new InitializeAccountController(address(0x0)); //forwarder not in scope
         vm.makePersistent(address(initializeAccountController));
 
         accountGroupProxy.addPermission(Operations.INITIALIZE_ACCOUNT, address(initializeAccountController));

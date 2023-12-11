@@ -58,6 +58,7 @@ contract ERC2771ContextInitializableTest is Test, MockAccountDeployer {
         privateKey2 = 0xdeadbeef;
         from = vm.addr(privateKey2);
         recipient = createAccount();
+        
         domainName = "Forwarder";
         forwarder = new ERC2771Forwarder(domainName);
         
@@ -90,6 +91,7 @@ contract ERC2771ContextInitializableTest is Test, MockAccountDeployer {
         
         feeManager = new FeeManager(owner, 0, 0, 0, 0);
         freeMintController = new FreeMintController(owner, address(feeManager), address(forwarder));
+
         // grant mint permission to `from` address and controller so it can mint
         vm.startPrank(owner);
         ERC721RailsProxy.addPermission(Operations.MINT, from);
