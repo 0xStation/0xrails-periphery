@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
 import {IERC6551AccountGroup} from "0xrails/lib/ERC6551AccountGroup/interface/IERC6551AccountGroup.sol";
-import {Ownable, Ownable} from "0xrails/access/ownable/Ownable.sol";
+import {Ownable} from "0xrails/access/ownable/Ownable.sol";
 import {Access} from "0xrails/access/Access.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 import {Initializable} from "0xrails/lib/initializable/Initializable.sol";
