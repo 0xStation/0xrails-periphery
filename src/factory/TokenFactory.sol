@@ -107,6 +107,11 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory,
         IERC1155Rails(token).initialize(owner, name, symbol, initData, trustedForwarder());
     }
 
+    /// @dev Sets the ERC2771Forwarder address, for upgradability and for use during implementation upgrades
+    function setForwarder(address newForwarder) external onlyOwner {
+        _setForwarder(newForwarder);
+    }
+
     /*===========
         VIEWS
     ===========*/
