@@ -7,13 +7,12 @@ import {Permissions} from "0xrails/access/permissions/Permissions.sol";
 import {PermissionsStorage} from "0xrails/access/permissions/PermissionsStorage.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 import {IExtensions} from "0xrails/extension/interface/IExtensions.sol";
-import {ITokenFactory} from "src/factory/ITokenFactory.sol";
-import {FeeManager} from "../../src/lib/module/FeeManager.sol";
-import {FreeMintController} from "../../src/membership/modules/FreeMintController.sol";
-import {GasCoinPurchaseController} from "../../src/membership/modules/GasCoinPurchaseController.sol";
-import {StablecoinPurchaseController} from "../../src/membership/modules/StablecoinPurchaseController.sol";
-import {MetadataRouter} from "../../src/metadataRouter/MetadataRouter.sol";
-import {TokenFactory} from "../../src/factory/TokenFactory.sol";
+import {FeeManager} from "src/lib/module/FeeManager.sol";
+import {FreeMintController} from "src/membership/modules/FreeMintController.sol";
+import {GasCoinPurchaseController} from "src/membership/modules/GasCoinPurchaseController.sol";
+import {StablecoinPurchaseController} from "src/membership/modules/StablecoinPurchaseController.sol";
+import {MetadataRouter} from "src/metadataRouter/MetadataRouter.sol";
+import {TokenFactory} from "src/factory/TokenFactory.sol";
 import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/PayoutAddressExtension.sol";
 import {IPayoutAddress} from "src/membership/extensions/PayoutAddress/IPayoutAddress.sol";
 import {INFTMetadata} from "src/membership/extensions/NFTMetadataRouter/INFTMetadata.sol";
@@ -23,29 +22,21 @@ contract CreateERC721 is ScriptUtils {
         CONFIG 
     ============*/
 
-    /// @notice MAINNET: v0.4.0 introduced a create2 salt for counterfactual collections & cross chain support
-    bytes32 inputSalt = bytes32(0x0);
+    /// @notice Checkout lib/protocol-ops vX.Y.Z to automatically get addresses
+    DeploysJson $deploys = setDeploysJsonStruct();
+    address owner = $deploys.StationFounderSafe;
+    address coreImpl = $deploys.ERC721Rails;
+    address permitMintController = $deploys.PermitMintController;
+    address NFTMetadataRouterExtension = $deploys.NFTMetadataRouterExtension;
+    address payoutAddressExtension = $deploys.PayoutAddressExtension;
+    address tokenFactory = $deploys.TokenFactoryProxy;
 
-    /// @notice LINEA: v.1.10
-    address coreImpl = 0x3F4f3680c80DBa28ae43FbE160420d4Ad8ca50E4; // ERC721Rails Linea
-
-    address public owner = ScriptUtils.symmetry;
     string public name = "Symmetry Testing";
     string public symbol = "SYM";
 
+    bytes32 salt = ScriptUtils.create2Salt;
+
     address public payoutAddress = ScriptUtils.turnkey;
-
-    /// @notice GOERLI: v1.0.0
-    // address public mintModule = 0x8226Ff7e6F1CD020dC23901f71265D7d47a636d4; // Free mint goerli
-    // address public metadataURIExtension = 0xD130547Bfcb52f66d0233F0206A6C427d89F81ED; // goerli
-    // address public payoutAddressExtension = 0x52Db1fa1B82B63842513Da4482Cd41b26c1Bc307; // goerli
-    // address public membershipFactory = 0x08300cfDcF6dD1A6870FC2B1594804C0Be8076eC; // goerli
-
-    /// @notice LINEA: v1.1.0
-    address public mintModule = 0x966aD227192e665960A2d1b89095C16286Fc7792; // FreeMintController Linea
-    address public NFTMetadataRouterExtension = 0x2D85bFA7E8C0e4E9D5185F69E8691c7886444E94;
-    address public payoutAddressExtension = 0xc3c7Ef9d13E5027021a6fddeb63E05fd703a464F;
-    address public tokenFactory = 0x66B28Cc146A1a2cDF1073C2875D070733C7d01Af;
 
     function run() public {
         vm.startBroadcast();
@@ -77,7 +68,7 @@ contract CreateERC721 is ScriptUtils {
         bytes memory permitTurnkeyMintPermit =
             abi.encodeWithSelector(Permissions.addPermission.selector, Operations.MINT_PERMIT, turnkey);
         bytes memory permitModuleMint =
-            abi.encodeWithSelector(Permissions.addPermission.selector, Operations.MINT, mintModule);
+            abi.encodeWithSelector(Permissions.addPermission.selector, Operations.MINT, permitMintController);
         bytes memory permitFrogAdmin =
             abi.encodeWithSelector(Permissions.addPermission.selector, Operations.ADMIN, frog);
         bytes memory permitSymAdmin =
@@ -97,7 +88,7 @@ contract CreateERC721 is ScriptUtils {
 
         bytes memory initData = abi.encodeWithSelector(Multicall.multicall.selector, initCalls);
 
-        TokenFactory(tokenFactory).createERC721(payable(coreImpl), inputSalt, owner, name, symbol, initData);
+        TokenFactory(tokenFactory).createERC721(payable(coreImpl), salt, owner, name, symbol, initData);
 
         vm.stopBroadcast();
     }
