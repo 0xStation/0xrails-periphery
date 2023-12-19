@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {UUPSUpgradeable} from "openzeppelin-contracts/proxy/utils/UUPSUpgradeable.sol";
 import {IERC6551AccountGroup} from "0xrails/lib/ERC6551AccountGroup/interface/IERC6551AccountGroup.sol";
-import {Ownable, Ownable} from "0xrails/access/ownable/Ownable.sol";
+import {Ownable} from "0xrails/access/ownable/Ownable.sol";
 import {Access} from "0xrails/access/Access.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
 import {Initializable} from "0xrails/lib/initializable/Initializable.sol";
@@ -92,12 +92,12 @@ contract AccountGroup is IERC6551AccountGroup, IAccountGroup, UUPSUpgradeable, A
     }
 
     function _checkCanUpdateSubgroup(uint64) internal view {
-        _checkPermission(Operations.ADMIN, msg.sender);
+        _checkPermission(Operations.ADMIN, _msgSender());
     }
 
     /// @dev Restrict Permissions write access to the `Operations.PERMISSIONS` permission
     function _checkCanUpdatePermissions() internal view override {
-        _checkPermission(Operations.PERMISSIONS, msg.sender);
+        _checkPermission(Operations.PERMISSIONS, _msgSender());
     }
 
     /// @dev Only the `owner` possesses UUPS upgrade rights

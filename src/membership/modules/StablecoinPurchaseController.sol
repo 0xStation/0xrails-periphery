@@ -5,10 +5,11 @@ pragma solidity ^0.8.13;
 import {SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Pausable} from "openzeppelin-contracts/security/Pausable.sol";
+import {Context} from "openzeppelin-contracts/utils/Context.sol";
 import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
-
+import {ERC2771ContextInitializable} from "0xrails/lib/ERC2771/ERC2771ContextInitializable.sol";
 import {SetupController} from "src/lib/module/SetupController.sol";
 import {PermitController} from "src/lib/module/PermitController.sol";
 import {FeeController} from "src/lib/module/FeeController.sol";
@@ -71,12 +72,14 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
     /// @param _feeManager The FeeManager module's address
     /// @param _decimals The decimals value for this module's supported stablecoin payments
     /// @param _currency The type of currency managed by this module
+    /// @param _forwarder The ERC2771 trusted forwarder
     constructor(
         address _owner,
         address _feeManager,
         uint8 _decimals,
-        string memory _currency
-    ) PermitController() FeeController(_owner, _feeManager) {
+        string memory _currency,
+        address _forwarder
+    ) PermitController(_forwarder) FeeController(_owner, _feeManager) {
         decimals = _decimals;
         currency = _currency;
     }
@@ -141,7 +144,7 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
 
     /// @dev note that this relies on the canSetUp modifier being used in the public function
     function setUp(uint128 price, address[] memory enabledCoins, bool enablePermits) external {
-        setUp(msg.sender, price, enabledCoins, enablePermits);
+        setUp(_msgSender(), price, enabledCoins, enablePermits);
     }
 
     /*===================
@@ -235,7 +238,7 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
 
     /// @dev Function to mint a single collection token to the caller, ie a user
     function mint(address collection, address paymentCoin) external whenNotPaused {
-        _batchMint(collection, paymentCoin, msg.sender, 1);
+        _batchMint(collection, paymentCoin, _msgSender(), 1);
     }
 
     /// @dev Function to mint a single collection token to a specified recipient
@@ -246,7 +249,7 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
     /// @dev Function to mint collection tokens in batches to the caller, ie a user
     /// @notice returned tokenId range is inclusive
     function batchMint(address collection, address paymentCoin, uint256 quantity) external whenNotPaused {
-        _batchMint(collection, paymentCoin, msg.sender, quantity);
+        _batchMint(collection, paymentCoin, _msgSender(), quantity);
     }
 
     /// @dev Function to mint collection tokens in batches to a specified recipient
@@ -287,6 +290,7 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
         // mint NFTs
         IERC721Rails(collection).mintTo(recipient, quantity);
     }
+
     /*===========
         PAUSE
     ===========*/
@@ -297,6 +301,30 @@ contract StablecoinPurchaseController is SetupController, PermitController, FeeC
 
     function unpause() public onlyOwner {
         _unpause();
+    }
+
+    /*=============
+        CONTEXT
+    =============*/
+
+    function _msgSender() 
+        internal 
+        view 
+        virtual 
+        override(ERC2771ContextInitializable, Context) 
+        returns (address) 
+    {
+        return ERC2771ContextInitializable._msgSender();
+    }
+
+    function _msgData() 
+        internal 
+        view 
+        virtual 
+        override(ERC2771ContextInitializable, Context) 
+        returns (bytes calldata) 
+    {
+        return ERC2771ContextInitializable._msgData();
     }
 
     /*============

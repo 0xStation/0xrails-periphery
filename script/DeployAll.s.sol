@@ -30,6 +30,7 @@ import {PayoutAddressExtension} from "src/membership/extensions/PayoutAddress/Pa
 import {ITokenFactory} from "src/factory/ITokenFactory.sol";
 import {TokenFactory} from "src/factory/TokenFactory.sol";
 import {PermitMintController} from "src/token/controller/PermitMintController.sol";
+import {ERC2771Forwarder} from "0xrails/lib/ERC2771/ERC2771Forwarder.sol";
 
 /// @dev Script to deploy *all* GroupOS contracts other than the Safe and AdminGuard
 /// Usage:
@@ -60,6 +61,7 @@ contract DeployAll is ScriptUtils {
     // The following GroupOS contracts will be deployed:
     MetadataRouter metadataRouterImpl;
     MetadataRouter metadataRouter; // proxy
+    ERC2771Forwarder forwarder;
     TokenFactory tokenFactoryImpl;
     TokenFactory tokenFactory; // proxy
     OnePerAddressGuard onePerAddressGuard;
@@ -82,6 +84,10 @@ contract DeployAll is ScriptUtils {
     // `handleFeeManager` params configuration
     uint256 newDefaultBaseFee = 0;
     uint256 newDefaultVariableFee = 0;
+
+
+    // ERC2771Forwarder domain string
+    string domainName = "GroupOSForwarder";
 
     /// @notice Checkout lib/protocol-ops vX.Y.Z to automatically get addresses
     DeploysJson $deploys = setDeploysJsonStruct();
@@ -111,9 +117,10 @@ contract DeployAll is ScriptUtils {
         // accountGroup deployments
         accountGroupImpl = handleAccountGroupImpl(salt);
         accountGroup = handleAccountGroupProxy(salt, owner, address(accountGroupImpl));
+        forwarder = handleForwarder(salt, domainName);
         permissionGatedInitializer = handlePermissionGatedInitializer(salt);
-        initializeAccountController = handleInitializeAccountController(salt);
-        mintCreateInitializeController = handleMintCreateInitializeController(salt);
+        initializeAccountController = handleInitializeAccountController(salt, address(forwarder));
+        mintCreateInitializeController = handleMintCreateInitializeController(salt, address(forwarder));
 
         // groupOS deployments
         metadataRouterImpl = handleMetadataRouterImpl(salt);
@@ -125,7 +132,8 @@ contract DeployAll is ScriptUtils {
             address(erc20Rails), 
             address(erc721Rails), 
             address(erc1155Rails), 
-            address(tokenFactoryImpl)
+            address(tokenFactoryImpl),
+            address(forwarder)
         );
 
         onePerAddressGuard = handleOnePerAddressGuard(salt);
@@ -133,13 +141,13 @@ contract DeployAll is ScriptUtils {
         payoutAddressExtension = handlePayoutAddressExtension(salt);
 
         feeManager = handleFeeManager(owner, salt);
-        erc721FreeMintController = handleFreeMintController(owner, address(feeManager), salt);
-        erc721GasCoinPurchaseController = handleGasCoinPurchaseController(owner, address(feeManager), salt);
+        erc721FreeMintController = handleFreeMintController(owner, address(feeManager), address(forwarder), salt);
+        erc721GasCoinPurchaseController = handleGasCoinPurchaseController(owner, address(feeManager), address(forwarder), salt);
 
         // using stablecoin 'environment' params above
-        erc721StablecoinPurchaseController = handleStablecoinPurchaseController(owner, address(feeManager), decimals, currency, salt);
+        erc721StablecoinPurchaseController = handleStablecoinPurchaseController(owner, address(feeManager), decimals, currency, address(forwarder), salt);
 
-        permitMintController = handlePermitMintController(salt);
+        permitMintController = handlePermitMintController(address(forwarder), salt);
 
         // After deployments, format Multicall3 calls and execute it from FounderSafe as module sender
         
@@ -240,7 +248,7 @@ contract DeployAll is ScriptUtils {
         // 0xRails contracts
         logAddress("CallPermitValidator @", Strings.toHexString(address(callPermitValidator)));
         logAddress("BotAccountImpl @", Strings.toHexString(address(botAccountImpl)));
-        logAddress("botAccount @", Strings.toHexString(address(botAccount)));
+        logAddress("BotAccount @", Strings.toHexString(address(botAccount)));
         logAddress("ERC721Rails @", Strings.toHexString(address(erc721Rails)));
         logAddress("ERC20Rails @", Strings.toHexString(address(erc20Rails)));
         logAddress("ERC1155Rails @", Strings.toHexString(address(erc1155Rails)));
@@ -256,6 +264,7 @@ contract DeployAll is ScriptUtils {
         logAddress("MetaDataRouterProxy @", Strings.toHexString(address(metadataRouter)));
         logAddress("TokenFactoryImpl @", Strings.toHexString(address(tokenFactoryImpl)));
         logAddress("TokenFactoryProxy @", Strings.toHexString(address(tokenFactory)));
+        logAddress("ERC2771Forwarder @", Strings.toHexString(address(forwarder)));
         logAddress("OnePerAddressGuard @", Strings.toHexString(address(onePerAddressGuard)));
         logAddress("NFTMetadataRouterExtension @", Strings.toHexString(address(nftMetadataRouterExtension)));
         logAddress("PayoutAddressExtension @", Strings.toHexString(address(payoutAddressExtension)));
@@ -313,6 +322,12 @@ contract DeployAll is ScriptUtils {
             : new ERC721AccountRails{salt: _salt}(_entryPointAddress);
     }
 
+    function handleForwarder(bytes32 _salt, string memory _domainName) internal returns (ERC2771Forwarder _forwarder) {
+        _forwarder = isDeployed($deploys.ERC2771Forwarder)
+            ? ERC2771Forwarder($deploys.ERC2771Forwarder)
+            : new ERC2771Forwarder{salt: _salt}(_domainName); 
+    }
+
     function handleAccountGroupImpl(bytes32 _salt)
         internal
         returns (AccountGroup _impl)
@@ -337,16 +352,16 @@ contract DeployAll is ScriptUtils {
             : new PermissionGatedInitializer{salt: _salt}();
     }
 
-    function handleInitializeAccountController(bytes32 _salt) internal returns (InitializeAccountController _initializeAccountController) {
+    function handleInitializeAccountController(bytes32 _salt, address _forwarder) internal returns (InitializeAccountController _initializeAccountController) {
         _initializeAccountController = isDeployed($deploys.InitializeAccountController)
             ? InitializeAccountController($deploys.InitializeAccountController)
-            : new InitializeAccountController{salt: _salt}();
+            : new InitializeAccountController{salt: _salt}(_forwarder);
     }
 
-    function handleMintCreateInitializeController(bytes32 _salt) internal returns (MintCreateInitializeController _mintCreateInitializeController) {
+    function handleMintCreateInitializeController(bytes32 _salt, address _forwarder) internal returns (MintCreateInitializeController _mintCreateInitializeController) {
         _mintCreateInitializeController = isDeployed($deploys.MintCreateInitializeController)
             ? MintCreateInitializeController($deploys.MintCreateInitializeController)
-            : new MintCreateInitializeController{salt: _salt}();
+            : new MintCreateInitializeController{salt: _salt}(_forwarder);
     }
 
     function handleMetadataRouterImpl(bytes32 _salt) internal returns (MetadataRouter _impl) {
@@ -378,11 +393,12 @@ contract DeployAll is ScriptUtils {
         address _erc20Rails, 
         address _erc721Rails, 
         address _erc1155Rails, 
-        address _tokenFactoryImpl
+        address _tokenFactoryImpl,
+        address _forwarder
     ) internal
         returns (TokenFactory _proxy) 
     {
-        bytes memory tokenFactoryInitData = abi.encodeWithSelector(TokenFactory.initialize.selector, _owner, _erc20Rails, _erc721Rails, _erc1155Rails);
+        bytes memory tokenFactoryInitData = abi.encodeWithSelector(TokenFactory.initialize.selector, _owner, _erc20Rails, _erc721Rails, _erc1155Rails, _forwarder);
 
         _proxy = isDeployed($deploys.TokenFactoryProxy) 
             ? TokenFactory($deploys.TokenFactoryProxy)
@@ -420,22 +436,22 @@ contract DeployAll is ScriptUtils {
             : new FeeManager{salt: _salt}(_owner, _defaultBaseFee, _defaultVariableFee, _ethBaseFee, _defaultVariableFee);
     }
 
-    function handleFreeMintController(address _owner, address _feeManager, bytes32 _salt)
+    function handleFreeMintController(address _owner, address _feeManager, address _forwarder, bytes32 _salt)
         internal
         returns (FreeMintController _freeMintController)
     {
         _freeMintController = isDeployed($deploys.ERC721FreeMintController)
             ? FreeMintController($deploys.ERC721FreeMintController)
-            : new FreeMintController{salt: _salt}(_owner, _feeManager);
+            : new FreeMintController{salt: _salt}(_owner, _feeManager, _forwarder);
     }
 
-    function handleGasCoinPurchaseController(address _owner, address _feeManager, bytes32 _salt)
+    function handleGasCoinPurchaseController(address _owner, address _feeManager, address _forwarder, bytes32 _salt)
         internal
         returns (GasCoinPurchaseController _gasCoinPurchaseController)
     {
         _gasCoinPurchaseController = isDeployed($deploys.ERC721GasCoinPurchaseController)
             ? GasCoinPurchaseController($deploys.ERC721GasCoinPurchaseController)
-            : new GasCoinPurchaseController{salt: _salt}(_owner, _feeManager);
+            : new GasCoinPurchaseController{salt: _salt}(_owner, _feeManager, _forwarder);
     }
 
     function handleStablecoinPurchaseController(
@@ -443,17 +459,18 @@ contract DeployAll is ScriptUtils {
         address _feeManager,
         uint8 _decimals,
         string memory _currency,
+        address _forwarder,
         bytes32 _salt
     ) internal returns (StablecoinPurchaseController _stablecoinPurchaseController) {
         _stablecoinPurchaseController = isDeployed($deploys.ERC721StablecoinPurchaseController) 
             ? StablecoinPurchaseController($deploys.ERC721StablecoinPurchaseController)
-            : new StablecoinPurchaseController{salt: _salt}(_owner, _feeManager, _decimals, _currency);
+            : new StablecoinPurchaseController{salt: _salt}(_owner, _feeManager, _decimals, _currency, _forwarder);
     }
 
-    function handlePermitMintController(bytes32 _salt) internal returns (PermitMintController _permitMintController) {
+    function handlePermitMintController(address _forwarder, bytes32 _salt) internal returns (PermitMintController _permitMintController) {
         _permitMintController = isDeployed($deploys.PermitMintController)
             ? PermitMintController($deploys.PermitMintController)
-            : new PermitMintController{salt: _salt}();
+            : new PermitMintController{salt: _salt}(_forwarder);
     }
 
     function isDeployed(address target) internal returns (bool) {

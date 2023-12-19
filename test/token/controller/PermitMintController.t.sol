@@ -11,7 +11,7 @@ import {Operations} from "0xrails/lib/Operations.sol";
 import {ERC20Rails} from "0xrails/cores/ERC20/ERC20Rails.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 
-contract PermitMintControllerTest is Test, PermitMintController {
+contract PermitMintControllerTest is Test, PermitMintController(address(0x0)) { // forwarder not necessary
     PermitMintController public permitMintController;
     FeeManager public feeManager;
     ERC20Rails public erc20Impl;
@@ -47,12 +47,14 @@ contract PermitMintControllerTest is Test, PermitMintController {
 
         // deploy infra
         feeManager = new FeeManager(owner, 0, 0, 0, 0);
-        permitMintController = new PermitMintController();
+        // forwarder not in scope of these tests
+        permitMintController = new PermitMintController(address(0x0));
 
         // deploy collection & assign for convenience
         erc20Impl = new ERC20Rails();
         erc20Proxy = ERC20Rails(payable(address(new ERC1967Proxy(address(erc20Impl), bytes("")))));
-        erc20Proxy.initialize(owner, "", "", "");
+        // forwarder not in scope of these tests
+        erc20Proxy.initialize(owner, "", "", "", address(0x0));
         collection = address(erc20Proxy);
 
         // add mint permission to permitMintController & someSigner

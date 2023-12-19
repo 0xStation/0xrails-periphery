@@ -27,7 +27,7 @@ abstract contract SetUpMembership is Helpers {
         membershipImpl = new ERC721Rails();
         membershipFactoryImpl = new TokenFactory();
         membershipFactory = TokenFactory(address(new ERC1967Proxy(address(membershipFactoryImpl), bytes(""))));
-        membershipFactory.initialize(owner, address(0x0), address(membershipImpl), address(0x0));
+        membershipFactory.initialize(owner, address(0x0), address(membershipImpl), address(0x0), address(0x0));
         payoutAddressExtension = new PayoutAddressExtension();
     }
 

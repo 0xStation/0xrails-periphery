@@ -32,7 +32,8 @@ contract FreeMintControllerTest is Test, SetUpMembership {
         // instantiate feeManager with fuzzed base and variable fees as baseline
         feeManager = new FeeManager(owner, baseFee, variableFee, baseFee, variableFee);
 
-        module = new FreeMintController(owner, address(feeManager));
+        // forwarder not in scope of these tests
+        module = new FreeMintController(owner, address(feeManager), address(0x0));
 
         // enable grants in module config setup and give module mint permission on proxy
         vm.startPrank(owner);

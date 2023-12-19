@@ -3,13 +3,14 @@ pragma solidity ^0.8.13;
 
 import {SignatureChecker, ECDSA} from "openzeppelin-contracts/utils/cryptography/SignatureChecker.sol";
 import {Address} from "openzeppelin-contracts/utils/Address.sol";
-import {NonceBitMap} from "src/lib/NonceBitMap.sol";
+import {NonceBitMap} from "0xrails/lib/NonceBitMap.sol";
+import {ERC2771ContextInitializable} from "0xrails/lib/ERC2771/ERC2771ContextInitializable.sol";
 
 /// @title PermitController: EIP-712 Signature Module for Permit-Based Function Authentication
 /// @dev This contract provides a framework for permit-based function authentication using EIP-712 signatures.
 /// It allows callers to execute functions on behalf of authorized signers by presenting a valid permit
 /// containing an EIP-712 signature. This contract also includes reentrancy protection
-abstract contract PermitController is NonceBitMap {
+abstract contract PermitController is NonceBitMap, ERC2771ContextInitializable {
     /// @dev Struct of Permit data to be hashed and signed for meta-transactions.
     /// @param signer The authorized signer's address.
     /// @param sender The address of the sender.
@@ -59,9 +60,11 @@ abstract contract PermitController is NonceBitMap {
     address private verifiedSigner = UNVERIFIED;
     uint256 private lock = UNLOCKED;
 
-    constructor() {
+    /// @param forwarder_ The ERC2771 trusted forwarder
+    constructor(address forwarder_) {
         INITIAL_DOMAIN_SEPARATOR = _domainSeparator();
         INITIAL_CHAIN_ID = block.chainid;
+        _forwarderInitializer(forwarder_);
     }
 
     /*====================
@@ -86,7 +89,7 @@ abstract contract PermitController is NonceBitMap {
     }
 
     /// @notice Authenticate permit and make a self-call
-    /// @dev Can only be used on functions that are protected with onlyPermited
+    /// @dev Can only be used on functions that are protected with onlyPermitted
     function callWithPermit(Permit calldata permit) external payable {
         if (permit.expiration < block.timestamp) revert PermitExpired(permit.expiration, uint48(block.timestamp));
         if (permit.sender != address(0) && permit.sender != msg.sender) {

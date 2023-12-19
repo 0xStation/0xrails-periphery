@@ -11,10 +11,11 @@ import {Initializable} from "0xrails/lib/initializable/Initializable.sol";
 import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
 import {IERC20Rails} from "0xrails/cores/ERC20/interface/IERC20Rails.sol";
 import {IERC1155Rails} from "0xrails/cores/ERC1155/interface/IERC1155Rails.sol";
+import {ERC2771ContextInitializable} from "0xrails/lib/ERC2771/ERC2771ContextInitializable.sol";
 import {ITokenFactory} from "src/factory/ITokenFactory.sol";
 import {TokenFactoryStorage} from "src/factory/TokenFactoryStorage.sol";
 
-contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory {
+contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory, ERC2771ContextInitializable {
     /*============
         SET UP
     ============*/
@@ -22,11 +23,12 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
     constructor() Initializable() {}
 
     /// @inheritdoc ITokenFactory
-    function initialize(address owner_, address erc20Impl_, address erc721Impl_, address erc1155Impl_)
+    function initialize(address owner_, address erc20Impl_, address erc721Impl_, address erc1155Impl_, address forwarder_)
         external
         initializer
     {
         _transferOwnership(owner_);
+        _forwarderInitializer(forwarder_);
         _addImplementation(
             TokenFactoryStorage.TokenImpl({
                 implementation: erc20Impl_,
@@ -66,7 +68,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         token = payable(address(new ERC1967Proxy{salt: deploymentSalt}(implementation, bytes(""))));
         emit ERC20Created(token);
 
-        IERC20Rails(token).initialize(owner, name, symbol, initData);
+        IERC20Rails(token).initialize(owner, name, symbol, initData, trustedForwarder());
     }
 
     /// @inheritdoc ITokenFactory
@@ -84,7 +86,7 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         token = payable(address(new ERC1967Proxy{salt: deploymentSalt}(implementation, bytes(""))));
         emit ERC721Created(token);
 
-        IERC721Rails(token).initialize(owner, name, symbol, initData);
+        IERC721Rails(token).initialize(owner, name, symbol, initData, trustedForwarder());
     }
 
     /// @inheritdoc ITokenFactory
@@ -102,7 +104,12 @@ contract TokenFactory is Initializable, Ownable, UUPSUpgradeable, ITokenFactory 
         token = payable(address(new ERC1967Proxy{salt: deploymentSalt}(implementation, bytes(""))));
         emit ERC1155Created(token);
 
-        IERC1155Rails(token).initialize(owner, name, symbol, initData);
+        IERC1155Rails(token).initialize(owner, name, symbol, initData, trustedForwarder());
+    }
+
+    /// @dev Sets the ERC2771Forwarder address, for upgradability and for use during implementation upgrades
+    function setForwarder(address newForwarder) external onlyOwner {
+        _setForwarder(newForwarder);
     }
 
     /*===========

@@ -219,11 +219,13 @@ contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
 
         stablecoin = new FakeERC20(coinDecimals);
 
+        // forwarder not in scope of these tests
         stablecoinModule = new StablecoinPurchaseController(
             owner, 
             address(feeManager), 
             moduleDecimals,
-            "USD"
+            "USD",
+            address(0x0)
         );
 
         address[] memory setupStablecoins = new address[](1);
@@ -259,7 +261,8 @@ contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
             owner, 
             address(feeManager), 
             moduleDecimals,
-            "USD"
+            "USD", 
+            address(0x0)
         );
 
         address[] memory setupStablecoins = new address[](1);
@@ -334,7 +337,8 @@ contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
             owner, 
             address(feeManager), 
             moduleDecimals,
-            "USD"
+            "USD",
+            address(0x0)
         );
 
         vm.prank(owner);
@@ -1041,7 +1045,8 @@ contract StablecoinPurchaseControllerTest is Test, SetUpMembership {
             owner, 
             address(feeManager), 
             moduleDecimals,
-            "USD"
+            "USD",
+            address(0x0)
         );
 
         // enable grants in module config setup and give module mint permission on proxy

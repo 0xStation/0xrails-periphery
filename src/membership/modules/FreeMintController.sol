@@ -35,7 +35,10 @@ contract FreeMintController is SetupController, PermitController, FeeController 
 
     /// @param _newOwner The owner of the FeeControllerV2, an address managed by Station Network
     /// @param _feeManager The FeeManager's address
-    constructor(address _newOwner, address _feeManager) PermitController() FeeController(_newOwner, _feeManager) {}
+    /// @param _forwarder The ERC2771 trusted forwarder
+    constructor(address _newOwner, address _feeManager, address _forwarder) 
+        PermitController(_forwarder) 
+        FeeController(_newOwner, _feeManager) {}
 
     /// @dev Function to set up and configure a new collection
     /// @param collection The new collection to configure
@@ -49,7 +52,7 @@ contract FreeMintController is SetupController, PermitController, FeeController 
 
     /// @dev convenience function for setting up when creating collections, relies on auth done in public setUp
     function setUp(bool enablePermits) external {
-        setUp(msg.sender, enablePermits);
+        setUp(_msgSender(), enablePermits);
     }
 
     /*==========
@@ -58,7 +61,7 @@ contract FreeMintController is SetupController, PermitController, FeeController 
 
     /// @dev Function to mint a single collection token to the caller, ie a user
     function mint(address collection) external payable {
-        _batchMint(collection, msg.sender, 1);
+        _batchMint(collection, _msgSender(), 1);
     }
 
     /// @dev Function to mint a single collection token to a specified recipient
@@ -69,7 +72,7 @@ contract FreeMintController is SetupController, PermitController, FeeController 
     /// @dev Function to mint collection tokens in batches to the caller, ie a user
     /// @notice returned tokenId range is inclusive
     function batchMint(address collection, uint256 amount) external payable {
-        _batchMint(collection, msg.sender, amount);
+        _batchMint(collection, _msgSender(), amount);
     }
 
     /// @dev Function to mint collection tokens in batches to a specified recipient

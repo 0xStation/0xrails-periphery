@@ -40,7 +40,8 @@ contract MintCreateInitializeController is PermitController, SetupController, ER
         CONFIG
     ============*/
 
-    constructor() PermitController() {}
+    /// @param forwarder_ The ERC2771 trusted forwarder
+    constructor(address forwarder_) PermitController(forwarder_) {}
 
     /// @dev Function to set up and configure a new collection
     /// @param collection The new collection to configure
@@ -54,7 +55,7 @@ contract MintCreateInitializeController is PermitController, SetupController, ER
 
     /// @dev convenience function for setting up when creating collections, relies on auth done in public setUp
     function setUp(bool enablePermits) external {
-        setUp(msg.sender, enablePermits);
+        setUp(_msgSender(), enablePermits);
     }
 
     /*==========
@@ -98,7 +99,7 @@ contract MintCreateInitializeController is PermitController, SetupController, ER
     function requirePermits(bytes memory context) public view override returns (bool) {
         address collection = _decodePermitContext(context);
         return
-            !_disablePermits[collection] && !IPermissions(collection).hasPermission(Operations.MINT_PERMIT, msg.sender);
+            !_disablePermits[collection] && !IPermissions(collection).hasPermission(Operations.MINT_PERMIT, _msgSender());
     }
 
     function signerCanPermit(address signer, bytes memory context) public view override returns (bool) {

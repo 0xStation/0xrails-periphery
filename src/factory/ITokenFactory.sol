@@ -19,7 +19,7 @@ interface ITokenFactory {
 
     /// @dev Initializes the proxy for the factory
     /// @param owner_ The owner address to be set for the factory contract
-    function initialize(address owner_, address erc20Impl_, address erc721Impl_, address erc1155Impl_) external;
+    function initialize(address owner_, address erc20Impl_, address erc721Impl_, address erc1155Impl_, address forwarder_) external;
 
     /// @dev Function to create a new ERC20 token proxy using given data
     /// @param implementation The logic implementation address to be set for the created proxy

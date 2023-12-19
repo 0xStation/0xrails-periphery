@@ -2,11 +2,13 @@
 pragma solidity ^0.8.13;
 
 import {Multicall} from "openzeppelin-contracts/utils/Multicall.sol";
+import {Context} from "openzeppelin-contracts/utils/Context.sol";
 import {IERC20Rails} from "0xrails/cores/ERC20/interface/IERC20Rails.sol";
 import {IERC721Rails} from "0xrails/cores/ERC721/interface/IERC721Rails.sol";
 import {IERC1155Rails} from "0xrails/cores/ERC1155/interface/IERC1155Rails.sol";
 import {IPermissions} from "0xrails/access/permissions/interface/IPermissions.sol";
 import {Operations} from "0xrails/lib/Operations.sol";
+import {ERC2771ContextInitializable} from "0xrails/lib/ERC2771/ERC2771ContextInitializable.sol";
 import {PermitController} from "src/lib/module/PermitController.sol";
 import {SetupController} from "src/lib/module/SetupController.sol";
 
@@ -18,6 +20,8 @@ import {SetupController} from "src/lib/module/SetupController.sol";
 /// of the FeeManager (which charges a baseline default mint fee) nor the permit controller mapping
 contract PermitMintController is PermitController, SetupController, Multicall {
 
+    constructor(address forwarder_) PermitController(forwarder_) {}
+    
     /*==========
         MINT
     ==========*/
@@ -77,5 +81,29 @@ contract PermitMintController is PermitController, SetupController, Multicall {
 
     function requirePermits(bytes memory) public pure override returns (bool) {
         return true;
+    }
+
+    /*=============
+        CONTEXT
+    =============*/
+
+    function _msgSender() 
+        internal 
+        view 
+        virtual 
+        override(Context, ERC2771ContextInitializable) 
+        returns (address) 
+    {
+        return super._msgSender();
+    }
+
+    function _msgData() 
+        internal 
+        view 
+        virtual 
+        override(Context, ERC2771ContextInitializable) 
+        returns (bytes calldata) 
+    {
+        return super._msgData();
     }
 }

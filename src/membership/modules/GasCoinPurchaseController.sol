@@ -38,7 +38,9 @@ contract GasCoinPurchaseController is SetupController, PermitController, FeeCont
 
     /// @param _newOwner The owner of the FeeControllerV2, an address managed by Station Network
     /// @param _feeManager The FeeManager's address
-    constructor(address _newOwner, address _feeManager) PermitController() FeeController(_newOwner, _feeManager) {}
+    constructor(address _newOwner, address _feeManager, address _forwarder) 
+        PermitController(_forwarder) 
+        FeeController(_newOwner, _feeManager) {}
 
     /// @dev Function to set up and configure a new collection's purchase prices
     /// @param collection The new collection to configure
@@ -57,7 +59,7 @@ contract GasCoinPurchaseController is SetupController, PermitController, FeeCont
 
     /// @dev convenience function for setting up when creating collections, relies on auth done in public setUp
     function setUp(uint256 price, bool enablePermits) external {
-        setUp(msg.sender, price, enablePermits);
+        setUp(_msgSender(), price, enablePermits);
     }
 
     /*==========
@@ -72,7 +74,7 @@ contract GasCoinPurchaseController is SetupController, PermitController, FeeCont
 
     /// @dev Function to mint a single collection token to the caller, ie a user
     function mint(address collection) external payable {
-        _batchMint(collection, msg.sender, 1);
+        _batchMint(collection, _msgSender(), 1);
     }
 
     /// @dev Function to mint a single collection token to a specified recipient
@@ -83,7 +85,7 @@ contract GasCoinPurchaseController is SetupController, PermitController, FeeCont
     /// @dev Function to mint collection tokens in batches to the caller, ie a user
     /// @notice returned tokenId range is inclusive
     function batchMint(address collection, uint256 quantity) external payable {
-        _batchMint(collection, msg.sender, quantity);
+        _batchMint(collection, _msgSender(), quantity);
     }
 
     /// @dev Function to mint collection tokens in batches to a specified recipient
