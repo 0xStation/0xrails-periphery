@@ -53,8 +53,9 @@ contract ERC1155TokenManagerTransferGuard is IGuard, SetupModule {
         for (uint256 i; i < len; i++) {
             address manager = _tokenManagers[msg.sender][ids[i]];
             // deny token transfer requests that are not set to the operator, from, or to
-            // default is non-transferable so checking manager is not address(0) required too
-            if (manager != address(0) && manager != operator && manager != from && manager != to) {
+            // operator, from, and to will never be address(0) if used as a Transfer guard,
+            // so default manager value address(0) provides non-transferable default
+            if (!(manager == operator || manager == from || manager == to)) {
                 revert NotAllowed(from, to, ids[i]);
             }
         }
