@@ -9,7 +9,7 @@ import {SetupModule} from "src/lib/module/SetupModule.sol";
 /// @title ERC1155TokenManagerTransferGuard Contract
 /// @author Conner (@ilikesymmetry)
 contract ERC1155TokenManagerTransferGuard is IGuard, SetupModule {
-    error NotAllowed(address from, address to, uint256 tokenId);
+    error NotTokenManager(uint256 tokenId, address operator, address from, address to);
 
     event TokenManagerUpdated(address indexed collection, uint256 indexed tokenId, address indexed manager);
 
@@ -56,7 +56,7 @@ contract ERC1155TokenManagerTransferGuard is IGuard, SetupModule {
             // operator, from, and to will never be address(0) if used as a Transfer guard,
             // so default manager value address(0) provides non-transferable default
             if (!(manager == operator || manager == from || manager == to)) {
-                revert NotAllowed(from, to, ids[i]);
+                revert NotTokenManager(ids[i], operator, from, to);
             }
         }
     }
