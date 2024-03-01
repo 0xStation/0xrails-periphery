@@ -2,8 +2,6 @@
 pragma solidity ^0.8.19;
 
 import {IGuard} from "0xrails/guard/interface/IGuard.sol";
-import {IERC721} from "0xrails/cores/ERC721/interface/IERC721.sol";
-
 import {SetupModule} from "src/lib/module/SetupModule.sol";
 
 /// @title ERC1155TokenManagerTransferGuard Contract
@@ -40,6 +38,13 @@ contract ERC1155TokenManagerTransferGuard is IGuard, SetupModule {
     /*===========
         VIEWS
     ===========*/
+
+    /// @notice Get the token manager for a specific tokenId on an ERC1155 collection
+    /// @param collection address of ERC1155 token contract
+    /// @param tokenId id of specific token in ERC1155 collection
+    function getTokenManager(address collection, uint256 tokenId) external view returns (address) {
+        return _tokenManagers[collection][tokenId];
+    }
 
     /// @dev Hook to perform pre-call checks and return guard information.
     /// @param data The data associated with the action, including relevant parameters.
