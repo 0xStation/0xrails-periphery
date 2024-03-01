@@ -4,7 +4,7 @@
 	branch = v1.5.3
 [submodule "lib/openzeppelin-contracts"]
 	path = lib/openzeppelin-contracts
-	url = https://github.com/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
 	branch = v4.9.5
 [submodule "lib/openzeppelin-contracts-upgradeable"]
 	path = lib/openzeppelin-contracts-upgradeable
