@@ -27,7 +27,6 @@ contract PayoutAddressExtensionTest is Test, MockAccountDeployer, ERC721Rails {
 
         // deploy payoutAddressExtension as `owner` so it grants `owner` ADMIN permission
         payoutAddressExtension = new PayoutAddressExtension();
-        vm.stopPrank();
 
         // ERC721Rails is just used to access the `Permissions::hasPermission()` method,
         // so no proxy is necessary in this test file- the impl will do
